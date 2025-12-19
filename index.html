@@ -38,37 +38,84 @@
       overflow: hidden;
     }
 
-    /* Ambient background layers */
+    /* ===== Background (banding-resistant) =====
+       Approach:
+       - smaller off-center lights (less bullseye/rings)
+       - layered fog (slow movement)
+       - grain overlay (kills banding on dark gradients)
+    */
+
     .bg{
+      position: fixed;
+      inset: -25%;
+      z-index: 0;
+      pointer-events: none;
+
+      /* Smaller, offset light pools */
+      background:
+        radial-gradient(420px 320px at 12% 18%, rgba(120,255,180,.10), transparent 70%),
+        radial-gradient(520px 380px at 82% 22%, rgba(120,180,255,.09), transparent 72%),
+        radial-gradient(650px 520px at 58% 92%, rgba(255,120,180,.06), transparent 75%),
+        radial-gradient(900px 700px at 45% 55%, rgba(255,255,255,.025), transparent 78%);
+
+      filter: blur(18px);
+      opacity: .95;
+      animation: drift 18s ease-in-out infinite alternate;
+    }
+
+    /* Fog layer: adds "depth" without visible rings */
+    .fog{
       position: fixed;
       inset: -30%;
       z-index: 0;
       pointer-events: none;
+
       background:
-        radial-gradient(700px 500px at 18% 22%, rgba(120,255,180,.12), transparent 62%),
-        radial-gradient(900px 550px at 78% 28%, rgba(120,180,255,.10), transparent 60%),
-        radial-gradient(1100px 800px at 55% 92%, rgba(255,120,180,.07), transparent 60%),
-        radial-gradient(1300px 950px at 50% 50%, rgba(255,255,255,.035), transparent 58%);
-      filter: blur(18px);
-      animation: drift 16s ease-in-out infinite alternate;
+        radial-gradient(700px 520px at 30% 40%, rgba(255,255,255,.035), transparent 65%),
+        radial-gradient(760px 580px at 70% 60%, rgba(255,255,255,.028), transparent 68%),
+        radial-gradient(820px 620px at 45% 80%, rgba(255,255,255,.020), transparent 70%);
+
+      filter: blur(26px);
+      opacity: .6;
+      animation: fogDrift 26s ease-in-out infinite alternate;
+      mix-blend-mode: screen;
     }
 
+    /* Grain/noise overlay: prevents banding */
+    .grain{
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: .065;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+      background-size: 220px 220px;
+      mix-blend-mode: overlay;
+      transform: translateZ(0);
+    }
+
+    /* Vignette to keep edges darker */
     .vignette{
       position: fixed;
       inset: 0;
       z-index: 0;
       pointer-events: none;
       background:
-        radial-gradient(1200px 900px at 50% 45%, transparent 55%, rgba(0,0,0,.55) 100%);
-      opacity: .9;
+        radial-gradient(1200px 900px at 50% 45%, transparent 55%, rgba(0,0,0,.60) 100%);
+      opacity: .92;
     }
 
     @keyframes drift{
-      0%   { transform: translate3d(-2%, -1%, 0) scale(1.03); }
-      100% { transform: translate3d(2%, 1%, 0) scale(1.07); }
+      0%   { transform: translate3d(-1.5%, -1%, 0) scale(1.02); }
+      100% { transform: translate3d(1.5%, 1%, 0) scale(1.06); }
     }
 
-    /* Main card */
+    @keyframes fogDrift{
+      0%   { transform: translate3d(-1.2%, 0.6%, 0) scale(1.02); opacity: .52; }
+      100% { transform: translate3d(1.2%, -0.6%, 0) scale(1.05); opacity: .68; }
+    }
+
+    /* ===== Main card ===== */
     .card{
       position: relative;
       z-index: 1;
@@ -83,7 +130,7 @@
       overflow: hidden;
     }
 
-    /* WoW-ish "frame" effect */
+    /* inner trim */
     .card::before{
       content:"";
       position: absolute;
@@ -93,7 +140,7 @@
       pointer-events: none;
     }
 
-    /* subtle corner glow + arcane feel */
+    /* subtle corner glow */
     .card::after{
       content:"";
       position: absolute;
@@ -147,7 +194,6 @@
       z-index: 2;
     }
 
-    /* Quest-log style section header */
     .section-title{
       margin: 1.1rem 0 .65rem;
       font-family: "Cinzel", serif;
@@ -163,11 +209,7 @@
       width: 210px;
       height: 1px;
       margin: 0 auto 1.2rem;
-      background: linear-gradient(to right,
-        transparent,
-        rgba(255,255,255,.28),
-        transparent
-      );
+      background: linear-gradient(to right, transparent, rgba(255,255,255,.28), transparent);
       position: relative;
       overflow: hidden;
       border-radius: 999px;
@@ -198,7 +240,6 @@
       z-index: 2;
     }
 
-    /* WoW-ish "tooltip pill" */
     .pill{
       display:inline-flex;
       align-items:center;
@@ -227,7 +268,6 @@
       flex: 0 0 auto;
     }
 
-    /* Buttons */
     .btn{
       appearance:none;
       border: 1px solid rgba(255,255,255,.14);
@@ -247,27 +287,9 @@
       border-color: rgba(255,255,255,.24);
       box-shadow: 0 0 24px rgba(120,255,180,.06);
     }
-    .btn:active{
-      transform: translateY(1px);
-    }
+    .btn:active{ transform: translateY(1px); }
+    .btn.secondary{ background: rgba(0,0,0,.22); }
 
-    .btn.secondary{
-      background: rgba(0,0,0,.22);
-    }
-
-    /* Small RS-ish label (if you ever want it back) */
-    .label{
-      font-family: "Cinzel", serif;
-      font-size: 0.72rem;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      opacity: 0.55;
-      margin-top: 1.25rem;
-      position: relative;
-      z-index: 2;
-    }
-
-    /* Toast */
     .toast{
       position: fixed;
       left: 50%;
@@ -295,6 +317,8 @@
 
 <body>
   <div class="bg"></div>
+  <div class="fog"></div>
+  <div class="grain"></div>
   <div class="vignette"></div>
 
   <main class="card">
@@ -314,15 +338,11 @@
       <button class="btn" id="genBtn">Generate</button>
       <button class="btn secondary" id="copyBtn">Copy</button>
     </div>
-
-    <!-- keep this if you want a quiet footer later -->
-    <!-- <div class="label">wmywoes.github.io</div> -->
   </main>
 
   <div class="toast" id="toast">Copied</div>
 
   <script>
-    // More "Woes-y" word pool (rogue/dark fantasy-ish)
     const starts = [
       "Rook","Wraith","Shade","Gloom","Night","Umber","Vesper","Grave","Ash","Sable",
       "Cipher","Dusk","Obsid","Ruin","Hollow","Fang","Thorn","Murk","Noct","Veil",
@@ -331,7 +351,7 @@
     const ends = [
       "blade","step","mark","veil","shard","song","strike","whisper","shade","cloak",
       "hand","thorn","cinder","hush","drift","gaze","edge","rift","sigil","warden",
-      "fang","knife","shade","binder","runner","grim","sleight","scar","lurk","mire"
+      "fang","knife","binder","runner","grim","sleight","scar","lurk","mire"
     ];
 
     const pill = document.getElementById("namePill");
@@ -345,14 +365,9 @@
     function generate(){
       const a = pick(starts);
       const b = pick(ends);
-
-      // Choose format: CamelCase compound or fused single
-      let name;
-      if (Math.random() < 0.55) {
-        name = a + b.charAt(0).toUpperCase() + b.slice(1); // ShadeBlade
-      } else {
-        name = a + b; // Rookshade
-      }
+      let name = (Math.random() < 0.55)
+        ? a + b.charAt(0).toUpperCase() + b.slice(1)
+        : a + b;
 
       text.textContent = name;
 
@@ -375,7 +390,6 @@
         await navigator.clipboard.writeText(value);
         showToast("Copied");
       }catch(e){
-        // fallback
         const ta = document.createElement("textarea");
         ta.value = value;
         document.body.appendChild(ta);
@@ -388,11 +402,8 @@
 
     genBtn.addEventListener("click", generate);
     copyBtn.addEventListener("click", copyName);
-
-    // extra: double click the name pill to copy
     pill.addEventListener("dblclick", copyName);
 
-    // generate once on load
     generate();
   </script>
 </body>
