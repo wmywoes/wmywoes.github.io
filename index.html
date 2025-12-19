@@ -5,23 +5,29 @@
   <title>Woes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Fonts: WoW-ish fantasy header + clean readable UI -->
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
   <style>
     :root{
       --bg: #0b0b0e;
       --fg: #e6e6eb;
-      --muted: rgba(230,230,235,.65);
+
       --card: rgba(255,255,255,.035);
-      --border: rgba(255,255,255,.10);
-      --shadow: rgba(0,0,0,.65);
-      --accent: rgba(120, 255, 180, .9);
+      --border: rgba(255,255,255,.11);
+      --shadow: rgba(0,0,0,.70);
+
+      --muted: rgba(230,230,235,.68);
+      --dim: rgba(230,230,235,.42);
+
+      --accent: rgba(120, 255, 180, .95);   /* poison/rogue-ish */
+      --accent2: rgba(120, 180, 255, .55);  /* cool blue */
+      --accent3: rgba(255, 120, 180, .35);  /* faint magenta */
     }
 
-    *{ box-sizing: border-box; }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
 
-    body {
+    body{
       margin: 0;
       min-height: 100vh;
       display: grid;
@@ -32,127 +38,184 @@
       overflow: hidden;
     }
 
-    /* subtle animated background */
-    .bg {
+    /* Ambient background layers */
+    .bg{
       position: fixed;
-      inset: -20%;
-      background:
-        radial-gradient(600px 400px at 20% 30%, rgba(120,255,180,.10), transparent 60%),
-        radial-gradient(700px 450px at 75% 35%, rgba(120,180,255,.08), transparent 60%),
-        radial-gradient(900px 650px at 50% 85%, rgba(255,120,180,.06), transparent 60%),
-        radial-gradient(1200px 900px at 50% 50%, rgba(255,255,255,.03), transparent 55%);
-      filter: blur(20px);
-      animation: drift 18s ease-in-out infinite alternate;
-      pointer-events: none;
+      inset: -30%;
       z-index: 0;
-    }
-    @keyframes drift{
-      0%   { transform: translate3d(-2%, -1%, 0) scale(1.02); }
-      100% { transform: translate3d(2%, 1%, 0) scale(1.06); }
+      pointer-events: none;
+      background:
+        radial-gradient(700px 500px at 18% 22%, rgba(120,255,180,.12), transparent 62%),
+        radial-gradient(900px 550px at 78% 28%, rgba(120,180,255,.10), transparent 60%),
+        radial-gradient(1100px 800px at 55% 92%, rgba(255,120,180,.07), transparent 60%),
+        radial-gradient(1300px 950px at 50% 50%, rgba(255,255,255,.035), transparent 58%);
+      filter: blur(18px);
+      animation: drift 16s ease-in-out infinite alternate;
     }
 
-    .card {
+    .vignette{
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(1200px 900px at 50% 45%, transparent 55%, rgba(0,0,0,.55) 100%);
+      opacity: .9;
+    }
+
+    @keyframes drift{
+      0%   { transform: translate3d(-2%, -1%, 0) scale(1.03); }
+      100% { transform: translate3d(2%, 1%, 0) scale(1.07); }
+    }
+
+    /* Main card */
+    .card{
       position: relative;
       z-index: 1;
-      width: min(620px, calc(100% - 2rem));
-      padding: 2.35rem 2.7rem;
-      border-radius: 18px;
-      background: var(--card);
+      width: min(720px, calc(100% - 2rem));
+      padding: 2.6rem 2.9rem;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.028));
       border: 1px solid var(--border);
+      box-shadow: 0 0 65px var(--shadow);
+      backdrop-filter: blur(10px);
       text-align: center;
-      box-shadow: 0 0 48px var(--shadow);
-      backdrop-filter: blur(8px);
+      overflow: hidden;
     }
 
-    h1 {
-      margin: 0 0 0.45rem;
+    /* WoW-ish "frame" effect */
+    .card::before{
+      content:"";
+      position: absolute;
+      inset: 10px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.08);
+      pointer-events: none;
+    }
+
+    /* subtle corner glow + arcane feel */
+    .card::after{
+      content:"";
+      position: absolute;
+      inset: -40%;
+      background:
+        radial-gradient(380px 240px at 15% 20%, rgba(120,255,180,.12), transparent 60%),
+        radial-gradient(420px 260px at 85% 25%, rgba(120,180,255,.10), transparent 60%),
+        radial-gradient(500px 320px at 55% 92%, rgba(255,120,180,.08), transparent 60%);
+      filter: blur(22px);
+      opacity: .55;
+      animation: glowShift 10s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+
+    @keyframes glowShift{
+      0%   { transform: translate3d(-1%, -1%, 0) scale(1.00); opacity: .50; }
+      100% { transform: translate3d(1%, 1%, 0) scale(1.03); opacity: .62; }
+    }
+
+    /* sheen on hover */
+    .sheen{
+      position:absolute;
+      inset:-60%;
+      background: linear-gradient(120deg, transparent 35%, rgba(255,255,255,.08) 50%, transparent 65%);
+      transform: translateX(-40%) rotate(10deg);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .card:hover .sheen{
+      opacity: 1;
+      animation: sweep 1.0s ease-out forwards;
+    }
+    @keyframes sweep{
+      0%   { transform: translateX(-55%) rotate(10deg); opacity: 0; }
+      15%  { opacity: .8; }
+      100% { transform: translateX(55%) rotate(10deg); opacity: 0; }
+    }
+
+    /* Typography */
+    h1{
+      margin: 0 0 .9rem;
       font-family: "Cinzel", serif;
-      font-size: 2.55rem;
+      font-size: clamp(2.3rem, 4vw, 2.9rem);
       font-weight: 600;
-      letter-spacing: 0.14em;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
       text-shadow:
-        0 0 12px rgba(120,255,180,.12),
-        0 0 24px rgba(120,255,180,.06);
-    }
-
-    p {
-      margin: 0;
-      opacity: 0.78;
-      line-height: 1.55;
+        0 0 14px rgba(120,255,180,.10),
+        0 0 28px rgba(120,255,180,.06);
+      position: relative;
+      z-index: 2;
     }
 
     /* Quest-log style section header */
-    .section-title {
+    .section-title{
+      margin: 1.1rem 0 .65rem;
       font-family: "Cinzel", serif;
-      font-size: 0.95rem;
-      letter-spacing: 0.16em;
+      font-size: .95rem;
+      letter-spacing: 0.18em;
       text-transform: uppercase;
-      opacity: 0.65;
-      margin: 1.6rem 0 0.75rem;
-      text-align: center;
+      opacity: .70;
+      position: relative;
+      z-index: 2;
     }
 
-    .divider {
-      width: 160px;
+    .divider{
+      width: 210px;
       height: 1px;
-      margin: 0 auto 1rem;
-      background: linear-gradient(
-        to right,
+      margin: 0 auto 1.2rem;
+      background: linear-gradient(to right,
         transparent,
-        rgba(255,255,255,.25),
+        rgba(255,255,255,.28),
         transparent
       );
+      position: relative;
+      overflow: hidden;
+      border-radius: 999px;
+      z-index: 2;
+    }
+    .divider::after{
+      content:"";
+      position:absolute;
+      inset: 0;
+      background: linear-gradient(to right, transparent, rgba(120,255,180,.55), transparent);
+      transform: translateX(-60%);
+      animation: dividerSweep 3.2s ease-in-out infinite;
+      opacity: .7;
+    }
+    @keyframes dividerSweep{
+      0%   { transform: translateX(-60%); opacity:.15; }
+      50%  { transform: translateX(60%);  opacity:.75; }
+      100% { transform: translateX(-60%); opacity:.15; }
     }
 
     .row{
-      display: flex;
+      display:flex;
       gap: .75rem;
-      justify-content: center;
-      align-items: center;
+      justify-content:center;
+      align-items:center;
       flex-wrap: wrap;
-      margin-top: .25rem;
+      position: relative;
+      z-index: 2;
     }
 
-    button{
-      appearance: none;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.04);
-      color: var(--fg);
-      padding: .7rem 1rem;
-      border-radius: 12px;
-      cursor: pointer;
-      font-weight: 600;
-      letter-spacing: .02em;
-      transition: transform .08s ease, background .2s ease, border-color .2s ease;
-    }
-    button:hover{
-      background: rgba(255,255,255,.07);
-      border-color: rgba(255,255,255,.22);
-    }
-    button:active{ transform: translateY(1px); }
-
-    /* WoW-ish "tooltip" styling for the pill */
-    .tooltip {
-      font-family: "Inter", system-ui, sans-serif;
-      font-size: 0.92rem;
-      line-height: 1.45;
-      color: rgba(230,230,235,.92);
-      background: rgba(0,0,0,.42);
-      border: 1px solid rgba(255,255,255,.14);
-      padding: .7rem 1rem;
-      border-radius: 12px;
-      box-shadow: 0 0 24px rgba(0,0,0,.75);
-    }
-
+    /* WoW-ish "tooltip pill" */
     .pill{
-      display: inline-flex;
-      align-items: center;
-      gap: .55rem;
-      min-width: 260px;
-      justify-content: center;
+      display:inline-flex;
+      align-items:center;
+      gap:.6rem;
+      min-width: 300px;
+      justify-content:center;
+
+      font-size: .98rem;
       font-weight: 650;
       letter-spacing: .03em;
+
+      background: rgba(0,0,0,.42);
+      border: 1px solid rgba(255,255,255,.14);
+      padding: .78rem 1.05rem;
+      border-radius: 14px;
+      box-shadow: 0 0 26px rgba(0,0,0,.78);
+      user-select: none;
     }
 
     .dot{
@@ -161,58 +224,121 @@
       border-radius: 999px;
       background: var(--accent);
       box-shadow: 0 0 18px rgba(120,255,180,.35);
+      flex: 0 0 auto;
     }
 
-    /* RuneScape-ish smallcaps label */
-    .label {
+    /* Buttons */
+    .btn{
+      appearance:none;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.045);
+      color: var(--fg);
+      padding: .78rem 1.05rem;
+      border-radius: 14px;
+      cursor:pointer;
+      font-weight: 650;
+      letter-spacing: .02em;
+      transition: transform .08s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+      position: relative;
+      z-index: 2;
+    }
+    .btn:hover{
+      background: rgba(255,255,255,.075);
+      border-color: rgba(255,255,255,.24);
+      box-shadow: 0 0 24px rgba(120,255,180,.06);
+    }
+    .btn:active{
+      transform: translateY(1px);
+    }
+
+    .btn.secondary{
+      background: rgba(0,0,0,.22);
+    }
+
+    /* Small RS-ish label (if you ever want it back) */
+    .label{
       font-family: "Cinzel", serif;
       font-size: 0.72rem;
       letter-spacing: 0.18em;
       text-transform: uppercase;
       opacity: 0.55;
+      margin-top: 1.25rem;
+      position: relative;
+      z-index: 2;
     }
 
-    .subtle {
-      margin-top: 1.35rem;
+    /* Toast */
+    .toast{
+      position: fixed;
+      left: 50%;
+      bottom: 26px;
+      transform: translateX(-50%);
+      padding: .65rem .85rem;
+      border-radius: 12px;
+      background: rgba(0,0,0,.62);
+      border: 1px solid rgba(255,255,255,.14);
+      box-shadow: 0 0 30px rgba(0,0,0,.8);
+      color: rgba(230,230,235,.95);
+      font-weight: 650;
+      letter-spacing: .02em;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease, transform .18s ease;
+      z-index: 5;
     }
-
-    a { color: inherit; opacity: .8; text-decoration: none; }
-    a:hover { opacity: 1; text-decoration: underline; }
+    .toast.show{
+      opacity: 1;
+      transform: translateX(-50%) translateY(-4px);
+    }
   </style>
 </head>
 
 <body>
   <div class="bg"></div>
+  <div class="vignette"></div>
 
   <main class="card">
+    <div class="sheen"></div>
+
     <h1>Woes</h1>
 
     <div class="section-title">Username Generator</div>
     <div class="divider"></div>
 
     <div class="row">
-      <div class="pill tooltip" id="namePill" title="Random username">
+      <div class="pill" id="namePill" title="Click Copy to copy the current name">
         <span class="dot"></span>
         <span id="nameText">Rookshade</span>
       </div>
 
-      <button id="genBtn">Generate</button>
+      <button class="btn" id="genBtn">Generate</button>
+      <button class="btn secondary" id="copyBtn">Copy</button>
     </div>
+
+    <!-- keep this if you want a quiet footer later -->
+    <!-- <div class="label">wmywoes.github.io</div> -->
   </main>
 
+  <div class="toast" id="toast">Copied</div>
+
   <script>
+    // More "Woes-y" word pool (rogue/dark fantasy-ish)
     const starts = [
       "Rook","Wraith","Shade","Gloom","Night","Umber","Vesper","Grave","Ash","Sable",
-      "Cipher","Dusk","Obsid","Ruin","Hollow","Fang","Thorn","Murk","Noct","Veil"
+      "Cipher","Dusk","Obsid","Ruin","Hollow","Fang","Thorn","Murk","Noct","Veil",
+      "Skulk","Ebon","Hex","Blight","Vile","Shiv","Stalker","Nox","Cloak","Razor"
     ];
     const ends = [
       "blade","step","mark","veil","shard","song","strike","whisper","shade","cloak",
-      "hand","thorn","cinder","hush","drift","gaze","edge","rift","sigil","warden"
+      "hand","thorn","cinder","hush","drift","gaze","edge","rift","sigil","warden",
+      "fang","knife","shade","binder","runner","grim","sleight","scar","lurk","mire"
     ];
 
     const pill = document.getElementById("namePill");
     const text = document.getElementById("nameText");
-    const btn  = document.getElementById("genBtn");
+    const genBtn = document.getElementById("genBtn");
+    const copyBtn = document.getElementById("copyBtn");
+    const toast = document.getElementById("toast");
 
     function pick(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
 
@@ -220,11 +346,12 @@
       const a = pick(starts);
       const b = pick(ends);
 
+      // Choose format: CamelCase compound or fused single
       let name;
-      if (Math.random() < 0.5) {
-        name = a + b; // Rookshade style
+      if (Math.random() < 0.55) {
+        name = a + b.charAt(0).toUpperCase() + b.slice(1); // ShadeBlade
       } else {
-        name = a + b.charAt(0).toUpperCase() + b.slice(1);
+        name = a + b; // Rookshade
       }
 
       text.textContent = name;
@@ -235,7 +362,37 @@
       );
     }
 
-    btn.addEventListener("click", generate);
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.classList.add("show");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.remove("show"), 900);
+    }
+
+    async function copyName(){
+      const value = text.textContent.trim();
+      try{
+        await navigator.clipboard.writeText(value);
+        showToast("Copied");
+      }catch(e){
+        // fallback
+        const ta = document.createElement("textarea");
+        ta.value = value;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        ta.remove();
+        showToast("Copied");
+      }
+    }
+
+    genBtn.addEventListener("click", generate);
+    copyBtn.addEventListener("click", copyName);
+
+    // extra: double click the name pill to copy
+    pill.addEventListener("dblclick", copyName);
+
+    // generate once on load
     generate();
   </script>
 </body>
