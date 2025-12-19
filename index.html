@@ -33,42 +33,43 @@
       overflow: hidden;
     }
 
-    /* ===== Rune Rain Canvas ===== */
+    /* ===== Background layers (no blob lights) ===== */
+
+    /* Rune Rain Canvas (base layer) */
     canvas#runes {
       position: fixed;
       inset: 0;
       z-index: 0;
       pointer-events: none;
-      opacity: 1;
     }
 
-    /* Very subtle grain to prevent any flat-band look */
+    /* Grain overlay (kills any residual banding on flat dark) */
     .grain{
       position: fixed;
       inset: 0;
-      z-index: 0;
+      z-index: 1;
       pointer-events: none;
-      opacity: .06;
+      opacity: .07;
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
       background-size: 220px 220px;
       mix-blend-mode: overlay;
       transform: translateZ(0);
     }
 
-    /* Vignette to keep edges darker */
+    /* Vignette (keeps edges darker) */
     .vignette{
       position: fixed;
       inset: 0;
-      z-index: 0;
+      z-index: 2;
       pointer-events: none;
-      background: radial-gradient(1200px 900px at 50% 45%, transparent 55%, rgba(0,0,0,.68) 100%);
+      background: radial-gradient(1200px 900px at 50% 45%, rgba(0,0,0,0) 55%, rgba(0,0,0,.72) 100%);
       opacity: .95;
     }
 
     /* ===== Main card ===== */
     .card{
       position: relative;
-      z-index: 1;
+      z-index: 3;
       width: min(720px, calc(100% - 2rem));
       padding: 2.6rem 2.9rem;
       border-radius: 20px;
@@ -90,42 +91,38 @@
       pointer-events: none;
     }
 
-    /* subtle corner glow (kept, but not "blobby") */
+    /* subtle card-local glow (small, not a background bubble) */
     .card::after{
       content:"";
       position: absolute;
-      inset: -40%;
+      inset: -60%;
       background:
-        radial-gradient(380px 240px at 15% 20%, rgba(120,255,180,.10), transparent 60%),
-        radial-gradient(420px 260px at 85% 25%, rgba(120,180,255,.08), transparent 60%),
-        radial-gradient(520px 340px at 55% 92%, rgba(255,120,180,.06), transparent 60%);
-      filter: blur(26px);
-      opacity: .35;
-      animation: glowShift 10s ease-in-out infinite alternate;
+        radial-gradient(420px 280px at 35% 35%, rgba(120,255,180,.10), transparent 62%),
+        radial-gradient(520px 360px at 70% 60%, rgba(120,180,255,.07), transparent 65%);
+      filter: blur(28px);
+      opacity: .30;
       pointer-events: none;
     }
 
-    @keyframes glowShift{
-      0%   { transform: translate3d(-1%, -1%, 0) scale(1.00); opacity: .30; }
-      100% { transform: translate3d(1%, 1%, 0) scale(1.02); opacity: .42; }
-    }
-
-    /* sheen on hover */
+    /* ===== Sheen: loop while hovered ===== */
     .sheen{
       position:absolute;
-      inset:-60%;
+      inset:-70%;
       background: linear-gradient(120deg, transparent 35%, rgba(255,255,255,.08) 50%, transparent 65%);
-      transform: translateX(-40%) rotate(10deg);
+      transform: translateX(-55%) rotate(10deg);
       opacity: 0;
       pointer-events: none;
     }
+
     .card:hover .sheen{
       opacity: 1;
-      animation: sweep 1.0s ease-out forwards;
+      animation: sweep 1.15s ease-out infinite;
     }
+
     @keyframes sweep{
       0%   { transform: translateX(-55%) rotate(10deg); opacity: 0; }
-      15%  { opacity: .8; }
+      12%  { opacity: .85; }
+      60%  { opacity: .45; }
       100% { transform: translateX(55%) rotate(10deg); opacity: 0; }
     }
 
@@ -141,7 +138,7 @@
         0 0 14px rgba(120,255,180,.10),
         0 0 28px rgba(120,255,180,.06);
       position: relative;
-      z-index: 2;
+      z-index: 4;
     }
 
     .section-title{
@@ -152,9 +149,10 @@
       text-transform: uppercase;
       opacity: .72;
       position: relative;
-      z-index: 2;
+      z-index: 4;
     }
 
+    /* Divider glow restored */
     .divider{
       width: 210px;
       height: 1px;
@@ -163,21 +161,25 @@
       position: relative;
       overflow: hidden;
       border-radius: 999px;
-      z-index: 2;
+      z-index: 4;
+      box-shadow: 0 0 16px rgba(120,255,180,.08);
     }
+
     .divider::after{
       content:"";
       position:absolute;
-      inset: 0;
-      background: linear-gradient(to right, transparent, rgba(120,255,180,.55), transparent);
+      inset: -2px 0 -2px 0;
+      background: linear-gradient(to right, transparent, rgba(120,255,180,.75), transparent);
       transform: translateX(-60%);
-      animation: dividerSweep 3.2s ease-in-out infinite;
-      opacity: .7;
+      animation: dividerSweep 3.0s ease-in-out infinite;
+      opacity: .95;
+      filter: blur(.2px);
     }
+
     @keyframes dividerSweep{
-      0%   { transform: translateX(-60%); opacity:.15; }
-      50%  { transform: translateX(60%);  opacity:.75; }
-      100% { transform: translateX(-60%); opacity:.15; }
+      0%   { transform: translateX(-60%); opacity:.18; }
+      50%  { transform: translateX(60%);  opacity:.95; }
+      100% { transform: translateX(-60%); opacity:.18; }
     }
 
     .row{
@@ -187,7 +189,7 @@
       align-items:center;
       flex-wrap: wrap;
       position: relative;
-      z-index: 2;
+      z-index: 4;
     }
 
     .pill{
@@ -230,13 +232,15 @@
       letter-spacing: .02em;
       transition: transform .08s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
       position: relative;
-      z-index: 2;
+      z-index: 4;
     }
+
     .btn:hover{
       background: rgba(255,255,255,.075);
       border-color: rgba(255,255,255,.24);
       box-shadow: 0 0 24px rgba(120,255,180,.06);
     }
+
     .btn:active{ transform: translateY(1px); }
     .btn.secondary{ background: rgba(0,0,0,.22); }
 
@@ -256,8 +260,9 @@
       opacity: 0;
       pointer-events: none;
       transition: opacity .18s ease, transform .18s ease;
-      z-index: 5;
+      z-index: 10;
     }
+
     .toast.show{
       opacity: 1;
       transform: translateX(-50%) translateY(-4px);
@@ -265,7 +270,8 @@
 
     /* Respect reduced motion */
     @media (prefers-reduced-motion: reduce){
-      .card::after, .divider::after, .card:hover .sheen { animation: none !important; }
+      .card:hover .sheen { animation: none !important; opacity: 0 !important; }
+      .divider::after { animation: none !important; }
       canvas#runes { display: none; }
     }
   </style>
@@ -360,14 +366,13 @@
     pill.addEventListener("dblclick", copyName);
     generate();
 
-    // ===== Rune Rain (Matrix-ish, but runes) =====
+    // ===== Rune Rain (visible + no banding blobs) =====
     const canvas = document.getElementById("runes");
     const ctx = canvas.getContext("2d", { alpha: true });
 
-    // Occult-ish glyph set (mix of runic + misc symbols)
     const GLYPHS = [
       "ᚠ","ᚢ","ᚦ","ᚨ","ᚱ","ᚲ","ᚷ","ᚹ","ᚺ","ᚾ","ᛁ","ᛃ","ᛇ","ᛈ","ᛉ","ᛋ","ᛏ","ᛒ","ᛖ","ᛗ","ᛚ","ᛜ","ᛞ","ᛟ",
-      "⟡","⟠","⟟","⟐","⟢","⟣","⟤","⟜","⟁","⌁","⋄","⋆","⋇","⊕","⊗","⊘","⟐","⟠","⟡","⟢","⟁"
+      "⟡","⟠","⟟","⟐","⟁","⌁","⋄","⋆","⊕","⊗","⊘"
     ];
 
     const reducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -381,32 +386,35 @@
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
-    // Tune these for more/less intensity
+    // Increased visibility compared to last version
     const settings = {
-      fontSize: 15,        // glyph size
-      columnGap: 18,       // column spacing
-      speedMin: 16,        // lower = faster
-      speedMax: 40,        // higher = slower
-      fade: 0.08,          // higher = more trails fade
-      alpha: 25.075,        // glyph opacity
-      highlightAlpha: 0.14 // occasional brighter glyph
+      fontSize: 16,
+      columnGap: 18,
+      speedMin: 14,
+      speedMax: 34,
+      fade: 0.11,          // slightly longer trails
+      alpha: 0.16,         // overall rune visibility
+      highlightAlpha: 0.28 // brighter pops
     };
 
     let columns = [];
     function initColumns(){
       const count = Math.ceil(window.innerWidth / settings.columnGap);
-      columns = Array.from({ length: count }, (_, i) => {
-        return {
-          x: i * settings.columnGap + (Math.random() * 8),
-          y: Math.random() * window.innerHeight,
-          v: settings.speedMin + Math.random() * (settings.speedMax - settings.speedMin),
-          stagger: Math.random() * 1200
-        };
-      });
+      columns = Array.from({ length: count }, (_, i) => ({
+        x: i * settings.columnGap + (Math.random() * 8),
+        y: Math.random() * window.innerHeight,
+        v: settings.speedMin + Math.random() * (settings.speedMax - settings.speedMin),
+        stagger: Math.random() * 900
+      }));
     }
 
     function glyph(){
       return GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+    }
+
+    // Start fully transparent (we paint trails into it)
+    function clear(){
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     }
 
     let last = performance.now();
@@ -417,37 +425,34 @@
       const dt = now - last;
       last = now;
 
-      // fade the whole canvas slightly (trails)
+      // Fade previous frame (trails)
       ctx.fillStyle = `rgba(7,7,10,${settings.fade})`;
       ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
       ctx.textBaseline = "top";
       ctx.font = `${settings.fontSize}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace`;
 
-      for (let c of columns){
+      for (const c of columns){
         c.stagger -= dt;
         if (c.stagger > 0) continue;
 
-        const bright = Math.random() < 0.06;
+        const bright = Math.random() < 0.08;
         const a = bright ? settings.highlightAlpha : settings.alpha;
 
-        // slightly green-tinted runes (rogue poison vibe)
         ctx.fillStyle = `rgba(120,255,180,${a})`;
         ctx.fillText(glyph(), c.x, c.y);
 
-        // occasionally drop a second glyph to make it feel less uniform
-        if (Math.random() < 0.12){
-          ctx.fillStyle = `rgba(120,180,255,${settings.alpha * 0.75})`;
+        if (Math.random() < 0.10){
+          ctx.fillStyle = `rgba(120,180,255,${a * 0.55})`;
           ctx.fillText(glyph(), c.x + 7, c.y + 6);
         }
 
         c.y += (dt / c.v) * 60;
 
-        // reset when off screen
         if (c.y > window.innerHeight + 40){
-          c.y = -Math.random() * 120;
+          c.y = -Math.random() * 140;
           c.v = settings.speedMin + Math.random() * (settings.speedMax - settings.speedMin);
-          c.stagger = Math.random() * 900;
+          c.stagger = Math.random() * 800;
         }
       }
 
@@ -456,14 +461,13 @@
 
     resize();
     initColumns();
-    // start with a fill so it isn't blank on first frame
-    ctx.fillStyle = "rgba(7,7,10,1)";
-    ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+    clear();
     requestAnimationFrame(frame);
 
     window.addEventListener("resize", () => {
       resize();
       initColumns();
+      clear();
     });
   </script>
 </body>
