@@ -9,19 +9,14 @@
 
   <style>
     :root{
-      --bg: #0b0b0e;
+      --bg: #07070a;
       --fg: #e6e6eb;
 
       --card: rgba(255,255,255,.035);
       --border: rgba(255,255,255,.11);
-      --shadow: rgba(0,0,0,.70);
+      --shadow: rgba(0,0,0,.72);
 
-      --muted: rgba(230,230,235,.68);
-      --dim: rgba(230,230,235,.42);
-
-      --accent: rgba(120, 255, 180, .95);   /* poison/rogue-ish */
-      --accent2: rgba(120, 180, 255, .55);  /* cool blue */
-      --accent3: rgba(255, 120, 180, .35);  /* faint magenta */
+      --accent: rgba(120, 255, 180, .95); /* poison/rogue-ish */
     }
 
     * { box-sizing: border-box; }
@@ -38,56 +33,22 @@
       overflow: hidden;
     }
 
-    /* ===== Background (banding-resistant) =====
-       Approach:
-       - smaller off-center lights (less bullseye/rings)
-       - layered fog (slow movement)
-       - grain overlay (kills banding on dark gradients)
-    */
-
-    .bg{
+    /* ===== Rune Rain Canvas ===== */
+    canvas#runes {
       position: fixed;
-      inset: -25%;
+      inset: 0;
       z-index: 0;
       pointer-events: none;
-
-      /* Smaller, offset light pools */
-      background:
-        radial-gradient(420px 320px at 12% 18%, rgba(120,255,180,.10), transparent 70%),
-        radial-gradient(520px 380px at 82% 22%, rgba(120,180,255,.09), transparent 72%),
-        radial-gradient(650px 520px at 58% 92%, rgba(255,120,180,.06), transparent 75%),
-        radial-gradient(900px 700px at 45% 55%, rgba(255,255,255,.025), transparent 78%);
-
-      filter: blur(18px);
-      opacity: .95;
-      animation: drift 18s ease-in-out infinite alternate;
+      opacity: 1;
     }
 
-    /* Fog layer: adds "depth" without visible rings */
-    .fog{
-      position: fixed;
-      inset: -30%;
-      z-index: 0;
-      pointer-events: none;
-
-      background:
-        radial-gradient(700px 520px at 30% 40%, rgba(255,255,255,.035), transparent 65%),
-        radial-gradient(760px 580px at 70% 60%, rgba(255,255,255,.028), transparent 68%),
-        radial-gradient(820px 620px at 45% 80%, rgba(255,255,255,.020), transparent 70%);
-
-      filter: blur(26px);
-      opacity: .6;
-      animation: fogDrift 26s ease-in-out infinite alternate;
-      mix-blend-mode: screen;
-    }
-
-    /* Grain/noise overlay: prevents banding */
+    /* Very subtle grain to prevent any flat-band look */
     .grain{
       position: fixed;
       inset: 0;
       z-index: 0;
       pointer-events: none;
-      opacity: .065;
+      opacity: .06;
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
       background-size: 220px 220px;
       mix-blend-mode: overlay;
@@ -100,19 +61,8 @@
       inset: 0;
       z-index: 0;
       pointer-events: none;
-      background:
-        radial-gradient(1200px 900px at 50% 45%, transparent 55%, rgba(0,0,0,.60) 100%);
-      opacity: .92;
-    }
-
-    @keyframes drift{
-      0%   { transform: translate3d(-1.5%, -1%, 0) scale(1.02); }
-      100% { transform: translate3d(1.5%, 1%, 0) scale(1.06); }
-    }
-
-    @keyframes fogDrift{
-      0%   { transform: translate3d(-1.2%, 0.6%, 0) scale(1.02); opacity: .52; }
-      100% { transform: translate3d(1.2%, -0.6%, 0) scale(1.05); opacity: .68; }
+      background: radial-gradient(1200px 900px at 50% 45%, transparent 55%, rgba(0,0,0,.68) 100%);
+      opacity: .95;
     }
 
     /* ===== Main card ===== */
@@ -124,7 +74,7 @@
       border-radius: 20px;
       background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.028));
       border: 1px solid var(--border);
-      box-shadow: 0 0 65px var(--shadow);
+      box-shadow: 0 0 70px var(--shadow);
       backdrop-filter: blur(10px);
       text-align: center;
       overflow: hidden;
@@ -140,24 +90,24 @@
       pointer-events: none;
     }
 
-    /* subtle corner glow */
+    /* subtle corner glow (kept, but not "blobby") */
     .card::after{
       content:"";
       position: absolute;
       inset: -40%;
       background:
-        radial-gradient(380px 240px at 15% 20%, rgba(120,255,180,.12), transparent 60%),
-        radial-gradient(420px 260px at 85% 25%, rgba(120,180,255,.10), transparent 60%),
-        radial-gradient(500px 320px at 55% 92%, rgba(255,120,180,.08), transparent 60%);
-      filter: blur(22px);
-      opacity: .55;
+        radial-gradient(380px 240px at 15% 20%, rgba(120,255,180,.10), transparent 60%),
+        radial-gradient(420px 260px at 85% 25%, rgba(120,180,255,.08), transparent 60%),
+        radial-gradient(520px 340px at 55% 92%, rgba(255,120,180,.06), transparent 60%);
+      filter: blur(26px);
+      opacity: .35;
       animation: glowShift 10s ease-in-out infinite alternate;
       pointer-events: none;
     }
 
     @keyframes glowShift{
-      0%   { transform: translate3d(-1%, -1%, 0) scale(1.00); opacity: .50; }
-      100% { transform: translate3d(1%, 1%, 0) scale(1.03); opacity: .62; }
+      0%   { transform: translate3d(-1%, -1%, 0) scale(1.00); opacity: .30; }
+      100% { transform: translate3d(1%, 1%, 0) scale(1.02); opacity: .42; }
     }
 
     /* sheen on hover */
@@ -200,7 +150,7 @@
       font-size: .95rem;
       letter-spacing: 0.18em;
       text-transform: uppercase;
-      opacity: .70;
+      opacity: .72;
       position: relative;
       z-index: 2;
     }
@@ -251,7 +201,7 @@
       font-weight: 650;
       letter-spacing: .03em;
 
-      background: rgba(0,0,0,.42);
+      background: rgba(0,0,0,.46);
       border: 1px solid rgba(255,255,255,.14);
       padding: .78rem 1.05rem;
       border-radius: 14px;
@@ -312,12 +262,17 @@
       opacity: 1;
       transform: translateX(-50%) translateY(-4px);
     }
+
+    /* Respect reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      .card::after, .divider::after, .card:hover .sheen { animation: none !important; }
+      canvas#runes { display: none; }
+    }
   </style>
 </head>
 
 <body>
-  <div class="bg"></div>
-  <div class="fog"></div>
+  <canvas id="runes"></canvas>
   <div class="grain"></div>
   <div class="vignette"></div>
 
@@ -343,6 +298,7 @@
   <div class="toast" id="toast">Copied</div>
 
   <script>
+    // ===== Username generator =====
     const starts = [
       "Rook","Wraith","Shade","Gloom","Night","Umber","Vesper","Grave","Ash","Sable",
       "Cipher","Dusk","Obsid","Ruin","Hollow","Fang","Thorn","Murk","Noct","Veil",
@@ -365,12 +321,11 @@
     function generate(){
       const a = pick(starts);
       const b = pick(ends);
-      let name = (Math.random() < 0.55)
+      const name = (Math.random() < 0.55)
         ? a + b.charAt(0).toUpperCase() + b.slice(1)
         : a + b;
 
       text.textContent = name;
-
       pill.animate(
         [{ transform: "scale(1)" }, { transform: "scale(1.03)" }, { transform: "scale(1)" }],
         { duration: 160, easing: "ease-out" }
@@ -403,8 +358,113 @@
     genBtn.addEventListener("click", generate);
     copyBtn.addEventListener("click", copyName);
     pill.addEventListener("dblclick", copyName);
-
     generate();
+
+    // ===== Rune Rain (Matrix-ish, but runes) =====
+    const canvas = document.getElementById("runes");
+    const ctx = canvas.getContext("2d", { alpha: true });
+
+    // Occult-ish glyph set (mix of runic + misc symbols)
+    const GLYPHS = [
+      "ᚠ","ᚢ","ᚦ","ᚨ","ᚱ","ᚲ","ᚷ","ᚹ","ᚺ","ᚾ","ᛁ","ᛃ","ᛇ","ᛈ","ᛉ","ᛋ","ᛏ","ᛒ","ᛖ","ᛗ","ᛚ","ᛜ","ᛞ","ᛟ",
+      "⟡","⟠","⟟","⟐","⟢","⟣","⟤","⟜","⟁","⌁","⋄","⋆","⋇","⊕","⊗","⊘","⟐","⟠","⟡","⟢","⟁"
+    ];
+
+    const reducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    function resize(){
+      const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+      canvas.width = Math.floor(window.innerWidth * dpr);
+      canvas.height = Math.floor(window.innerHeight * dpr);
+      canvas.style.width = window.innerWidth + "px";
+      canvas.style.height = window.innerHeight + "px";
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    // Tune these for more/less intensity
+    const settings = {
+      fontSize: 15,        // glyph size
+      columnGap: 18,       // column spacing
+      speedMin: 16,        // lower = faster
+      speedMax: 40,        // higher = slower
+      fade: 0.08,          // higher = more trails fade
+      alpha: 0.075,        // glyph opacity
+      highlightAlpha: 0.14 // occasional brighter glyph
+    };
+
+    let columns = [];
+    function initColumns(){
+      const count = Math.ceil(window.innerWidth / settings.columnGap);
+      columns = Array.from({ length: count }, (_, i) => {
+        return {
+          x: i * settings.columnGap + (Math.random() * 8),
+          y: Math.random() * window.innerHeight,
+          v: settings.speedMin + Math.random() * (settings.speedMax - settings.speedMin),
+          stagger: Math.random() * 1200
+        };
+      });
+    }
+
+    function glyph(){
+      return GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+    }
+
+    let last = performance.now();
+
+    function frame(now){
+      if (reducedMotion) return;
+
+      const dt = now - last;
+      last = now;
+
+      // fade the whole canvas slightly (trails)
+      ctx.fillStyle = `rgba(7,7,10,${settings.fade})`;
+      ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+      ctx.textBaseline = "top";
+      ctx.font = `${settings.fontSize}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace`;
+
+      for (let c of columns){
+        c.stagger -= dt;
+        if (c.stagger > 0) continue;
+
+        const bright = Math.random() < 0.06;
+        const a = bright ? settings.highlightAlpha : settings.alpha;
+
+        // slightly green-tinted runes (rogue poison vibe)
+        ctx.fillStyle = `rgba(120,255,180,${a})`;
+        ctx.fillText(glyph(), c.x, c.y);
+
+        // occasionally drop a second glyph to make it feel less uniform
+        if (Math.random() < 0.12){
+          ctx.fillStyle = `rgba(120,180,255,${settings.alpha * 0.75})`;
+          ctx.fillText(glyph(), c.x + 7, c.y + 6);
+        }
+
+        c.y += (dt / c.v) * 60;
+
+        // reset when off screen
+        if (c.y > window.innerHeight + 40){
+          c.y = -Math.random() * 120;
+          c.v = settings.speedMin + Math.random() * (settings.speedMax - settings.speedMin);
+          c.stagger = Math.random() * 900;
+        }
+      }
+
+      requestAnimationFrame(frame);
+    }
+
+    resize();
+    initColumns();
+    // start with a fill so it isn't blank on first frame
+    ctx.fillStyle = "rgba(7,7,10,1)";
+    ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+    requestAnimationFrame(frame);
+
+    window.addEventListener("resize", () => {
+      resize();
+      initColumns();
+    });
   </script>
 </body>
 </html>
