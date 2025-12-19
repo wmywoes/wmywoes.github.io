@@ -5,6 +5,9 @@
   <title>Woes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+  <!-- Fonts: WoW-ish fantasy header + clean readable UI -->
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
   <style>
     :root{
       --bg: #0b0b0e;
@@ -51,9 +54,9 @@
     .card {
       position: relative;
       z-index: 1;
-      width: min(520px, calc(100% - 2rem));
-      padding: 2.25rem 2.5rem;
-      border-radius: 16px;
+      width: min(620px, calc(100% - 2rem));
+      padding: 2.35rem 2.7rem;
+      border-radius: 18px;
       background: var(--card);
       border: 1px solid var(--border);
       text-align: center;
@@ -62,27 +65,51 @@
     }
 
     h1 {
-  margin: 0 0 0.35rem;
-  font-family: "Cinzel", serif;
-  font-size: 2.45rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  text-shadow:
-    0 0 12px rgba(120,255,180,.15),
-    0 0 24px rgba(120,255,180,.08);
-}
+      margin: 0 0 0.45rem;
+      font-family: "Cinzel", serif;
+      font-size: 2.55rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      text-shadow:
+        0 0 12px rgba(120,255,180,.12),
+        0 0 24px rgba(120,255,180,.06);
+    }
 
     p {
-      margin: 0 0 1.35rem;
+      margin: 0;
       opacity: 0.78;
       line-height: 1.55;
+    }
+
+    /* Quest-log style section header */
+    .section-title {
+      font-family: "Cinzel", serif;
+      font-size: 0.95rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      opacity: 0.65;
+      margin: 1.6rem 0 0.75rem;
+      text-align: center;
+    }
+
+    .divider {
+      width: 160px;
+      height: 1px;
+      margin: 0 auto 1rem;
+      background: linear-gradient(
+        to right,
+        transparent,
+        rgba(255,255,255,.25),
+        transparent
+      );
     }
 
     .row{
       display: flex;
       gap: .75rem;
       justify-content: center;
+      align-items: center;
       flex-wrap: wrap;
       margin-top: .25rem;
     }
@@ -105,15 +132,24 @@
     }
     button:active{ transform: translateY(1px); }
 
+    /* WoW-ish "tooltip" styling for the pill */
+    .tooltip {
+      font-family: "Inter", system-ui, sans-serif;
+      font-size: 0.92rem;
+      line-height: 1.45;
+      color: rgba(230,230,235,.92);
+      background: rgba(0,0,0,.42);
+      border: 1px solid rgba(255,255,255,.14);
+      padding: .7rem 1rem;
+      border-radius: 12px;
+      box-shadow: 0 0 24px rgba(0,0,0,.75);
+    }
+
     .pill{
       display: inline-flex;
       align-items: center;
-      gap: .5rem;
-      padding: .7rem 1rem;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.18);
-      min-width: 240px;
+      gap: .55rem;
+      min-width: 260px;
       justify-content: center;
       font-weight: 650;
       letter-spacing: .03em;
@@ -127,10 +163,17 @@
       box-shadow: 0 0 18px rgba(120,255,180,.35);
     }
 
+    /* RuneScape-ish smallcaps label */
+    .label {
+      font-family: "Cinzel", serif;
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      opacity: 0.55;
+    }
+
     .subtle {
       margin-top: 1.35rem;
-      font-size: 0.85rem;
-      opacity: 0.45;
     }
 
     a { color: inherit; opacity: .8; text-decoration: none; }
@@ -148,8 +191,11 @@
       It exists so future ideas have somewhere to land.
     </p>
 
+    <div class="section-title">Codename Generator</div>
+    <div class="divider"></div>
+
     <div class="row">
-      <div class="pill" id="namePill" title="Random codename">
+      <div class="pill tooltip" id="namePill" title="Random codename">
         <span class="dot"></span>
         <span id="nameText">Rookshade</span>
       </div>
@@ -157,9 +203,8 @@
       <button id="genBtn">Generate</button>
     </div>
 
-    <div class="subtle">
-      <a href="https://github.com/wmywoes/wmywoes.github.io" target="_blank" rel="noreferrer">source</a>
-      · wmywoes.github.io
+    <div class="subtle label">
+      source · wmywoes.github.io
     </div>
   </main>
 
@@ -180,7 +225,6 @@
     function pick(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
 
     function generate(){
-      // 50/50: CamelCase compound or single fused word
       const a = pick(starts);
       const b = pick(ends);
 
@@ -188,13 +232,11 @@
       if (Math.random() < 0.5) {
         name = a + b; // Rookshade style
       } else {
-        // Single fused, lower second part a bit
         name = a + b.charAt(0).toUpperCase() + b.slice(1);
       }
 
       text.textContent = name;
 
-      // tiny pop animation without needing extra CSS
       pill.animate(
         [{ transform: "scale(1)" }, { transform: "scale(1.03)" }, { transform: "scale(1)" }],
         { duration: 160, easing: "ease-out" }
@@ -202,7 +244,6 @@
     }
 
     btn.addEventListener("click", generate);
-    // generate once on load
     generate();
   </script>
 </body>
