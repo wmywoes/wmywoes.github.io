@@ -17,6 +17,7 @@
       --shadow: rgba(0,0,0,.72);
 
       --accent: rgba(120, 255, 180, .95);
+      --muted: rgba(230,230,235,.72);
     }
 
     * { box-sizing: border-box; }
@@ -66,8 +67,8 @@
     .card{
       position: relative;
       z-index: 3;
-      width: min(720px, calc(100% - 2rem));
-      padding: 2.6rem 2.9rem;
+      width: min(980px, calc(100% - 2rem));
+      padding: 2.3rem 2.6rem 2.4rem;
       border-radius: 20px;
       background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.028));
       border: 1px solid var(--border);
@@ -122,7 +123,7 @@
 
     /* Typography */
     h1{
-      margin: 0 0 .9rem;
+      margin: 0 0 .4rem;
       font-family: "Cinzel", serif;
       font-size: clamp(2.3rem, 4vw, 2.9rem);
       font-weight: 600;
@@ -135,19 +136,18 @@
       z-index: 4;
     }
 
-    .section-title{
-      margin: 1.1rem 0 .65rem;
-      font-family: "Cinzel", serif;
-      font-size: .95rem;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      opacity: .72;
+    .subtitle{
+      margin: 0 0 1.25rem;
+      color: var(--muted);
+      letter-spacing: .03em;
+      font-weight: 550;
+      font-size: .98rem;
       position: relative;
       z-index: 4;
     }
 
     .divider{
-      width: 210px;
+      width: 240px;
       height: 1px;
       margin: 0 auto 1.2rem;
       background: linear-gradient(to right, transparent, rgba(255,255,255,.28), transparent);
@@ -175,14 +175,250 @@
       100% { transform: translateX(-60%); opacity:.18; }
     }
 
+    /* ===== Tabs ===== */
+    .tabs{
+      display:flex;
+      gap:.55rem;
+      justify-content:center;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 4;
+      margin-bottom: 1.1rem;
+    }
+
+    .tab{
+      appearance:none;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.24);
+      color: rgba(230,230,235,.92);
+      padding: .62rem .95rem;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 700;
+      letter-spacing: .03em;
+      transition: background .2s ease, border-color .2s ease, transform .08s ease, box-shadow .2s ease;
+    }
+
+    .tab:hover{
+      background: rgba(255,255,255,.06);
+      border-color: rgba(255,255,255,.22);
+      box-shadow: 0 0 18px rgba(120,255,180,.05);
+    }
+
+    .tab:active{ transform: translateY(1px); }
+
+    .tab[aria-selected="true"]{
+      background: rgba(120,255,180,.10);
+      border-color: rgba(120,255,180,.32);
+      box-shadow: 0 0 26px rgba(120,255,180,.06);
+      color: rgba(230,230,235,1);
+    }
+
+    .panel{
+      display:none;
+      position: relative;
+      z-index: 4;
+      text-align: left;
+      padding-top: .35rem;
+    }
+    .panel.active{ display:block; }
+
+    .panel h2{
+      margin: .2rem 0 .55rem;
+      font-family: "Cinzel", serif;
+      font-size: 1.05rem;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      opacity: .78;
+    }
+
+    .panel p{
+      margin: 0 0 .9rem;
+      color: rgba(230,230,235,.86);
+      line-height: 1.55;
+    }
+
+    /* ===== Character grid ===== */
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: .75rem;
+    }
+
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 620px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    .char{
+      background: rgba(0,0,0,.30);
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 18px;
+      padding: 1rem;
+      box-shadow: 0 0 26px rgba(0,0,0,.68);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .char::after{
+      content:"";
+      position:absolute;
+      inset:-40%;
+      background: radial-gradient(420px 260px at 30% 40%, rgba(120,255,180,.08), transparent 60%);
+      opacity:.35;
+      filter: blur(30px);
+      pointer-events:none;
+    }
+
+    .charHead{
+      display:flex;
+      align-items:flex-start;
+      justify-content: space-between;
+      gap: .75rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    .charTitle{
+      display:flex;
+      flex-direction: column;
+      gap: .2rem;
+      min-width: 0;
+    }
+
+    .charTitle strong{
+      font-size: 1.05rem;
+      letter-spacing: .02em;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:.5rem;
+      width: fit-content;
+      padding: .35rem .55rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.04);
+      color: rgba(230,230,235,.86);
+      font-weight: 700;
+      letter-spacing: .02em;
+      font-size: .82rem;
+    }
+
+    .badge .dot{
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 16px rgba(120,255,180,.30);
+    }
+
+    .charMedia{
+      margin-top: .8rem;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.34);
+      overflow: hidden;
+      position: relative;
+      z-index: 2;
+      aspect-ratio: 16 / 9;
+      display:grid;
+      place-items:center;
+      color: rgba(230,230,235,.65);
+      font-weight: 650;
+      letter-spacing: .02em;
+    }
+
+    .charMedia img{
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display:block;
+    }
+
+    .actions{
+      display:flex;
+      flex-wrap: wrap;
+      gap: .55rem;
+      margin-top: .8rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    .btn{
+      appearance:none;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.045);
+      color: var(--fg);
+      padding: .68rem .9rem;
+      border-radius: 14px;
+      cursor:pointer;
+      font-weight: 650;
+      letter-spacing: .02em;
+      transition: transform .08s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+      text-decoration: none;
+      display:inline-flex;
+      align-items:center;
+      gap:.55rem;
+    }
+
+    .btn:hover{
+      background: rgba(255,255,255,.075);
+      border-color: rgba(255,255,255,.24);
+      box-shadow: 0 0 24px rgba(120,255,180,.06);
+    }
+
+    .btn:active{ transform: translateY(1px); }
+    .btn.secondary{ background: rgba(0,0,0,.22); }
+
+    .fileRow{
+      margin-top: .7rem;
+      display:flex;
+      gap:.6rem;
+      align-items:center;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 2;
+    }
+
+    input[type="file"]{
+      width: 100%;
+      max-width: 320px;
+      color: rgba(230,230,235,.72);
+      font-weight: 650;
+    }
+
+    .notes{
+      margin-top: .7rem;
+      width: 100%;
+      min-height: 86px;
+      resize: vertical;
+      padding: .7rem .75rem;
+      border-radius: 14px;
+      background: rgba(0,0,0,.34);
+      border: 1px solid rgba(255,255,255,.12);
+      color: rgba(230,230,235,.92);
+      outline: none;
+      font-family: inherit;
+      line-height: 1.45;
+      position: relative;
+      z-index: 2;
+    }
+
+    .notes::placeholder{ color: rgba(230,230,235,.48); }
+
+    /* Generator UI */
     .row{
       display:flex;
       gap: .75rem;
       justify-content:center;
       align-items:center;
       flex-wrap: wrap;
-      position: relative;
-      z-index: 4;
+      margin-top: .65rem;
     }
 
     .pill{
@@ -204,7 +440,7 @@
       user-select: none;
     }
 
-    .dot{
+    .dotSmall{
       width: 8px;
       height: 8px;
       border-radius: 999px;
@@ -213,30 +449,7 @@
       flex: 0 0 auto;
     }
 
-    .btn{
-      appearance:none;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.045);
-      color: var(--fg);
-      padding: .78rem 1.05rem;
-      border-radius: 14px;
-      cursor:pointer;
-      font-weight: 650;
-      letter-spacing: .02em;
-      transition: transform .08s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
-      position: relative;
-      z-index: 4;
-    }
-
-    .btn:hover{
-      background: rgba(255,255,255,.075);
-      border-color: rgba(255,255,255,.24);
-      box-shadow: 0 0 24px rgba(120,255,180,.06);
-    }
-
-    .btn:active{ transform: translateY(1px); }
-    .btn.secondary{ background: rgba(0,0,0,.22); }
-
+    /* Toast */
     .toast{
       position: fixed;
       left: 50%;
@@ -272,24 +485,228 @@
     <div class="sheen"></div>
 
     <h1>Woes</h1>
+    <div class="subtitle">Character hub — screenshots, links, and notes.</div>
 
-    <div class="section-title">Username Generator</div>
+    <div class="tabs" role="tablist" aria-label="Woes tabs">
+      <button class="tab" role="tab" id="tab-characters" aria-controls="panel-characters" aria-selected="true">Characters</button>
+      <button class="tab" role="tab" id="tab-gen" aria-controls="panel-gen" aria-selected="false">Generator</button>
+    </div>
+
     <div class="divider"></div>
 
-    <div class="row">
-      <div class="pill" id="namePill" title="Click Copy to copy the current name">
-        <span class="dot"></span>
-        <span id="nameText">Rookshade</span>
-      </div>
+    <!-- CHARACTERS -->
+    <section class="panel active" id="panel-characters" role="tabpanel" aria-labelledby="tab-characters">
+      <h2>Your roster</h2>
+      <p style="color: rgba(230,230,235,.72); margin-bottom:.35rem;">
+        Upload an image + write notes. These save locally in your browser (so it stays fast + simple).
+      </p>
 
-      <button class="btn" id="genBtn">Generate</button>
-      <button class="btn secondary" id="copyBtn">Copy</button>
-    </div>
+      <div class="grid" id="charGrid"></div>
+    </section>
+
+    <!-- GENERATOR -->
+    <section class="panel" id="panel-gen" role="tabpanel" aria-labelledby="tab-gen">
+      <h2>Username Generator</h2>
+      <p style="color: rgba(230,230,235,.72); margin-bottom:.25rem;">
+        Click <b>Generate</b>, or double-click the name to copy.
+      </p>
+
+      <div class="row">
+        <div class="pill" id="namePill" title="Double-click to copy the current name">
+          <span class="dotSmall"></span>
+          <span id="nameText">Rookshade</span>
+        </div>
+
+        <button class="btn" id="genBtn" type="button">Generate</button>
+        <button class="btn secondary" id="copyBtn" type="button">Copy</button>
+      </div>
+    </section>
   </main>
 
   <div class="toast" id="toast">Copied</div>
 
   <script>
+    // ===== Tabs =====
+    const tabs = Array.from(document.querySelectorAll(".tab"));
+    const panels = Array.from(document.querySelectorAll(".panel"));
+
+    function setActiveTab(tabEl){
+      tabs.forEach(t => t.setAttribute("aria-selected", String(t === tabEl)));
+      panels.forEach(p => p.classList.toggle("active", p.id === tabEl.getAttribute("aria-controls")));
+    }
+
+    tabs.forEach(t => {
+      t.addEventListener("click", () => setActiveTab(t));
+      t.addEventListener("keydown", (e) => {
+        if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+        e.preventDefault();
+        const i = tabs.indexOf(t);
+        const next = e.key === "ArrowRight" ? (i + 1) % tabs.length : (i - 1 + tabs.length) % tabs.length;
+        tabs[next].focus();
+        setActiveTab(tabs[next]);
+      });
+    });
+
+    // ===== Characters data =====
+    // NOTE: Habbo link uses URL encoding for the comma: ",Noah" -> "%2CNoah"
+    const characters = [
+      {
+        id: "osrs-tely",
+        game: "OldSchool RuneScape",
+        name: "Tely",
+        badge: "OSRS",
+        primaryUrl: "https://secure.runescape.com/m=hiscore_oldschool/hiscorepersonal.ws?user1=Tely",
+        secondaryUrl: "https://wiseoldman.net/players/Tely" // optional extra tracker
+      },
+      {
+        id: "wow-woes",
+        game: "Classic WoW",
+        name: "Woes",
+        badge: "Classic",
+        primaryUrl: "https://classic.warcraftlogs.com/character/us/benediction/woes?zone=1040",
+        secondaryUrl: "https://classic.warcraftlogs.com/character/us/benediction/woes"
+      },
+      {
+        id: "habbo-noah",
+        game: "Habbo",
+        name: ",Noah",
+        badge: "Habbo",
+        primaryUrl: "https://www.habbo.com/profile/%2CNoah",
+        secondaryUrl: ""
+      }
+    ];
+
+    const grid = document.getElementById("charGrid");
+
+    function storageKey(id, kind){
+      return `woes_character_${id}_${kind}`;
+    }
+
+    function showToast(msg){
+      const toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.classList.add("show");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.remove("show"), 900);
+    }
+
+    function makeBtn(label, url, style = "btn"){
+      if (!url) return "";
+      return `<a class="${style}" href="${url}" target="_blank" rel="noopener">${label} <span style="opacity:.6">↗</span></a>`;
+    }
+
+    function renderCharacters(){
+      grid.innerHTML = characters.map(c => {
+        const img = localStorage.getItem(storageKey(c.id, "img")) || "";
+        const notes = localStorage.getItem(storageKey(c.id, "notes")) || "";
+
+        return `
+          <article class="char" data-id="${c.id}">
+            <div class="charHead">
+              <div class="charTitle">
+                <div class="badge"><span class="dot"></span>${c.badge}</div>
+                <strong>${c.name}</strong>
+                <div style="color: rgba(230,230,235,.70); font-weight: 650; letter-spacing:.02em; font-size:.9rem;">
+                  ${c.game}
+                </div>
+              </div>
+            </div>
+
+            <div class="charMedia" id="media-${c.id}">
+              ${img ? `<img src="${img}" alt="${c.game} - ${c.name}">` : `<span>Drop a screenshot here (upload below)</span>`}
+            </div>
+
+            <div class="actions">
+              ${makeBtn("Profile", c.primaryUrl, "btn")}
+              ${makeBtn("Alt Link", c.secondaryUrl, "btn secondary")}
+              <button class="btn secondary" type="button" data-action="clear" data-id="${c.id}">Clear</button>
+            </div>
+
+            <div class="fileRow">
+              <input type="file" accept="image/*" data-action="upload" data-id="${c.id}" />
+              <span style="color: rgba(230,230,235,.58); font-weight:650;">(saved locally)</span>
+            </div>
+
+            <textarea class="notes" data-action="notes" data-id="${c.id}" placeholder="Notes / stats (ex: combat level, gear, goals, raid role, etc.)">${notes.replaceAll("&","&amp;").replaceAll("<","&lt;")}</textarea>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function wireCharacterEvents(){
+      grid.addEventListener("change", async (e) => {
+        const el = e.target;
+        const id = el.getAttribute("data-id");
+        const action = el.getAttribute("data-action");
+
+        if (action === "upload"){
+          const file = el.files && el.files[0];
+          if (!file) return;
+
+          // compress-ish by limiting to ~1280px wide to avoid huge localStorage bloat
+          const imgData = await fileToDataURLScaled(file, 1280);
+          localStorage.setItem(storageKey(id, "img"), imgData);
+          renderCharacters();
+          showToast("Image saved");
+        }
+      });
+
+      grid.addEventListener("input", (e) => {
+        const el = e.target;
+        const id = el.getAttribute("data-id");
+        const action = el.getAttribute("data-action");
+        if (action === "notes"){
+          localStorage.setItem(storageKey(id, "notes"), el.value);
+        }
+      });
+
+      grid.addEventListener("click", (e) => {
+        const btn = e.target.closest("button[data-action]");
+        if (!btn) return;
+
+        const id = btn.getAttribute("data-id");
+        const action = btn.getAttribute("data-action");
+
+        if (action === "clear"){
+          localStorage.removeItem(storageKey(id, "img"));
+          localStorage.removeItem(storageKey(id, "notes"));
+          renderCharacters();
+          showToast("Cleared");
+        }
+      });
+    }
+
+    function fileToDataURLScaled(file, maxW){
+      return new Promise((resolve, reject) => {
+        const fr = new FileReader();
+        fr.onerror = reject;
+        fr.onload = () => {
+          const img = new Image();
+          img.onerror = reject;
+          img.onload = () => {
+            const scale = Math.min(1, maxW / img.width);
+            const w = Math.round(img.width * scale);
+            const h = Math.round(img.height * scale);
+
+            const c = document.createElement("canvas");
+            c.width = w;
+            c.height = h;
+
+            const x = c.getContext("2d");
+            x.drawImage(img, 0, 0, w, h);
+
+            // jpeg keeps size down
+            resolve(c.toDataURL("image/jpeg", 0.85));
+          };
+          img.src = fr.result;
+        };
+        fr.readAsDataURL(file);
+      });
+    }
+
+    renderCharacters();
+    wireCharacterEvents();
+
     // ===== Username generator =====
     const starts = [
       "Rook","Wraith","Shade","Gloom","Night","Umber","Vesper","Grave","Ash","Sable",
@@ -306,7 +723,6 @@
     const text = document.getElementById("nameText");
     const genBtn = document.getElementById("genBtn");
     const copyBtn = document.getElementById("copyBtn");
-    const toast = document.getElementById("toast");
 
     function pick(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
 
@@ -322,13 +738,6 @@
         [{ transform: "scale(1)" }, { transform: "scale(1.03)" }, { transform: "scale(1)" }],
         { duration: 160, easing: "ease-out" }
       );
-    }
-
-    function showToast(msg){
-      toast.textContent = msg;
-      toast.classList.add("show");
-      clearTimeout(showToast._t);
-      showToast._t = setTimeout(() => toast.classList.remove("show"), 900);
     }
 
     async function copyName(){
@@ -347,12 +756,12 @@
       }
     }
 
-    genBtn.addEventListener("click", generate);
-    copyBtn.addEventListener("click", copyName);
-    pill.addEventListener("dblclick", copyName);
+    genBtn?.addEventListener("click", generate);
+    copyBtn?.addEventListener("click", copyName);
+    pill?.addEventListener("dblclick", copyName);
     generate();
 
-    // ===== Static Rune Wallpaper (no movement, low-lag) =====
+    // ===== Static Rune Wallpaper (low-lag) =====
     const canvas = document.getElementById("runes");
     const ctx = canvas.getContext("2d", { alpha: true });
 
@@ -361,19 +770,17 @@
       "⟡","⟠","⟟","⟐","⟁","⌁","⋄","⋆","⊕","⊗","⊘"
     ];
 
-    // Tune these if you want:
     const cfg = {
-      cell: 24,           // spacing between runes
-      font: 16,           // rune size
-      baseAlpha: 0.06,    // faint background runes
-      blinkAlpha: 0.22,   // green glow peak
-      blinkChance: 0.012, // more = more blinking
-      swapsPerTick: 14,   // more = more shuffling
-      tickHz: 10,         // texture update rate (not fps)
+      cell: 24,
+      font: 16,
+      baseAlpha: 0.06,
+      blinkAlpha: 0.22,
+      blinkChance: 0.012,
+      swapsPerTick: 14,
+      tickHz: 10,
       cleanZoneStrength: 0.85
     };
 
-    // Offscreen texture (updated at tickHz, drawn every frame)
     const tex = document.createElement("canvas");
     const t = tex.getContext("2d", { alpha: true });
 
@@ -390,7 +797,6 @@
       canvas.style.height = window.innerHeight + "px";
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      // big enough texture to tile smoothly (but we keep it single-draw for speed)
       const texW = Math.max(cfg.cell * 26, Math.ceil(window.innerWidth / cfg.cell) * cfg.cell);
       const texH = Math.max(cfg.cell * 18, Math.ceil(window.innerHeight / cfg.cell) * cfg.cell);
 
@@ -411,25 +817,22 @@
       }
 
       rebuildTexture();
-      drawOnce(); // ensure visible immediately
+      drawOnce();
     }
 
     function tick(){
-      // swaps
       for (let k = 0; k < cfg.swapsPerTick; k++){
         const a = (Math.random() * n) | 0;
         const b = (Math.random() * n) | 0;
         const tmp = cells[a]; cells[a] = cells[b]; cells[b] = tmp;
       }
 
-      // start blinks
       for (let i = 0; i < n; i++){
         if (blink[i] <= 0 && Math.random() < cfg.blinkChance){
           blink[i] = 1;
         }
       }
 
-      // decay blinks
       for (let i = 0; i < n; i++){
         if (blink[i] > 0){
           blink[i] -= 0.10;
@@ -455,14 +858,11 @@
         for (let x = 0; x < cols; x++){
           const gx = x * cfg.cell + 6;
           const gy = y * cfg.cell + 4;
-
           const ch = GLYPHS[cells[idx]];
 
-          // base rune
           t.fillStyle = `rgba(230,230,235,${cfg.baseAlpha})`;
           t.fillText(ch, gx, gy);
 
-          // glow
           const b = blink[idx];
           if (b > 0){
             const a = b * cfg.blinkAlpha;
@@ -486,24 +886,21 @@
 
       ctx.clearRect(0, 0, w, h);
 
-      // tile the texture to cover the screen
       for (let y = 0; y < h; y += ih){
         for (let x = 0; x < w; x += iw){
           ctx.drawImage(tex, x, y, iw, ih);
         }
       }
 
-      // Clean zone behind center (keeps UI readable)
       const cx = w / 2;
       const cy = h / 2;
-      const grad = ctx.createRadialGradient(cx, cy, 180, cx, cy, 520);
+      const grad = ctx.createRadialGradient(cx, cy, 220, cx, cy, 560);
       grad.addColorStop(0, `rgba(7,7,10,${0.65 * cfg.cleanZoneStrength})`);
       grad.addColorStop(1, `rgba(7,7,10,0)`);
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, w, h);
     }
 
-    // Run ticks at a steady rate
     let timer = null;
     function start(){
       if (timer) clearInterval(timer);
