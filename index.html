@@ -16,6 +16,7 @@
       --innerBorder: rgba(255,255,255,.075);
       --shadow: rgba(0,0,0,.78);
 
+      /* comma-separated RGB */
       --accent: 120,255,180;
       --accent2: 120,180,255;
 
@@ -68,7 +69,10 @@
     }
 
     .grain{
-      position:fixed; inset:0; z-index:1; pointer-events:none;
+      position:fixed;
+      inset:0;
+      z-index:1;
+      pointer-events:none;
       opacity:.07;
       background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
       background-size:220px 220px;
@@ -76,7 +80,10 @@
     }
 
     .vignette{
-      position:fixed; inset:0; z-index:2; pointer-events:none;
+      position:fixed;
+      inset:0;
+      z-index:2;
+      pointer-events:none;
       background:radial-gradient(1200px 900px at 50% 45%, rgba(0,0,0,0) 55%, var(--vignetteEdge) 100%);
       opacity:.95;
     }
@@ -96,11 +103,13 @@
       user-select:none;
       cursor:default;
     }
+
     .card:hover{
       transform:translateY(-1px);
       border-color:rgba(255,255,255,.16);
       box-shadow:0 0 80px rgba(0,0,0,.82);
     }
+
     .card::before{
       content:"";
       position:absolute;
@@ -193,7 +202,9 @@
     console.log("WOES: script started");
 
     try{
+      const root = document.documentElement;
       const toast = document.getElementById("toast");
+
       function showToast(msg, ms=900){
         if (!msg || !msg.trim()) return;
         toast.textContent = msg;
@@ -202,7 +213,7 @@
         showToast._t = setTimeout(() => toast.classList.remove("show"), ms);
       }
 
-      // ===== Themes =====
+      // ===== Themes (T) =====
       const themes = [
         { name:"Emerald", vars:{ "--bg":"#07070a","--fg":"#e6e6eb","--accent":"120,255,180","--accent2":"120,180,255","--cardA":"rgba(255,255,255,.040)","--cardB":"rgba(255,255,255,.022)","--radius":"10px" } },
         { name:"Ice",    vars:{ "--bg":"#06070b","--fg":"#eef0ff","--accent":"170,220,255","--accent2":"150,255,210","--cardA":"rgba(255,255,255,.042)","--cardB":"rgba(255,255,255,.020)","--radius":"10px" } },
@@ -215,7 +226,6 @@
       let themeIndex = 0;
       function applyTheme(idx, quiet=false){
         const t = themes[idx];
-        const root = document.documentElement;
         for (const k in t.vars) root.style.setProperty(k, t.vars[k]);
         localStorage.setItem("woes_theme", String(idx));
         if (!quiet) showToast(`Theme: ${t.name}`, 900);
@@ -227,24 +237,25 @@
         applyTheme(themeIndex, true);
       }
 
-      // ===== Silent state =====
-      const root = document.documentElement;
-      function isCharged(){ return root.getAttribute("data-state") === "charged"; }
+      // ===== Silent lock/unlock =====
       function setStateCharged(on){
         root.setAttribute("data-state", on ? "charged" : "normal");
         localStorage.setItem("woes_state", on ? "charged" : "normal");
       }
+      function isCharged(){ return root.getAttribute("data-state") === "charged"; }
+
       const savedState = localStorage.getItem("woes_state");
       if (savedState === "charged") setStateCharged(true);
       else root.setAttribute("data-state", "normal");
 
-      // ===== Hold W => background surge =====
+      // ===== Hold W => Void Breathing (surge 0..1) =====
       let surge = 0;
       let surgeTarget = 0;
       let wHeld = false;
 
       function stepSurge(){
-        const up = 0.12, down = 0.07;
+        const up = 0.10;     // smoother, less “snappy”
+        const down = 0.06;
         if (surgeTarget > surge) surge = Math.min(1, surge + up);
         else surge = Math.max(0, surge - down);
         if (surge !== surgeTarget) requestAnimationFrame(stepSurge);
@@ -253,7 +264,7 @@
       function stopSurge(){ surgeTarget = 0; requestAnimationFrame(stepSurge); }
 
       function showKeys(){
-        showToast("Keys: T=theme • Shift+Q=unlock • Q=lock • Hold W=surge • ?=keys", 1900);
+        showToast("Keys: T=theme • Shift+Q=unlock • Q=lock • Hold W=breath • ?=keys", 1900);
       }
 
       window.addEventListener("keydown", (e) => {
@@ -289,7 +300,7 @@
         stopSurge();
       });
 
-      // ===== Runes =====
+      // ===== Rune Wallpaper (stable) =====
       const canvas = document.getElementById("runes");
       const ctx = canvas.getContext("2d", { alpha: true });
 
@@ -300,7 +311,10 @@
 
       const base = { cell:26, font:16, baseAlpha:0.055, blinkAlpha:0.20, blinkChance:0.010, swaps:12, clean:0.94 };
       const chargedCfg = { blinkAlpha:0.26, blinkChance:0.016, swaps:18, clean:0.92 };
-      const surgeBoost = { blinkAlpha:0.34, blinkChance:0.030, swaps:26, clean:0.90 };
+
+      // (Void breathing) only nudges activity — no huge rings
+      const surgeBoost = { blinkAlpha:0.30, blinkChance:0.020, swaps:20, clean:0.88 };
+
       const lerp = (a,b,t) => a + (b-a)*t;
 
       const tex = document.createElement("canvas");
@@ -312,10 +326,10 @@
       const randGlyph = () => (Math.random() * GLYPHS.length) | 0;
 
       function getAccent(){
-        return getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "120,255,180";
+        return getComputedStyle(root).getPropertyValue("--accent").trim() || "120,255,180";
       }
       function getAccent2(){
-        return getComputedStyle(document.documentElement).getPropertyValue("--accent2").trim() || getAccent();
+        return getComputedStyle(root).getPropertyValue("--accent2").trim() || getAccent();
       }
 
       function cfg(){
@@ -413,32 +427,38 @@
 
         const cx=w/2, cy=h/2;
 
-        const grad = ctx.createRadialGradient(cx,cy,180,cx,cy,520);
-        grad.addColorStop(0, `rgba(7,7,10,${0.78 * C.clean})`);
+        // Clean zone "breathes" (tightens slightly on W)
+        const inner = 180 - 18 * surge;
+        const outer = 520 - 34 * surge;
+
+        const grad = ctx.createRadialGradient(cx,cy,inner,cx,cy,outer);
+        const centerDark = (0.78 * C.clean) + (0.09 * surge);
+        grad.addColorStop(0, `rgba(7,7,10,${centerDark})`);
         grad.addColorStop(1, `rgba(7,7,10,0)`);
         ctx.fillStyle = grad;
         ctx.fillRect(0,0,w,h);
 
-        // === W "Void Breathing" (low-lag, subtle) ===
-if (surge > 0){
-  const a1 = getAccent();
-  const a2 = getAccent2();
+        // === Void Breathing shimmer (small area only; cheap) ===
+        if (surge > 0){
+          const a1 = getAccent();
+          const a2 = getAccent2();
 
-  // Small center shimmer only (cheap)
-  const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 220);
-  g.addColorStop(0, `rgba(${a1},${0.10 * surge})`);
-  g.addColorStop(0.45, `rgba(${a2},${0.06 * surge})`);
-  g.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = g;
-  ctx.fillRect(cx - 260, cy - 260, 520, 520);
+          // small center shimmer
+          const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 210);
+          g.addColorStop(0, `rgba(${a1},${0.10 * surge})`);
+          g.addColorStop(0.45, `rgba(${a2},${0.06 * surge})`);
+          g.addColorStop(1, "rgba(0,0,0,0)");
+          ctx.fillStyle = g;
+          ctx.fillRect(cx - 250, cy - 250, 500, 500);
 
-  // A subtle “breath” vignette pulse (also small-ish, not full canvas)
-  const vg = ctx.createRadialGradient(cx, cy, 140, cx, cy, 520);
-  vg.addColorStop(0, `rgba(0,0,0,${0.10 * surge})`);
-  vg.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = vg;
-  ctx.fillRect(cx - 540, cy - 540, 1080, 1080);
-}
+          // very subtle “breath” shadow
+          const vg = ctx.createRadialGradient(cx, cy, 150, cx, cy, 500);
+          vg.addColorStop(0, `rgba(0,0,0,${0.10 * surge})`);
+          vg.addColorStop(1, "rgba(0,0,0,0)");
+          ctx.fillStyle = vg;
+          ctx.fillRect(cx - 520, cy - 520, 1040, 1040);
+        }
+      }
 
       function tick(){
         const C = cfg();
@@ -467,7 +487,7 @@ if (surge > 0){
       resize();
       window.addEventListener("resize", resize);
 
-      // stable tick – no interval restarts
+      // stable tick — no interval restarts
       setInterval(tick, 110);
 
       console.log("WOES: runes OK");
