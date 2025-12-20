@@ -15,14 +15,14 @@
       --border: rgba(255,255,255,.10);
       --shadow: rgba(0,0,0,.78);
 
-      /* IMPORTANT: comma-separated RGB so rgba(...) works everywhere */
+      /* comma-separated RGB */
       --accent: 120,255,180;
       --accent2: 120,180,255;
 
       --cardA: rgba(255,255,255,.040);
       --cardB: rgba(255,255,255,.022);
 
-      --radius: 10px; /* squared */
+      --radius: 10px;
     }
 
     * { box-sizing: border-box; }
@@ -98,7 +98,6 @@
       z-index: 1;
     }
 
-    /* AURA EDGE */
     .aura{
       position: absolute;
       inset: -2px;
@@ -145,6 +144,8 @@
       z-index: 2;
       display: grid;
       place-items: center;
+      /* Important: allows absolutely-positioned sigil to anchor inside */
+      min-height: 0;
     }
 
     h1{
@@ -159,21 +160,27 @@
         0 0 34px rgba(var(--accent), .06);
     }
 
+    /* IMPORTANT: sigil takes ZERO layout space until shown */
     .sigil{
-      margin-top: .55rem;
+      position: absolute;
+      left: 50%;
+      top: calc(100% + .45rem); /* sits just below the word once shown */
+      transform: translateX(-50%) translateY(-4px);
+
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       font-size: .8rem;
       letter-spacing: .22em;
       color: rgba(230,230,235,.70);
-      opacity: 0;
-      transform: translateY(-4px);
-      transition: opacity .22s ease, transform .22s ease;
       white-space: nowrap;
+
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .22s ease, transform .22s ease;
     }
 
     .sigil.show{
       opacity: 1;
-      transform: translateY(0);
+      transform: translateX(-50%) translateY(0);
     }
 
     .toast{
@@ -200,11 +207,12 @@
       transform: translateX(-50%) translateY(-4px);
     }
 
+    /* Top hint: now "temporary", never persisted */
     .hint{
       position: fixed;
       top: 16px;
       left: 50%;
-      transform: translateX(-50%);
+      transform: translateX(-50%) translateY(-4px);
       z-index: 10;
       padding: .45rem .7rem;
       border-radius: 10px;
@@ -231,7 +239,7 @@
 
   <main class="card" id="card" aria-label="Woes">
     <div class="aura"></div>
-    <div class="content">
+    <div class="content" id="content">
       <h1>Woes</h1>
       <div class="sigil" id="sigil">ᚹᛟᛖᛋ</div>
     </div>
@@ -241,13 +249,21 @@
   <div class="toast" id="toast">Theme</div>
 
   <script>
-    // ===== Toast =====
+    // ===== Toast (longer for ? / keys) =====
     const toast = document.getElementById("toast");
-    function showToast(msg){
+    function showToast(msg, ms = 900){
       toast.textContent = msg;
       toast.classList.add("show");
       clearTimeout(showToast._t);
-      showToast._t = setTimeout(() => toast.classList.remove("show"), 900);
+      showToast._t = setTimeout(() => toast.classList.remove("show"), ms);
+    }
+
+    // ===== Temporary top hint (never persisted) =====
+    const hint = document.getElementById("hint");
+    function showHint(ms = 2200){
+      hint.classList.add("show");
+      clearTimeout(showHint._t);
+      showHint._t = setTimeout(() => hint.classList.remove("show"), ms);
     }
 
     // ===== Themes (press T) =====
@@ -309,7 +325,6 @@
     // ===== Secrets =====
     const card = document.getElementById("card");
     const sigil = document.getElementById("sigil");
-    const hint = document.getElementById("hint");
 
     let clicks = 0;
     let unlocked = localStorage.getItem("woes_unlocked") === "1";
@@ -318,7 +333,6 @@
       unlocked = on;
       localStorage.setItem("woes_unlocked", on ? "1" : "0");
       sigil.classList.toggle("show", on);
-      hint.classList.toggle("show", on);
     }
     if (unlocked) setUnlocked(true);
 
@@ -328,8 +342,9 @@
       if (clicks >= 7 && !unlocked){
         setUnlocked(true);
         showToast("Unlocked");
+        showHint(2600); // show top hint briefly, but not forever
       } else if (clicks === 3 && !unlocked){
-        showToast("…");
+        showToast("…", 700);
       }
       clearTimeout(card._ct);
       card._ct = setTimeout(() => { clicks = 0; }, 900);
@@ -338,7 +353,7 @@
     // Hold W to pulse
     function pulse(){
       card.classList.remove("pulse");
-      void card.offsetWidth; // retrigger
+      void card.offsetWidth;
       card.classList.add("pulse");
       setTimeout(() => card.classList.remove("pulse"), 900);
     }
@@ -347,7 +362,7 @@
     let wTimer = null;
 
     function showKeys(){
-      showToast("Keys: T = theme • Hold W = pulse • 7 clicks = unlock");
+      showToast("Keys: T = theme • Hold W = pulse • 7 clicks = unlock", 1600);
     }
 
     window.addEventListener("keydown", (e) => {
@@ -406,7 +421,6 @@
     const randGlyph = () => (Math.random() * GLYPHS.length) | 0;
 
     function getAccent(){
-      // returns "r,g,b" e.g. "120,255,180"
       return getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "120,255,180";
     }
 
@@ -474,7 +488,7 @@
       t.textBaseline = "top";
       t.font = `${cfg.font}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace`;
 
-      const accent = getAccent(); // "r,g,b"
+      const accent = getAccent();
 
       let idx = 0;
       for (let y = 0; y < rows; y++){
