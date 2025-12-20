@@ -12,7 +12,9 @@
       --bg: #07070a;
       --fg: #e6e6eb;
 
+      /* UI frame */
       --border: rgba(255,255,255,.10);
+      --innerBorder: rgba(255,255,255,.075);
       --shadow: rgba(0,0,0,.78);
 
       /* comma-separated RGB */
@@ -24,20 +26,23 @@
 
       --radius: 10px;
 
+      /* Vignette control */
+      --vignetteEdge: rgba(0,0,0,.78);
+
       /* Aura controls */
       --auraOpacity: .55;
       --auraBlur: 12px;
       --auraSpin: 6.5s;
       --auraScale: 1.03;
 
-      /* pattern mix */
+      /* aura pattern mix */
       --p1: .35;
       --p2: .22;
       --p3: .18;
       --p4: .14;
     }
 
-    /* Charged state (unlock) */
+    /* Charged state (unlock) – subtle world changes */
     :root[data-state="charged"]{
       --auraOpacity: .72;
       --auraBlur: 14px;
@@ -48,6 +53,13 @@
       --p2: .28;
       --p3: .26;
       --p4: .18;
+
+      /* Deeper tunnel */
+      --vignetteEdge: rgba(0,0,0,.86);
+
+      /* Slightly more “cut” inner frame */
+      --border: rgba(255,255,255,.13);
+      --innerBorder: rgba(255,255,255,.105);
     }
 
     * { box-sizing: border-box; }
@@ -87,7 +99,7 @@
       inset: 0;
       z-index: 2;
       pointer-events: none;
-      background: radial-gradient(1200px 900px at 50% 45%, rgba(0,0,0,0) 55%, rgba(0,0,0,.78) 100%);
+      background: radial-gradient(1200px 900px at 50% 45%, rgba(0,0,0,0) 55%, var(--vignetteEdge) 100%);
       opacity: .95;
     }
 
@@ -119,7 +131,7 @@
       position: absolute;
       inset: 7px;
       border-radius: calc(var(--radius) - 3px);
-      border: 1px solid rgba(255,255,255,.075);
+      border: 1px solid var(--innerBorder);
       pointer-events: none;
       z-index: 1;
     }
@@ -156,7 +168,7 @@
       100% { transform: rotate(0deg) scale(var(--auraScale)); opacity: calc(var(--auraOpacity) - .10); }
     }
 
-    /* Single pulse keyframe (we'll retrigger continuously while holding W) */
+    /* Continuous pulse (hold W) — JS retriggers this class repeatedly */
     .card.pulse .aura{
       animation: auraPulse .85s ease-out 1;
       opacity: calc(var(--auraOpacity) + .18);
@@ -187,6 +199,7 @@
         0 0 34px rgba(var(--accent), .06);
     }
 
+    /* only for '?' help */
     .toast{
       position: fixed;
       left: 50%;
@@ -228,7 +241,7 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    // ===== Toast =====
+    // ===== Toast (only for '?', and theme change) =====
     const toast = document.getElementById("toast");
     function showToast(msg, ms = 900){
       if (!msg || !msg.trim()) return;
@@ -240,40 +253,23 @@
 
     // ===== Themes (T) =====
     const themes = [
-      { // 0
-        name: "Emerald",
-        vars: { "--bg":"#07070a","--fg":"#e6e6eb","--accent":"120,255,180","--accent2":"120,180,255","--cardA":"rgba(255,255,255,.040)","--cardB":"rgba(255,255,255,.022)","--radius":"10px" }
-      },
-      { // 1
-        name: "Ice",
-        vars: { "--bg":"#06070b","--fg":"#eef0ff","--accent":"170,220,255","--accent2":"150,255,210","--cardA":"rgba(255,255,255,.042)","--cardB":"rgba(255,255,255,.020)","--radius":"10px" }
-      },
-      { // 2
-        name: "Ember",
-        vars: { "--bg":"#070607","--fg":"#f1eceb","--accent":"255,160,110","--accent2":"255,220,150","--cardA":"rgba(255,255,255,.038)","--cardB":"rgba(255,255,255,.020)","--radius":"10px" }
-      },
-      { // 3
-        name: "Violet",
-        vars: { "--bg":"#06060a","--fg":"#f0ecff","--accent":"190,150,255","--accent2":"120,255,240","--cardA":"rgba(255,255,255,.040)","--cardB":"rgba(255,255,255,.020)","--radius":"10px" }
-      },
-      { // 4
-        name: "Acid",
-        vars: { "--bg":"#050607","--fg":"#eaf7ef","--accent":"180,255,120","--accent2":"255,255,160","--cardA":"rgba(255,255,255,.036)","--cardB":"rgba(255,255,255,.018)","--radius":"10px" }
-      },
-      { // 5
-        name: "Mono",
-        vars: { "--bg":"#07070a","--fg":"#f0f0f4","--accent":"230,230,235","--accent2":"230,230,235","--cardA":"rgba(255,255,255,.035)","--cardB":"rgba(255,255,255,.018)","--radius":"10px" }
-      }
+      { name: "Emerald", vars: { "--bg":"#07070a","--fg":"#e6e6eb","--accent":"120,255,180","--accent2":"120,180,255","--cardA":"rgba(255,255,255,.040)","--cardB":"rgba(255,255,255,.022)","--radius":"10px" } },
+      { name: "Ice",    vars: { "--bg":"#06070b","--fg":"#eef0ff","--accent":"170,220,255","--accent2":"150,255,210","--cardA":"rgba(255,255,255,.042)","--cardB":"rgba(255,255,255,.020)","--radius":"10px" } },
+      { name: "Ember",  vars: { "--bg":"#070607","--fg":"#f1eceb","--accent":"255,160,110","--accent2":"255,220,150","--cardA":"rgba(255,255,255,.038)","--cardB":"rgba(255,255,255,.020)","--radius":"10px" } },
+      { name: "Violet", vars: { "--bg":"#06060a","--fg":"#f0ecff","--accent":"190,150,255","--accent2":"120,255,240","--cardA":"rgba(255,255,255,.040)","--cardB":"rgba(255,255,255,.020)","--radius":"10px" } },
+      { name: "Acid",   vars: { "--bg":"#050607","--fg":"#eaf7ef","--accent":"180,255,120","--accent2":"255,255,160","--cardA":"rgba(255,255,255,.036)","--cardB":"rgba(255,255,255,.018)","--radius":"10px" } },
+      { name: "Mono",   vars: { "--bg":"#07070a","--fg":"#f0f0f4","--accent":"230,230,235","--accent2":"230,230,235","--cardA":"rgba(255,255,255,.035)","--cardB":"rgba(255,255,255,.018)","--radius":"10px" } }
     ];
 
     let themeIndex = 0;
-
     function applyTheme(idx, quiet = false){
       const t = themes[idx];
       const root = document.documentElement;
       for (const [k,v] of Object.entries(t.vars)) root.style.setProperty(k, v);
       localStorage.setItem("woes_theme", String(idx));
       if (!quiet) showToast(`Theme: ${t.name}`, 900);
+      // Force rune texture rebuild when theme changes so glow color updates immediately
+      requestRebuild();
     }
 
     const savedTheme = Number(localStorage.getItem("woes_theme"));
@@ -282,12 +278,18 @@
       applyTheme(themeIndex, true);
     }
 
-    // ===== Lock/Unlock (Shift+Q unlock, Q lock) — SILENT =====
+    // ===== Lock/Unlock state (Shift+Q unlock, Q lock) — SILENT =====
     const root = document.documentElement;
+
+    function isCharged(){
+      return root.getAttribute("data-state") === "charged";
+    }
 
     function setStateCharged(on){
       root.setAttribute("data-state", on ? "charged" : "normal");
       localStorage.setItem("woes_state", on ? "charged" : "normal");
+      // charged changes rune behavior too, so rebuild immediately
+      requestRebuild();
     }
 
     const savedState = localStorage.getItem("woes_state");
@@ -299,7 +301,7 @@
 
     function pulseOnce(){
       card.classList.remove("pulse");
-      void card.offsetWidth; // retrigger
+      void card.offsetWidth;
       card.classList.add("pulse");
     }
 
@@ -309,7 +311,6 @@
 
     function startPulse(){
       if (pulseInterval) return;
-      // kick a pulse quickly, then continue at a steady rhythm
       pulseOnce();
       pulseKick = setTimeout(() => {
         pulseInterval = setInterval(pulseOnce, 780);
@@ -347,7 +348,6 @@
         else setStateCharged(false);
       }
 
-      // Hold W for continuous pulse
       if ((e.key === "w" || e.key === "W") && !wHeld){
         wHeld = true;
         startPulse();
@@ -361,13 +361,12 @@
       }
     });
 
-    // safety: if tab loses focus while holding W, stop pulsing
     window.addEventListener("blur", () => {
       wHeld = false;
       stopPulse();
     });
 
-    // ===== Static Rune Wallpaper (low-lag) =====
+    // ===== Static Rune Wallpaper (low-lag) + Charged behavior =====
     const canvas = document.getElementById("runes");
     const ctx = canvas.getContext("2d", { alpha: true });
 
@@ -376,7 +375,8 @@
       "⟡","⟠","⟟","⟐","⟁","⌁","⋄","⋆","⊕","⊗","⊘"
     ];
 
-    const cfg = {
+    // Base configuration
+    const base = {
       cell: 26,
       font: 16,
       baseAlpha: 0.055,
@@ -387,11 +387,27 @@
       cleanZoneStrength: 0.94
     };
 
+    // Charged deltas (subtle, but noticeable)
+    const charged = {
+      blinkAlpha: 0.26,
+      blinkChance: 0.016,
+      swapsPerTick: 18,
+      tickHz: 11,
+      cleanZoneStrength: 0.92
+    };
+
+    function effectiveCfg(){
+      return isCharged()
+        ? { ...base, ...charged }
+        : { ...base };
+    }
+
     const tex = document.createElement("canvas");
     const t = tex.getContext("2d", { alpha: true });
 
     let cols = 0, rows = 0, n = 0;
     let cells, blink;
+    let cfg = effectiveCfg();
 
     const randGlyph = () => (Math.random() * GLYPHS.length) | 0;
 
@@ -399,7 +415,13 @@
       return getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "120,255,180";
     }
 
+    // allow forced rebuild on state/theme changes
+    let needsRebuild = true;
+    function requestRebuild(){ needsRebuild = true; }
+
     function resize(){
+      cfg = effectiveCfg();
+
       const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
       canvas.width = Math.floor(window.innerWidth * dpr);
       canvas.height = Math.floor(window.innerHeight * dpr);
@@ -426,11 +448,22 @@
         blink[i] = 0;
       }
 
+      needsRebuild = true;
       rebuildTexture();
       drawOnce();
     }
 
     function tick(){
+      // If lock/unlock happened, update cfg and timer rate safely
+      const nextCfg = effectiveCfg();
+      const tickChanged = nextCfg.tickHz !== cfg.tickHz;
+
+      cfg = nextCfg;
+
+      if (tickChanged){
+        start(); // restart interval with new tickHz
+      }
+
       for (let k = 0; k < cfg.swapsPerTick; k++){
         const a = (Math.random() * n) | 0;
         const b = (Math.random() * n) | 0;
@@ -487,6 +520,8 @@
           idx++;
         }
       }
+
+      needsRebuild = false;
     }
 
     function drawOnce(){
