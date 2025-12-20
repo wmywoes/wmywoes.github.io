@@ -33,7 +33,7 @@
       overflow: hidden;
     }
 
-    /* ===== Background layers (no blob lights) ===== */
+    /* ===== Background layers ===== */
     canvas#runes {
       position: fixed;
       inset: 0;
@@ -98,7 +98,7 @@
       pointer-events: none;
     }
 
-    /* ===== Sheen: loop while hovered ===== */
+    /* ===== Sheen ===== */
     .sheen{
       position:absolute;
       inset:-70%;
@@ -352,7 +352,7 @@
     pill.addEventListener("dblclick", copyName);
     generate();
 
-    // ===== Rune Rain =====
+    // ===== Tiled Rune Field (no trails) =====
     const canvas = document.getElementById("runes");
     const ctx = canvas.getContext("2d", { alpha: true });
 
@@ -361,6 +361,25 @@
       "⟡","⟠","⟟","⟐","⟁","⌁","⋄","⋆","⊕","⊗","⊘"
     ];
 
+    // Tuning knobs (safe to mess with)
+    const grid = {
+      size: 22,           // spacing between cells (px)
+      fontSize: 16,       // rune size (px)
+      baseAlpha: 0.065,   // faint background rune visibility
+      blinkAlpha: 0.26,   // glow peak alpha
+      blinkChance: 0.010, // chance per cell per tick to start blinking
+      swapPerTick: 10,    // how many random swaps per tick
+      tickMs: 140         // update rate (lower = more lively)
+    };
+
+    let cols = 0, rows = 0;
+    let cells = [];       // glyph index per cell
+    let blink = [];       // blink intensity per cell (0..1)
+
+    function randGlyphIndex(){
+      return (Math.random() * GLYPHS.length) | 0;
+    }
+
     function resize(){
       const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
       canvas.width = Math.floor(window.innerWidth * dpr);
@@ -368,80 +387,93 @@
       canvas.style.width = window.innerWidth + "px";
       canvas.style.height = window.innerHeight + "px";
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      cols = Math.ceil(window.innerWidth / grid.size);
+      rows = Math.ceil(window.innerHeight / grid.size);
+
+      const n = cols * rows;
+      cells = new Uint16Array(n);
+      blink = new Float32Array(n);
+
+      for (let i = 0; i < n; i++){
+        cells[i] = randGlyphIndex();
+        blink[i] = 0;
+      }
     }
 
-    const settings = {
-fontSize: 16,
-columnGap: 14,
-speedMin: 10,
-speedMax: 26,
-fade: 0.30,
-alpha: 0.12,
-highlightAlpha: 0.22
-    };
+    function tick(){
+      const n = cells.length;
 
-    let columns = [];
-    function initColumns(){
-      const count = Math.ceil(window.innerWidth / settings.columnGap);
-      columns = Array.from({ length: count }, (_, i) => ({
-        x: i * settings.columnGap + (Math.random() * 8),
-        y: Math.random() * window.innerHeight,
-        v: settings.speedMin + Math.random() * (settings.speedMax - settings.speedMin),
-        stagger: Math.random() * 900
-      }));
-    }
+      // Random swaps (shifts the pattern around subtly)
+      for (let k = 0; k < grid.swapPerTick; k++){
+        const a = (Math.random() * n) | 0;
+        const b = (Math.random() * n) | 0;
+        const tmp = cells[a];
+        cells[a] = cells[b];
+        cells[b] = tmp;
+      }
 
-    function glyph(){
-      return GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
-    }
-
-    let last = performance.now();
-    function frame(now){
-      const dt = now - last;
-      last = now;
-
-      ctx.fillStyle = `rgba(7,7,10,${settings.fade})`;
-      ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-
-      ctx.textBaseline = "top";
-      ctx.font = `${settings.fontSize}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace`;
-
-      for (const c of columns){
-        c.stagger -= dt;
-        if (c.stagger > 0) continue;
-
-        const bright = Math.random() < 0.08;
-        const a = bright ? settings.highlightAlpha : settings.alpha;
-
-        ctx.fillStyle = `rgba(120,255,180,${a})`;
-        ctx.fillText(glyph(), c.x, c.y);
-
-        if (Math.random() < 0.10){
-          ctx.fillStyle = `rgba(120,180,255,${a * 0.55})`;
-          ctx.fillText(glyph(), c.x + 7, c.y + 6);
-        }
-
-        c.y += (dt / c.v) * 60;
-
-        if (c.y > window.innerHeight + 40){
-          c.y = -Math.random() * 140;
-          c.v = settings.speedMin + Math.random() * (settings.speedMax - settings.speedMin);
-          c.stagger = Math.random() * 800;
+      // Start some blinks
+      for (let i = 0; i < n; i++){
+        if (blink[i] <= 0 && Math.random() < grid.blinkChance){
+          blink[i] = 1; // start at max
         }
       }
 
-      requestAnimationFrame(frame);
+      // Decay blinks
+      for (let i = 0; i < n; i++){
+        if (blink[i] > 0){
+          blink[i] -= 0.08; // decay speed
+          if (blink[i] < 0) blink[i] = 0;
+        }
+      }
+    }
+
+    function draw(){
+      // Fully redraw every frame (no trails)
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+      ctx.textBaseline = "top";
+      ctx.font = `${grid.fontSize}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace`;
+
+      let idx = 0;
+      for (let y = 0; y < rows; y++){
+        for (let x = 0; x < cols; x++){
+          const gx = x * grid.size + 6;
+          const gy = y * grid.size + 4;
+
+          const b = blink[idx]; // 0..1
+          const baseA = grid.baseAlpha;
+          const glowA = b * grid.blinkAlpha;
+
+          // base rune (faint)
+          ctx.fillStyle = `rgba(230,230,235,${baseA})`;
+          ctx.fillText(GLYPHS[cells[idx]], gx, gy);
+
+          // glow overlay (green)
+          if (b > 0){
+            // soft halo effect: draw twice with slightly different offsets
+            ctx.fillStyle = `rgba(120,255,180,${glowA})`;
+            ctx.fillText(GLYPHS[cells[idx]], gx, gy);
+            ctx.fillStyle = `rgba(120,255,180,${glowA * 0.55})`;
+            ctx.fillText(GLYPHS[cells[idx]], gx + 1, gy + 1);
+          }
+
+          idx++;
+        }
+      }
+
+      requestAnimationFrame(draw);
     }
 
     resize();
-    initColumns();
-    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-    requestAnimationFrame(frame);
+    draw();
+
+    // Tick updates separately from drawing
+    setInterval(tick, grid.tickMs);
 
     window.addEventListener("resize", () => {
       resize();
-      initColumns();
-      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     });
   </script>
 </body>
