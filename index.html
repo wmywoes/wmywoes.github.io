@@ -16,7 +16,7 @@
       --border: rgba(255,255,255,.11);
       --shadow: rgba(0,0,0,.72);
 
-      --accent: rgba(120, 255, 180, .95); /* poison/rogue-ish */
+      --accent: rgba(120, 255, 180, .95);
     }
 
     * { box-sizing: border-box; }
@@ -34,8 +34,6 @@
     }
 
     /* ===== Background layers (no blob lights) ===== */
-
-    /* Rune Rain Canvas (base layer) */
     canvas#runes {
       position: fixed;
       inset: 0;
@@ -43,7 +41,6 @@
       pointer-events: none;
     }
 
-    /* Grain overlay (kills any residual banding on flat dark) */
     .grain{
       position: fixed;
       inset: 0;
@@ -56,7 +53,6 @@
       transform: translateZ(0);
     }
 
-    /* Vignette (keeps edges darker) */
     .vignette{
       position: fixed;
       inset: 0;
@@ -81,7 +77,6 @@
       overflow: hidden;
     }
 
-    /* inner trim */
     .card::before{
       content:"";
       position: absolute;
@@ -91,7 +86,6 @@
       pointer-events: none;
     }
 
-    /* subtle card-local glow (small, not a background bubble) */
     .card::after{
       content:"";
       position: absolute;
@@ -152,7 +146,6 @@
       z-index: 4;
     }
 
-    /* Divider glow restored */
     .divider{
       width: 210px;
       height: 1px;
@@ -267,13 +260,6 @@
       opacity: 1;
       transform: translateX(-50%) translateY(-4px);
     }
-
-    /* Respect reduced motion */
-    @media (prefers-reduced-motion: reduce){
-      .card:hover .sheen { animation: none !important; opacity: 0 !important; }
-      .divider::after { animation: none !important; }
-      canvas#runes { display: none; }
-    }
   </style>
 </head>
 
@@ -366,7 +352,7 @@
     pill.addEventListener("dblclick", copyName);
     generate();
 
-    // ===== Rune Rain (visible + no banding blobs) =====
+    // ===== Rune Rain =====
     const canvas = document.getElementById("runes");
     const ctx = canvas.getContext("2d", { alpha: true });
 
@@ -374,8 +360,6 @@
       "ᚠ","ᚢ","ᚦ","ᚨ","ᚱ","ᚲ","ᚷ","ᚹ","ᚺ","ᚾ","ᛁ","ᛃ","ᛇ","ᛈ","ᛉ","ᛋ","ᛏ","ᛒ","ᛖ","ᛗ","ᛚ","ᛜ","ᛞ","ᛟ",
       "⟡","⟠","⟟","⟐","⟁","⌁","⋄","⋆","⊕","⊗","⊘"
     ];
-
-    const reducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     function resize(){
       const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
@@ -386,15 +370,14 @@
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
-    // Increased visibility compared to last version
     const settings = {
       fontSize: 16,
       columnGap: 18,
       speedMin: 14,
       speedMax: 34,
-      fade: 0.11,          // slightly longer trails
-      alpha: 0.16,         // overall rune visibility
-      highlightAlpha: 0.28 // brighter pops
+      fade: 0.11,
+      alpha: 0.16,
+      highlightAlpha: 0.28
     };
 
     let columns = [];
@@ -412,20 +395,11 @@
       return GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
     }
 
-    // Start fully transparent (we paint trails into it)
-    function clear(){
-      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-    }
-
     let last = performance.now();
-
     function frame(now){
-      if (reducedMotion) return;
-
       const dt = now - last;
       last = now;
 
-      // Fade previous frame (trails)
       ctx.fillStyle = `rgba(7,7,10,${settings.fade})`;
       ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
@@ -461,13 +435,13 @@
 
     resize();
     initColumns();
-    clear();
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     requestAnimationFrame(frame);
 
     window.addEventListener("resize", () => {
       resize();
       initColumns();
-      clear();
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     });
   </script>
 </body>
