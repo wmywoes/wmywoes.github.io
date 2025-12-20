@@ -13,17 +13,16 @@
       --fg: #e6e6eb;
 
       --border: rgba(255,255,255,.10);
-      --inner: rgba(255,255,255,.07);
       --shadow: rgba(0,0,0,.78);
 
-      /* Theme accent */
-      --accent: 120 255 180;   /* rgb triplet for glow */
-      --accent2: 120 180 255;  /* secondary glow */
+      /* IMPORTANT: comma-separated RGB so rgba(...) works everywhere */
+      --accent: 120,255,180;
+      --accent2: 120,180,255;
 
       --cardA: rgba(255,255,255,.040);
       --cardB: rgba(255,255,255,.022);
 
-      --radius: 10px; /* more squared */
+      --radius: 10px; /* squared */
     }
 
     * { box-sizing: border-box; }
@@ -40,7 +39,6 @@
       overflow: hidden;
     }
 
-    /* ===== Background layers ===== */
     canvas#runes{
       position: fixed;
       inset: 0;
@@ -68,23 +66,16 @@
       opacity: .95;
     }
 
-    /* ===== Minimal card ===== */
     .card{
       position: relative;
       z-index: 3;
-
       padding: 1.35rem 2.15rem;
       border-radius: var(--radius);
-
       background: linear-gradient(180deg, var(--cardA), var(--cardB));
       border: 1px solid var(--border);
       box-shadow: 0 0 70px var(--shadow);
       backdrop-filter: blur(10px);
-
-      /* squared “frame” feel */
       overflow: hidden;
-
-      /* tiny lift on hover (super subtle) */
       transform: translateY(0);
       transition: transform .12s ease, box-shadow .22s ease, border-color .22s ease;
       user-select: none;
@@ -97,7 +88,6 @@
       box-shadow: 0 0 80px rgba(0,0,0,.82);
     }
 
-    /* inner frame line */
     .card::before{
       content:"";
       position: absolute;
@@ -105,9 +95,10 @@
       border-radius: calc(var(--radius) - 3px);
       border: 1px solid rgba(255,255,255,.075);
       pointer-events: none;
+      z-index: 1;
     }
 
-    /* AURA EDGE: animated glow ring */
+    /* AURA EDGE */
     .aura{
       position: absolute;
       inset: -2px;
@@ -138,7 +129,6 @@
       100% { transform: rotate(0deg) scale(1.02); opacity: .45; }
     }
 
-    /* “pulse” state (secret) */
     .card.pulse .aura{
       animation: auraPulse .85s ease-out 1;
       opacity: .85;
@@ -150,7 +140,6 @@
       100% { transform: rotate(0deg) scale(1.02); filter: blur(12px); }
     }
 
-    /* content */
     .content{
       position: relative;
       z-index: 2;
@@ -170,7 +159,6 @@
         0 0 34px rgba(var(--accent), .06);
     }
 
-    /* hidden sigil (unlocked) */
     .sigil{
       margin-top: .55rem;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
@@ -188,7 +176,6 @@
       transform: translateY(0);
     }
 
-    /* Toast */
     .toast{
       position: fixed;
       left: 50%;
@@ -213,7 +200,6 @@
       transform: translateX(-50%) translateY(-4px);
     }
 
-    /* Tiny hint that only shows after unlock */
     .hint{
       position: fixed;
       top: 16px;
@@ -255,6 +241,15 @@
   <div class="toast" id="toast">Theme</div>
 
   <script>
+    // ===== Toast =====
+    const toast = document.getElementById("toast");
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.classList.add("show");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.remove("show"), 900);
+    }
+
     // ===== Themes (press T) =====
     const themes = [
       {
@@ -262,8 +257,8 @@
         vars: {
           "--bg": "#07070a",
           "--fg": "#e6e6eb",
-          "--accent": "120 255 180",
-          "--accent2": "120 180 255",
+          "--accent": "120,255,180",
+          "--accent2": "120,180,255",
           "--cardA": "rgba(255,255,255,.040)",
           "--cardB": "rgba(255,255,255,.022)",
           "--radius": "10px"
@@ -274,8 +269,8 @@
         vars: {
           "--bg": "#06070b",
           "--fg": "#eef0ff",
-          "--accent": "170 220 255",
-          "--accent2": "150 255 210",
+          "--accent": "170,220,255",
+          "--accent2": "150,255,210",
           "--cardA": "rgba(255,255,255,.042)",
           "--cardB": "rgba(255,255,255,.020)",
           "--radius": "10px"
@@ -286,8 +281,8 @@
         vars: {
           "--bg": "#070607",
           "--fg": "#f1eceb",
-          "--accent": "255 160 110",
-          "--accent2": "255 220 150",
+          "--accent": "255,160,110",
+          "--accent2": "255,220,150",
           "--cardA": "rgba(255,255,255,.038)",
           "--cardB": "rgba(255,255,255,.020)",
           "--radius": "10px"
@@ -305,20 +300,10 @@
       localStorage.setItem("woes_theme", String(idx));
     }
 
-    // load theme
-    const saved = Number(localStorage.getItem("woes_theme"));
-    if (!Number.isNaN(saved) && saved >= 0 && saved < themes.length){
-      themeIndex = saved;
+    const savedTheme = Number(localStorage.getItem("woes_theme"));
+    if (!Number.isNaN(savedTheme) && savedTheme >= 0 && savedTheme < themes.length){
+      themeIndex = savedTheme;
       applyTheme(themeIndex);
-    }
-
-    // ===== Toast =====
-    const toast = document.getElementById("toast");
-    function showToast(msg){
-      toast.textContent = msg;
-      toast.classList.add("show");
-      clearTimeout(showToast._t);
-      showToast._t = setTimeout(() => toast.classList.remove("show"), 900);
     }
 
     // ===== Secrets =====
@@ -335,7 +320,6 @@
       sigil.classList.toggle("show", on);
       hint.classList.toggle("show", on);
     }
-
     if (unlocked) setUnlocked(true);
 
     // Click 7 times to unlock
@@ -345,7 +329,6 @@
         setUnlocked(true);
         showToast("Unlocked");
       } else if (clicks === 3 && !unlocked){
-        // tiny nudge (barely)
         showToast("…");
       }
       clearTimeout(card._ct);
@@ -353,52 +336,44 @@
     });
 
     // Hold W to pulse
-    let wDownAt = null;
     function pulse(){
       card.classList.remove("pulse");
-      // force reflow so retrigger works
-      void card.offsetWidth;
+      void card.offsetWidth; // retrigger
       card.classList.add("pulse");
       setTimeout(() => card.classList.remove("pulse"), 900);
     }
 
-    // ? shows hotkeys (always allowed, but nicer after unlock)
+    let wHeld = false;
+    let wTimer = null;
+
     function showKeys(){
       showToast("Keys: T = theme • Hold W = pulse • 7 clicks = unlock");
     }
 
-    // ===== Key handling =====
     window.addEventListener("keydown", (e) => {
-      const key = e.key;
-
-      // avoid triggering while typing in inputs (none exist now, but safe)
       const tag = (document.activeElement && document.activeElement.tagName || "").toLowerCase();
       if (tag === "input" || tag === "textarea") return;
 
-      if (key === "t" || key === "T"){
+      if (e.key === "t" || e.key === "T"){
         themeIndex = (themeIndex + 1) % themes.length;
         applyTheme(themeIndex);
       }
 
-      if (key === "?"){
+      if (e.key === "?"){
         showKeys();
       }
 
-      if ((key === "w" || key === "W") && wDownAt === null){
-        wDownAt = performance.now();
-        clearTimeout(window._wh);
-        window._wh = setTimeout(() => {
-          // only pulse if still held
-          if (wDownAt !== null) pulse();
-        }, 1200);
+      if ((e.key === "w" || e.key === "W") && !wHeld){
+        wHeld = true;
+        clearTimeout(wTimer);
+        wTimer = setTimeout(() => { if (wHeld) pulse(); }, 1200);
       }
     });
 
     window.addEventListener("keyup", (e) => {
-      const key = e.key;
-      if (key === "w" || key === "W"){
-        wDownAt = null;
-        clearTimeout(window._wh);
+      if (e.key === "w" || e.key === "W"){
+        wHeld = false;
+        clearTimeout(wTimer);
       }
     });
 
@@ -429,6 +404,11 @@
     let cells, blink;
 
     const randGlyph = () => (Math.random() * GLYPHS.length) | 0;
+
+    function getAccent(){
+      // returns "r,g,b" e.g. "120,255,180"
+      return getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "120,255,180";
+    }
 
     function resize(){
       const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
@@ -494,6 +474,8 @@
       t.textBaseline = "top";
       t.font = `${cfg.font}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace`;
 
+      const accent = getAccent(); // "r,g,b"
+
       let idx = 0;
       for (let y = 0; y < rows; y++){
         for (let x = 0; x < cols; x++){
@@ -507,8 +489,6 @@
           const b = blink[idx];
           if (b > 0){
             const a = b * cfg.blinkAlpha;
-            // use theme accent for glow
-            const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "120 255 180";
             t.fillStyle = `rgba(${accent},${a})`;
             t.fillText(ch, gx, gy);
             t.fillStyle = `rgba(${accent},${a * 0.55})`;
@@ -535,7 +515,6 @@
         }
       }
 
-      // clean zone behind center
       const cx = w / 2;
       const cy = h / 2;
       const grad = ctx.createRadialGradient(cx, cy, 180, cx, cy, 520);
