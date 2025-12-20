@@ -30,14 +30,14 @@
       --auraSpin: 6.5s;
       --auraScale: 1.03;
 
-      /* “pattern mix” controls */
-      --p1: .35; /* primary radial intensity */
-      --p2: .22; /* secondary radial intensity */
-      --p3: .18; /* conic intensity */
-      --p4: .14; /* conic secondary intensity */
+      /* pattern mix */
+      --p1: .35;
+      --p2: .22;
+      --p3: .18;
+      --p4: .14;
     }
 
-    /* Charged mode (unlock) – no text, just aura math changes */
+    /* Charged state (unlock) */
     :root[data-state="charged"]{
       --auraOpacity: .72;
       --auraBlur: 14px;
@@ -124,7 +124,6 @@
       z-index: 1;
     }
 
-    /* Aura edge ring */
     .aura{
       position: absolute;
       inset: -2px;
@@ -132,7 +131,6 @@
       pointer-events: none;
       z-index: 0;
 
-      /* Pattern changes between normal/charged via CSS vars */
       background:
         radial-gradient(140px 80px at 18% 24%, rgba(var(--accent), var(--p1)), transparent 65%),
         radial-gradient(180px 110px at 82% 74%, rgba(var(--accent2), var(--p2)), transparent 70%),
@@ -149,6 +147,7 @@
       opacity: var(--auraOpacity);
       mix-blend-mode: screen;
       animation: auraDrift var(--auraSpin) ease-in-out infinite;
+      transform-origin: 50% 50%;
     }
 
     @keyframes auraDrift{
@@ -157,7 +156,7 @@
       100% { transform: rotate(0deg) scale(var(--auraScale)); opacity: calc(var(--auraOpacity) - .10); }
     }
 
-    /* pulse (W hold) */
+    /* Single pulse keyframe (we'll retrigger continuously while holding W) */
     .card.pulse .aura{
       animation: auraPulse .85s ease-out 1;
       opacity: calc(var(--auraOpacity) + .18);
@@ -226,76 +225,64 @@
     </div>
   </main>
 
-  <div class="toast" id="toast">Theme</div>
+  <div class="toast" id="toast"></div>
 
   <script>
     // ===== Toast =====
     const toast = document.getElementById("toast");
     function showToast(msg, ms = 900){
+      if (!msg || !msg.trim()) return;
       toast.textContent = msg;
       toast.classList.add("show");
       clearTimeout(showToast._t);
       showToast._t = setTimeout(() => toast.classList.remove("show"), ms);
     }
 
-    // ===== Theme cycling (T) =====
+    // ===== Themes (T) =====
     const themes = [
-      {
+      { // 0
         name: "Emerald",
-        vars: {
-          "--bg": "#07070a",
-          "--fg": "#e6e6eb",
-          "--accent": "120,255,180",
-          "--accent2": "120,180,255",
-          "--cardA": "rgba(255,255,255,.040)",
-          "--cardB": "rgba(255,255,255,.022)",
-          "--radius": "10px"
-        }
+        vars: { "--bg":"#07070a","--fg":"#e6e6eb","--accent":"120,255,180","--accent2":"120,180,255","--cardA":"rgba(255,255,255,.040)","--cardB":"rgba(255,255,255,.022)","--radius":"10px" }
       },
-      {
+      { // 1
         name: "Ice",
-        vars: {
-          "--bg": "#06070b",
-          "--fg": "#eef0ff",
-          "--accent": "170,220,255",
-          "--accent2": "150,255,210",
-          "--cardA": "rgba(255,255,255,.042)",
-          "--cardB": "rgba(255,255,255,.020)",
-          "--radius": "10px"
-        }
+        vars: { "--bg":"#06070b","--fg":"#eef0ff","--accent":"170,220,255","--accent2":"150,255,210","--cardA":"rgba(255,255,255,.042)","--cardB":"rgba(255,255,255,.020)","--radius":"10px" }
       },
-      {
+      { // 2
         name: "Ember",
-        vars: {
-          "--bg": "#070607",
-          "--fg": "#f1eceb",
-          "--accent": "255,160,110",
-          "--accent2": "255,220,150",
-          "--cardA": "rgba(255,255,255,.038)",
-          "--cardB": "rgba(255,255,255,.020)",
-          "--radius": "10px"
-        }
+        vars: { "--bg":"#070607","--fg":"#f1eceb","--accent":"255,160,110","--accent2":"255,220,150","--cardA":"rgba(255,255,255,.038)","--cardB":"rgba(255,255,255,.020)","--radius":"10px" }
+      },
+      { // 3
+        name: "Violet",
+        vars: { "--bg":"#06060a","--fg":"#f0ecff","--accent":"190,150,255","--accent2":"120,255,240","--cardA":"rgba(255,255,255,.040)","--cardB":"rgba(255,255,255,.020)","--radius":"10px" }
+      },
+      { // 4
+        name: "Acid",
+        vars: { "--bg":"#050607","--fg":"#eaf7ef","--accent":"180,255,120","--accent2":"255,255,160","--cardA":"rgba(255,255,255,.036)","--cardB":"rgba(255,255,255,.018)","--radius":"10px" }
+      },
+      { // 5
+        name: "Mono",
+        vars: { "--bg":"#07070a","--fg":"#f0f0f4","--accent":"230,230,235","--accent2":"230,230,235","--cardA":"rgba(255,255,255,.035)","--cardB":"rgba(255,255,255,.018)","--radius":"10px" }
       }
     ];
 
     let themeIndex = 0;
 
-    function applyTheme(idx){
+    function applyTheme(idx, quiet = false){
       const t = themes[idx];
       const root = document.documentElement;
       for (const [k,v] of Object.entries(t.vars)) root.style.setProperty(k, v);
       localStorage.setItem("woes_theme", String(idx));
-      showToast(`Theme: ${t.name}`, 900);
+      if (!quiet) showToast(`Theme: ${t.name}`, 900);
     }
 
     const savedTheme = Number(localStorage.getItem("woes_theme"));
     if (!Number.isNaN(savedTheme) && savedTheme >= 0 && savedTheme < themes.length){
       themeIndex = savedTheme;
-      applyTheme(themeIndex);
+      applyTheme(themeIndex, true);
     }
 
-    // ===== Lock/Unlock aura state (Shift+Q unlock, Q lock) =====
-    // Persist it, but with ZERO UI attached.
+    // ===== Lock/Unlock (Shift+Q unlock, Q lock) — SILENT =====
     const root = document.documentElement;
 
     function setStateCharged(on){
@@ -307,21 +294,38 @@
     if (savedState === "charged") setStateCharged(true);
     else root.setAttribute("data-state", "normal");
 
-    // ===== Pulse (hold W) =====
+    // ===== Continuous Pulse (hold W) =====
     const card = document.getElementById("card");
 
-    function pulse(){
+    function pulseOnce(){
       card.classList.remove("pulse");
-      void card.offsetWidth;
+      void card.offsetWidth; // retrigger
       card.classList.add("pulse");
-      setTimeout(() => card.classList.remove("pulse"), 900);
     }
 
     let wHeld = false;
-    let wTimer = null;
+    let pulseInterval = null;
+    let pulseKick = null;
+
+    function startPulse(){
+      if (pulseInterval) return;
+      // kick a pulse quickly, then continue at a steady rhythm
+      pulseOnce();
+      pulseKick = setTimeout(() => {
+        pulseInterval = setInterval(pulseOnce, 780);
+      }, 260);
+    }
+
+    function stopPulse(){
+      clearTimeout(pulseKick);
+      pulseKick = null;
+      clearInterval(pulseInterval);
+      pulseInterval = null;
+      card.classList.remove("pulse");
+    }
 
     function showKeys(){
-      showToast("Keys: T = theme • Shift+Q = unlock • Q = lock • Hold W = pulse", 1700);
+      showToast("Keys: T = theme • Shift+Q = unlock • Q = lock • Hold W = pulse • ? = keys", 1900);
     }
 
     window.addEventListener("keydown", (e) => {
@@ -330,37 +334,37 @@
 
       if (e.key === "t" || e.key === "T"){
         themeIndex = (themeIndex + 1) % themes.length;
-        applyTheme(themeIndex);
+        applyTheme(themeIndex, false);
       }
 
       if (e.key === "?"){
         showKeys();
       }
 
-      // Q / Shift+Q
+      // Q / Shift+Q (silent)
       if (e.key === "q" || e.key === "Q"){
-        if (e.shiftKey){
-          setStateCharged(true);
-          showToast("…", 650); // intentionally vague
-        } else {
-          setStateCharged(false);
-          showToast(" ", 260); // basically nothing; keeps it subtle
-        }
+        if (e.shiftKey) setStateCharged(true);
+        else setStateCharged(false);
       }
 
-      // Hold W to pulse
+      // Hold W for continuous pulse
       if ((e.key === "w" || e.key === "W") && !wHeld){
         wHeld = true;
-        clearTimeout(wTimer);
-        wTimer = setTimeout(() => { if (wHeld) pulse(); }, 1200);
+        startPulse();
       }
     });
 
     window.addEventListener("keyup", (e) => {
       if (e.key === "w" || e.key === "W"){
         wHeld = false;
-        clearTimeout(wTimer);
+        stopPulse();
       }
+    });
+
+    // safety: if tab loses focus while holding W, stop pulsing
+    window.addEventListener("blur", () => {
+      wHeld = false;
+      stopPulse();
     });
 
     // ===== Static Rune Wallpaper (low-lag) =====
