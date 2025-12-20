@@ -33,7 +33,7 @@
       overflow: hidden;
     }
 
-    /* ===== Background layers ===== */
+    /* ===== Background layers (no blob lights) ===== */
     canvas#runes {
       position: fixed;
       inset: 0;
@@ -352,12 +352,9 @@
     pill.addEventListener("dblclick", copyName);
     generate();
 
-    // ===== Rune Rain (fixed trails) =====
+    // ===== Rune Rain =====
     const canvas = document.getElementById("runes");
     const ctx = canvas.getContext("2d", { alpha: true });
-
-    // Keep drawing simple + predictable blending
-    ctx.globalCompositeOperation = "source-over";
 
     const GLYPHS = [
       "ᚠ","ᚢ","ᚦ","ᚨ","ᚱ","ᚲ","ᚷ","ᚹ","ᚺ","ᚾ","ᛁ","ᛃ","ᛇ","ᛈ","ᛉ","ᛋ","ᛏ","ᛒ","ᛖ","ᛗ","ᛚ","ᛜ","ᛞ","ᛟ",
@@ -373,17 +370,14 @@
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
-    // Key changes:
-    // - fade is stronger (clears more each frame)
-    // - alpha is lower (less buildup)
     const settings = {
-      fontSize: 18,
-      columnGap: 20,
-      speedMin: 26,
-      speedMax: 60,
-      fade: 0.26,          // STRONGER clearing (prevents infinite stacking)
-      alpha: 0.14,         // LOWER rune opacity
-      highlightAlpha: 0.18 // LOWER highlight opacity
+      fontSize: 16,
+      columnGap: 18,
+      speedMin: 14,
+      speedMax: 34,
+      fade: 0.11,
+      alpha: 0.16,
+      highlightAlpha: 0.28
     };
 
     let columns = [];
@@ -402,12 +396,10 @@
     }
 
     let last = performance.now();
-
     function frame(now){
       const dt = now - last;
       last = now;
 
-      // Base fade fill to background color (this makes trails converge back to true black)
       ctx.fillStyle = `rgba(7,7,10,${settings.fade})`;
       ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
@@ -425,7 +417,7 @@
         ctx.fillText(glyph(), c.x, c.y);
 
         if (Math.random() < 0.10){
-          ctx.fillStyle = `rgba(120,180,255,${a * 0.50})`;
+          ctx.fillStyle = `rgba(120,180,255,${a * 0.55})`;
           ctx.fillText(glyph(), c.x + 7, c.y + 6);
         }
 
@@ -443,18 +435,13 @@
 
     resize();
     initColumns();
-
-    // Start with an opaque background so the first few frames don't “ghost”
-    ctx.fillStyle = "rgba(7,7,10,1)";
-    ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     requestAnimationFrame(frame);
 
     window.addEventListener("resize", () => {
       resize();
       initColumns();
-      ctx.fillStyle = "rgba(7,7,10,1)";
-      ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     });
   </script>
 </body>
