@@ -367,14 +367,14 @@
       font: 16,               // rune size
       baseAlpha: 0.06,        // faint background runes
       blinkAlpha: 0.22,       // green glow peak
-      blinkChance: 0.012,     // higher = more blinking
-      swapsPerTick: 14,       // higher = more shuffling
-      tickHz: 10,             // how often the texture updates (NOT fps)
+      blinkChance: 0.006,     // higher = more blinking
+      swapsPerTick: 7,       // higher = more shuffling
+      tickHz: 4,             // how often the texture updates (NOT fps)
       // Parallax speeds (px/sec)
       drift1x: 7,  drift1y: 4,
       drift2x: -3, drift2y: 6,
       // Clean zone behind card
-      cleanZoneStrength: 0.85 // 0..1 (higher = cleaner center)
+      cleanZoneStrength: 1.0 // 0..1 (higher = cleaner center)
     };
 
     // Offscreen textures (updated at tickHz, blitted every frame)
