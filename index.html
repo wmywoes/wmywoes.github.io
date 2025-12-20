@@ -12,7 +12,6 @@
       --bg: #07070a;
       --fg: #e6e6eb;
 
-      /* UI frame */
       --border: rgba(255,255,255,.10);
       --innerBorder: rgba(255,255,255,.075);
       --shadow: rgba(0,0,0,.78);
@@ -42,7 +41,7 @@
       --p4: .14;
     }
 
-    /* Charged state (unlock) – subtle world changes */
+    /* Charged state (Shift+Q) */
     :root[data-state="charged"]{
       --auraOpacity: .72;
       --auraBlur: 14px;
@@ -54,10 +53,7 @@
       --p3: .26;
       --p4: .18;
 
-      /* Deeper tunnel */
       --vignetteEdge: rgba(0,0,0,.86);
-
-      /* Slightly more “cut” inner frame */
       --border: rgba(255,255,255,.13);
       --innerBorder: rgba(255,255,255,.105);
     }
@@ -136,6 +132,7 @@
       z-index: 1;
     }
 
+    /* Aura edge ring (unchanged by W now) */
     .aura{
       position: absolute;
       inset: -2px;
@@ -168,18 +165,6 @@
       100% { transform: rotate(0deg) scale(var(--auraScale)); opacity: calc(var(--auraOpacity) - .10); }
     }
 
-    /* Continuous pulse (hold W) — JS retriggers this class repeatedly */
-    .card.pulse .aura{
-      animation: auraPulse .85s ease-out 1;
-      opacity: calc(var(--auraOpacity) + .18);
-    }
-
-    @keyframes auraPulse{
-      0%   { transform: rotate(0deg) scale(var(--auraScale)); filter: blur(var(--auraBlur)); }
-      45%  { transform: rotate(12deg) scale(calc(var(--auraScale) + .055)); filter: blur(calc(var(--auraBlur) + 3px)); }
-      100% { transform: rotate(0deg) scale(var(--auraScale)); filter: blur(var(--auraBlur)); }
-    }
-
     .content{
       position: relative;
       z-index: 2;
@@ -199,7 +184,6 @@
         0 0 34px rgba(var(--accent), .06);
     }
 
-    /* only for '?' help */
     .toast{
       position: fixed;
       left: 50%;
@@ -241,7 +225,7 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    // ===== Toast (only for '?', and theme change) =====
+    // ===== Toast (only for '?' and theme change) =====
     const toast = document.getElementById("toast");
     function showToast(msg, ms = 900){
       if (!msg || !msg.trim()) return;
@@ -268,7 +252,6 @@
       for (const [k,v] of Object.entries(t.vars)) root.style.setProperty(k, v);
       localStorage.setItem("woes_theme", String(idx));
       if (!quiet) showToast(`Theme: ${t.name}`, 900);
-      // Force rune texture rebuild when theme changes so glow color updates immediately
       requestRebuild();
     }
 
@@ -278,7 +261,7 @@
       applyTheme(themeIndex, true);
     }
 
-    // ===== Lock/Unlock state (Shift+Q unlock, Q lock) — SILENT =====
+    // ===== Lock/Unlock (Shift+Q unlock, Q lock) — SILENT =====
     const root = document.documentElement;
 
     function isCharged(){
@@ -288,7 +271,6 @@
     function setStateCharged(on){
       root.setAttribute("data-state", on ? "charged" : "normal");
       localStorage.setItem("woes_state", on ? "charged" : "normal");
-      // charged changes rune behavior too, so rebuild immediately
       requestRebuild();
     }
 
@@ -296,37 +278,37 @@
     if (savedState === "charged") setStateCharged(true);
     else root.setAttribute("data-state", "normal");
 
-    // ===== Continuous Pulse (hold W) =====
-    const card = document.getElementById("card");
-
-    function pulseOnce(){
-      card.classList.remove("pulse");
-      void card.offsetWidth;
-      card.classList.add("pulse");
-    }
-
+    // ===== W Hold => Background Surge (NOT panel) =====
     let wHeld = false;
-    let pulseInterval = null;
-    let pulseKick = null;
+    let surge = 0;        // 0..1
+    let surgeTarget = 0;  // 0 or 1
 
-    function startPulse(){
-      if (pulseInterval) return;
-      pulseOnce();
-      pulseKick = setTimeout(() => {
-        pulseInterval = setInterval(pulseOnce, 780);
-      }, 260);
+    function updateSurge(){
+      // smooth approach for "charge" and "decay"
+      const speedUp = 0.13;
+      const speedDown = 0.08;
+
+      if (surgeTarget > surge) surge = Math.min(1, surge + speedUp);
+      else surge = Math.max(0, surge - speedDown);
+
+      // keep animating until we settle
+      if (surge !== surgeTarget){
+        requestAnimationFrame(updateSurge);
+      }
     }
 
-    function stopPulse(){
-      clearTimeout(pulseKick);
-      pulseKick = null;
-      clearInterval(pulseInterval);
-      pulseInterval = null;
-      card.classList.remove("pulse");
+    function startSurge(){
+      surgeTarget = 1;
+      requestAnimationFrame(updateSurge);
+    }
+
+    function stopSurge(){
+      surgeTarget = 0;
+      requestAnimationFrame(updateSurge);
     }
 
     function showKeys(){
-      showToast("Keys: T = theme • Shift+Q = unlock • Q = lock • Hold W = pulse • ? = keys", 1900);
+      showToast("Keys: T = theme • Shift+Q = unlock • Q = lock • Hold W = surge • ? = keys", 1900);
     }
 
     window.addEventListener("keydown", (e) => {
@@ -348,25 +330,26 @@
         else setStateCharged(false);
       }
 
+      // Hold W => surge background
       if ((e.key === "w" || e.key === "W") && !wHeld){
         wHeld = true;
-        startPulse();
+        startSurge();
       }
     });
 
     window.addEventListener("keyup", (e) => {
       if (e.key === "w" || e.key === "W"){
         wHeld = false;
-        stopPulse();
+        stopSurge();
       }
     });
 
     window.addEventListener("blur", () => {
       wHeld = false;
-      stopPulse();
+      stopSurge();
     });
 
-    // ===== Static Rune Wallpaper (low-lag) + Charged behavior =====
+    // ===== Rune Wallpaper (low-lag) + Charged + Surge =====
     const canvas = document.getElementById("runes");
     const ctx = canvas.getContext("2d", { alpha: true });
 
@@ -375,7 +358,6 @@
       "⟡","⟠","⟟","⟐","⟁","⌁","⋄","⋆","⊕","⊗","⊘"
     ];
 
-    // Base configuration
     const base = {
       cell: 26,
       font: 16,
@@ -387,8 +369,7 @@
       cleanZoneStrength: 0.94
     };
 
-    // Charged deltas (subtle, but noticeable)
-    const charged = {
+    const chargedCfg = {
       blinkAlpha: 0.26,
       blinkChance: 0.016,
       swapsPerTick: 18,
@@ -396,10 +377,47 @@
       cleanZoneStrength: 0.92
     };
 
+    // W-surge boost (interpolated in)
+    const surgeBoost = {
+      blinkAlpha: 0.34,
+      blinkChance: 0.030,
+      swapsPerTick: 26,
+      tickHz: 13,
+      cleanZoneStrength: 0.90
+    };
+
+    function lerp(a,b,t){ return a + (b-a)*t; }
+
     function effectiveCfg(){
-      return isCharged()
-        ? { ...base, ...charged }
-        : { ...base };
+      // start from base -> charged (if on)
+      const c0 = base;
+      const c1 = isCharged() ? chargedCfg : base;
+
+      // mix charged state
+      const mixed = {
+        cell: base.cell,
+        font: base.font,
+        baseAlpha: base.baseAlpha,
+        blinkAlpha: c1.blinkAlpha,
+        blinkChance: c1.blinkChance,
+        swapsPerTick: c1.swapsPerTick,
+        tickHz: c1.tickHz,
+        cleanZoneStrength: c1.cleanZoneStrength
+      };
+
+      // then apply surge on top (0..1)
+      const s = surge;
+
+      return {
+        cell: mixed.cell,
+        font: mixed.font,
+        baseAlpha: mixed.baseAlpha,
+        blinkAlpha: lerp(mixed.blinkAlpha, surgeBoost.blinkAlpha, s),
+        blinkChance: lerp(mixed.blinkChance, surgeBoost.blinkChance, s),
+        swapsPerTick: Math.round(lerp(mixed.swapsPerTick, surgeBoost.swapsPerTick, s)),
+        tickHz: lerp(mixed.tickHz, surgeBoost.tickHz, s),
+        cleanZoneStrength: lerp(mixed.cleanZoneStrength, surgeBoost.cleanZoneStrength, s)
+      };
     }
 
     const tex = document.createElement("canvas");
@@ -414,8 +432,10 @@
     function getAccent(){
       return getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "120,255,180";
     }
+    function getAccent2(){
+      return getComputedStyle(document.documentElement).getPropertyValue("--accent2").trim() || getAccent();
+    }
 
-    // allow forced rebuild on state/theme changes
     let needsRebuild = true;
     function requestRebuild(){ needsRebuild = true; }
 
@@ -453,16 +473,28 @@
       drawOnce();
     }
 
+    // We keep an interval timer, but dynamically adjust it if tickHz changes a lot
+    let timer = null;
+    let lastTickHz = 0;
+
+    function start(){
+      if (timer) clearInterval(timer);
+      cfg = effectiveCfg();
+      lastTickHz = cfg.tickHz;
+      timer = setInterval(tick, Math.round(1000 / Math.max(6, cfg.tickHz)));
+    }
+
     function tick(){
-      // If lock/unlock happened, update cfg and timer rate safely
-      const nextCfg = effectiveCfg();
-      const tickChanged = nextCfg.tickHz !== cfg.tickHz;
+      const next = effectiveCfg();
 
-      cfg = nextCfg;
-
-      if (tickChanged){
-        start(); // restart interval with new tickHz
+      // if tickHz changed enough (surge/charged), restart interval occasionally
+      if (Math.abs(next.tickHz - lastTickHz) > 0.9){
+        cfg = next;
+        start();
+        return;
       }
+
+      cfg = next;
 
       for (let k = 0; k < cfg.swapsPerTick; k++){
         const a = (Math.random() * n) | 0;
@@ -539,6 +571,7 @@
         }
       }
 
+      // Clean zone behind center (keeps UI readable)
       const cx = w / 2;
       const cy = h / 2;
       const grad = ctx.createRadialGradient(cx, cy, 180, cx, cy, 520);
@@ -546,12 +579,31 @@
       grad.addColorStop(1, `rgba(7,7,10,0)`);
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, w, h);
-    }
 
-    let timer = null;
-    function start(){
-      if (timer) clearInterval(timer);
-      timer = setInterval(tick, Math.round(1000 / cfg.tickHz));
+      // ===== W Surge Visual (background “rift”) =====
+      if (surge > 0){
+        const a1 = getAccent();
+        const a2 = getAccent2();
+
+        // bloom glow
+        const g1 = ctx.createRadialGradient(cx, cy, 120, cx, cy, 780);
+        g1.addColorStop(0, `rgba(${a1},${0.10 * surge})`);
+        g1.addColorStop(0.35, `rgba(${a2},${0.08 * surge})`);
+        g1.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = g1;
+        ctx.fillRect(0, 0, w, h);
+
+        // dark pressure ring + outer glow ring
+        const ringR = 360 + 160 * surge;
+        const ringW = 210 + 120 * surge;
+
+        const g2 = ctx.createRadialGradient(cx, cy, ringR, cx, cy, ringR + ringW);
+        g2.addColorStop(0, `rgba(0,0,0,${0.22 * surge})`);
+        g2.addColorStop(0.35, `rgba(${a1},${0.08 * surge})`);
+        g2.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = g2;
+        ctx.fillRect(0, 0, w, h);
+      }
     }
 
     resize();
