@@ -25,7 +25,6 @@
 
       --radius: 10px;
 
-      /* Vignette control */
       --vignetteEdge: rgba(0,0,0,.78);
 
       /* Aura controls */
@@ -41,7 +40,7 @@
       --p4: .14;
     }
 
-    /* Charged state (Shift+Q) */
+    /* Charged (Shift+Q) */
     :root[data-state="charged"]{
       --auraOpacity: .72;
       --auraBlur: 14px;
@@ -132,7 +131,6 @@
       z-index: 1;
     }
 
-    /* Aura edge ring (unchanged by W now) */
     .aura{
       position: absolute;
       inset: -2px;
@@ -143,7 +141,7 @@
       background:
         radial-gradient(140px 80px at 18% 24%, rgba(var(--accent), var(--p1)), transparent 65%),
         radial-gradient(180px 110px at 82% 74%, rgba(var(--accent2), var(--p2)), transparent 70%),
-        radial-gradient(120px 90px at 65% 25%, rgba(var(--accent), calc(var(--p2) * .65)), transparent 70%),
+        radial-gradient(120px 90px at 65% 25%, rgba(var(--accent), .14), transparent 70%),
         conic-gradient(from 90deg,
           rgba(var(--accent), 0),
           rgba(var(--accent), var(--p3)),
@@ -202,7 +200,6 @@
       transition: opacity .18s ease, transform .18s ease;
       z-index: 10;
     }
-
     .toast.show{
       opacity: 1;
       transform: translateX(-50%) translateY(-4px);
@@ -217,398 +214,337 @@
 
   <main class="card" id="card" aria-label="Woes">
     <div class="aura"></div>
-    <div class="content">
-      <h1>Woes</h1>
-    </div>
+    <div class="content"><h1>Woes</h1></div>
   </main>
 
   <div class="toast" id="toast"></div>
 
   <script>
-    // ===== Toast (only for '?' and theme change) =====
-    const toast = document.getElementById("toast");
-    function showToast(msg, ms = 900){
-      if (!msg || !msg.trim()) return;
-      toast.textContent = msg;
-      toast.classList.add("show");
-      clearTimeout(showToast._t);
-      showToast._t = setTimeout(() => toast.classList.remove("show"), ms);
-    }
+    // If anything throws, we still want the page to keep working.
+    try{
+      const toast = document.getElementById("toast");
+      function showToast(msg, ms = 900){
+        if (!msg || !msg.trim()) return;
+        toast.textContent = msg;
+        toast.classList.add("show");
+        clearTimeout(showToast._t);
+        showToast._t = setTimeout(() => toast.classList.remove("show"), ms);
+      }
 
-    // ===== Themes (T) =====
-    const themes = [
-      { name: "Emerald", vars: { "--bg":"#07070a","--fg":"#e6e6eb","--accent":"120,255,180","--accent2":"120,180,255","--cardA":"rgba(255,255,255,.040)","--cardB":"rgba(255,255,255,.022)","--radius":"10px" } },
-      { name: "Ice",    vars: { "--bg":"#06070b","--fg":"#eef0ff","--accent":"170,220,255","--accent2":"150,255,210","--cardA":"rgba(255,255,255,.042)","--cardB":"rgba(255,255,255,.020)","--radius":"10px" } },
-      { name: "Ember",  vars: { "--bg":"#070607","--fg":"#f1eceb","--accent":"255,160,110","--accent2":"255,220,150","--cardA":"rgba(255,255,255,.038)","--cardB":"rgba(255,255,255,.020)","--radius":"10px" } },
-      { name: "Violet", vars: { "--bg":"#06060a","--fg":"#f0ecff","--accent":"190,150,255","--accent2":"120,255,240","--cardA":"rgba(255,255,255,.040)","--cardB":"rgba(255,255,255,.020)","--radius":"10px" } },
-      { name: "Acid",   vars: { "--bg":"#050607","--fg":"#eaf7ef","--accent":"180,255,120","--accent2":"255,255,160","--cardA":"rgba(255,255,255,.036)","--cardB":"rgba(255,255,255,.018)","--radius":"10px" } },
-      { name: "Mono",   vars: { "--bg":"#07070a","--fg":"#f0f0f4","--accent":"230,230,235","--accent2":"230,230,235","--cardA":"rgba(255,255,255,.035)","--cardB":"rgba(255,255,255,.018)","--radius":"10px" } }
-    ];
+      // ===== Themes (T) =====
+      const themes = [
+        { name: "Emerald", vars: { "--bg":"#07070a","--fg":"#e6e6eb","--accent":"120,255,180","--accent2":"120,180,255","--cardA":"rgba(255,255,255,.040)","--cardB":"rgba(255,255,255,.022)","--radius":"10px" } },
+        { name: "Ice",    vars: { "--bg":"#06070b","--fg":"#eef0ff","--accent":"170,220,255","--accent2":"150,255,210","--cardA":"rgba(255,255,255,.042)","--cardB":"rgba(255,255,255,.020)","--radius":"10px" } },
+        { name: "Ember",  vars: { "--bg":"#070607","--fg":"#f1eceb","--accent":"255,160,110","--accent2":"255,220,150","--cardA":"rgba(255,255,255,.038)","--cardB":"rgba(255,255,255,.020)","--radius":"10px" } },
+        { name: "Violet", vars: { "--bg":"#06060a","--fg":"#f0ecff","--accent":"190,150,255","--accent2":"120,255,240","--cardA":"rgba(255,255,255,.040)","--cardB":"rgba(255,255,255,.020)","--radius":"10px" } },
+        { name: "Acid",   vars: { "--bg":"#050607","--fg":"#eaf7ef","--accent":"180,255,120","--accent2":"255,255,160","--cardA":"rgba(255,255,255,.036)","--cardB":"rgba(255,255,255,.018)","--radius":"10px" } },
+        { name: "Mono",   vars: { "--bg":"#07070a","--fg":"#f0f0f4","--accent":"230,230,235","--accent2":"230,230,235","--cardA":"rgba(255,255,255,.035)","--cardB":"rgba(255,255,255,.018)","--radius":"10px" } }
+      ];
 
-    let themeIndex = 0;
-    function applyTheme(idx, quiet = false){
-      const t = themes[idx];
+      let themeIndex = 0;
+      function applyTheme(idx, quiet=false){
+        const t = themes[idx];
+        const root = document.documentElement;
+        for (const [k,v] of Object.entries(t.vars)) root.style.setProperty(k, v);
+        localStorage.setItem("woes_theme", String(idx));
+        if (!quiet) showToast(`Theme: ${t.name}`, 900);
+      }
+
+      const savedTheme = Number(localStorage.getItem("woes_theme"));
+      if (!Number.isNaN(savedTheme) && savedTheme >= 0 && savedTheme < themes.length){
+        themeIndex = savedTheme;
+        applyTheme(themeIndex, true);
+      }
+
+      // ===== Silent Lock/Unlock (Shift+Q / Q) =====
       const root = document.documentElement;
-      for (const [k,v] of Object.entries(t.vars)) root.style.setProperty(k, v);
-      localStorage.setItem("woes_theme", String(idx));
-      if (!quiet) showToast(`Theme: ${t.name}`, 900);
-      requestRebuild();
-    }
 
-    const savedTheme = Number(localStorage.getItem("woes_theme"));
-    if (!Number.isNaN(savedTheme) && savedTheme >= 0 && savedTheme < themes.length){
-      themeIndex = savedTheme;
-      applyTheme(themeIndex, true);
-    }
-
-    // ===== Lock/Unlock (Shift+Q unlock, Q lock) — SILENT =====
-    const root = document.documentElement;
-
-    function isCharged(){
-      return root.getAttribute("data-state") === "charged";
-    }
-
-    function setStateCharged(on){
-      root.setAttribute("data-state", on ? "charged" : "normal");
-      localStorage.setItem("woes_state", on ? "charged" : "normal");
-      requestRebuild();
-    }
-
-    const savedState = localStorage.getItem("woes_state");
-    if (savedState === "charged") setStateCharged(true);
-    else root.setAttribute("data-state", "normal");
-
-    // ===== W Hold => Background Surge (NOT panel) =====
-    let wHeld = false;
-    let surge = 0;        // 0..1
-    let surgeTarget = 0;  // 0 or 1
-
-    function updateSurge(){
-      // smooth approach for "charge" and "decay"
-      const speedUp = 0.13;
-      const speedDown = 0.08;
-
-      if (surgeTarget > surge) surge = Math.min(1, surge + speedUp);
-      else surge = Math.max(0, surge - speedDown);
-
-      // keep animating until we settle
-      if (surge !== surgeTarget){
-        requestAnimationFrame(updateSurge);
-      }
-    }
-
-    function startSurge(){
-      surgeTarget = 1;
-      requestAnimationFrame(updateSurge);
-    }
-
-    function stopSurge(){
-      surgeTarget = 0;
-      requestAnimationFrame(updateSurge);
-    }
-
-    function showKeys(){
-      showToast("Keys: T = theme • Shift+Q = unlock • Q = lock • Hold W = surge • ? = keys", 1900);
-    }
-
-    window.addEventListener("keydown", (e) => {
-      const tag = (document.activeElement && document.activeElement.tagName || "").toLowerCase();
-      if (tag === "input" || tag === "textarea") return;
-
-      if (e.key === "t" || e.key === "T"){
-        themeIndex = (themeIndex + 1) % themes.length;
-        applyTheme(themeIndex, false);
+      function isCharged(){
+        return root.getAttribute("data-state") === "charged";
       }
 
-      if (e.key === "?"){
-        showKeys();
+      function setStateCharged(on){
+        root.setAttribute("data-state", on ? "charged" : "normal");
+        localStorage.setItem("woes_state", on ? "charged" : "normal");
       }
 
-      // Q / Shift+Q (silent)
-      if (e.key === "q" || e.key === "Q"){
-        if (e.shiftKey) setStateCharged(true);
-        else setStateCharged(false);
+      const savedState = localStorage.getItem("woes_state");
+      if (savedState === "charged") setStateCharged(true);
+      else root.setAttribute("data-state", "normal");
+
+      // ===== W Hold => Background Surge (smooth 0..1) =====
+      let surge = 0;
+      let surgeTarget = 0;
+
+      function stepSurge(){
+        const up = 0.12;
+        const down = 0.07;
+        if (surgeTarget > surge) surge = Math.min(1, surge + up);
+        else surge = Math.max(0, surge - down);
+
+        if (surge !== surgeTarget) requestAnimationFrame(stepSurge);
       }
 
-      // Hold W => surge background
-      if ((e.key === "w" || e.key === "W") && !wHeld){
-        wHeld = true;
-        startSurge();
+      function startSurge(){
+        surgeTarget = 1;
+        requestAnimationFrame(stepSurge);
       }
-    });
+      function stopSurge(){
+        surgeTarget = 0;
+        requestAnimationFrame(stepSurge);
+      }
 
-    window.addEventListener("keyup", (e) => {
-      if (e.key === "w" || e.key === "W"){
+      function showKeys(){
+        showToast("Keys: T=theme • Shift+Q=unlock • Q=lock • Hold W=surge • ?=keys", 1900);
+      }
+
+      let wHeld = false;
+
+      window.addEventListener("keydown", (e) => {
+        const tag = (document.activeElement && document.activeElement.tagName || "").toLowerCase();
+        if (tag === "input" || tag === "textarea") return;
+
+        if (e.key === "t" || e.key === "T"){
+          themeIndex = (themeIndex + 1) % themes.length;
+          applyTheme(themeIndex, false);
+        }
+        if (e.key === "?"){
+          showKeys();
+        }
+        if (e.key === "q" || e.key === "Q"){
+          if (e.shiftKey) setStateCharged(true);
+          else setStateCharged(false);
+        }
+        if ((e.key === "w" || e.key === "W") && !wHeld){
+          wHeld = true;
+          startSurge();
+        }
+      });
+
+      window.addEventListener("keyup", (e) => {
+        if (e.key === "w" || e.key === "W"){
+          wHeld = false;
+          stopSurge();
+        }
+      });
+
+      window.addEventListener("blur", () => {
         wHeld = false;
         stopSurge();
-      }
-    });
+      });
 
-    window.addEventListener("blur", () => {
-      wHeld = false;
-      stopSurge();
-    });
+      // ===== Rune Wallpaper (stable tick) =====
+      const canvas = document.getElementById("runes");
+      const ctx = canvas.getContext("2d", { alpha: true });
 
-    // ===== Rune Wallpaper (low-lag) + Charged + Surge =====
-    const canvas = document.getElementById("runes");
-    const ctx = canvas.getContext("2d", { alpha: true });
+      const GLYPHS = [
+        "ᚠ","ᚢ","ᚦ","ᚨ","ᚱ","ᚲ","ᚷ","ᚹ","ᚺ","ᚾ","ᛁ","ᛃ","ᛇ","ᛈ","ᛉ","ᛋ","ᛏ","ᛒ","ᛖ","ᛗ","ᛚ","ᛜ","ᛞ","ᛟ",
+        "⟡","⟠","⟟","⟐","⟁","⌁","⋄","⋆","⊕","⊗","⊘"
+      ];
 
-    const GLYPHS = [
-      "ᚠ","ᚢ","ᚦ","ᚨ","ᚱ","ᚲ","ᚷ","ᚹ","ᚺ","ᚾ","ᛁ","ᛃ","ᛇ","ᛈ","ᛉ","ᛋ","ᛏ","ᛒ","ᛖ","ᛗ","ᛚ","ᛜ","ᛞ","ᛟ",
-      "⟡","⟠","⟟","⟐","⟁","⌁","⋄","⋆","⊕","⊗","⊘"
-    ];
-
-    const base = {
-      cell: 26,
-      font: 16,
-      baseAlpha: 0.055,
-      blinkAlpha: 0.20,
-      blinkChance: 0.010,
-      swapsPerTick: 12,
-      tickHz: 9,
-      cleanZoneStrength: 0.94
-    };
-
-    const chargedCfg = {
-      blinkAlpha: 0.26,
-      blinkChance: 0.016,
-      swapsPerTick: 18,
-      tickHz: 11,
-      cleanZoneStrength: 0.92
-    };
-
-    // W-surge boost (interpolated in)
-    const surgeBoost = {
-      blinkAlpha: 0.34,
-      blinkChance: 0.030,
-      swapsPerTick: 26,
-      tickHz: 13,
-      cleanZoneStrength: 0.90
-    };
-
-    function lerp(a,b,t){ return a + (b-a)*t; }
-
-    function effectiveCfg(){
-      // start from base -> charged (if on)
-      const c0 = base;
-      const c1 = isCharged() ? chargedCfg : base;
-
-      // mix charged state
-      const mixed = {
-        cell: base.cell,
-        font: base.font,
-        baseAlpha: base.baseAlpha,
-        blinkAlpha: c1.blinkAlpha,
-        blinkChance: c1.blinkChance,
-        swapsPerTick: c1.swapsPerTick,
-        tickHz: c1.tickHz,
-        cleanZoneStrength: c1.cleanZoneStrength
+      const base = {
+        cell: 26,
+        font: 16,
+        baseAlpha: 0.055,
+        blinkAlpha: 0.20,
+        blinkChance: 0.010,
+        swaps: 12,
+        clean: 0.94
       };
 
-      // then apply surge on top (0..1)
-      const s = surge;
-
-      return {
-        cell: mixed.cell,
-        font: mixed.font,
-        baseAlpha: mixed.baseAlpha,
-        blinkAlpha: lerp(mixed.blinkAlpha, surgeBoost.blinkAlpha, s),
-        blinkChance: lerp(mixed.blinkChance, surgeBoost.blinkChance, s),
-        swapsPerTick: Math.round(lerp(mixed.swapsPerTick, surgeBoost.swapsPerTick, s)),
-        tickHz: lerp(mixed.tickHz, surgeBoost.tickHz, s),
-        cleanZoneStrength: lerp(mixed.cleanZoneStrength, surgeBoost.cleanZoneStrength, s)
+      const charged = {
+        blinkAlpha: 0.26,
+        blinkChance: 0.016,
+        swaps: 18,
+        clean: 0.92
       };
-    }
 
-    const tex = document.createElement("canvas");
-    const t = tex.getContext("2d", { alpha: true });
+      // surge is additive on top (scaled by surge 0..1)
+      const surgeBoost = {
+        blinkAlpha: 0.34,
+        blinkChance: 0.030,
+        swaps: 26,
+        clean: 0.90
+      };
 
-    let cols = 0, rows = 0, n = 0;
-    let cells, blink;
-    let cfg = effectiveCfg();
+      function lerp(a,b,t){ return a + (b-a)*t; }
 
-    const randGlyph = () => (Math.random() * GLYPHS.length) | 0;
+      const tex = document.createElement("canvas");
+      const tctx = tex.getContext("2d", { alpha: true });
 
-    function getAccent(){
-      return getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "120,255,180";
-    }
-    function getAccent2(){
-      return getComputedStyle(document.documentElement).getPropertyValue("--accent2").trim() || getAccent();
-    }
+      let cols=0, rows=0, n=0;
+      let cells, blink;
 
-    let needsRebuild = true;
-    function requestRebuild(){ needsRebuild = true; }
+      const randGlyph = () => (Math.random() * GLYPHS.length) | 0;
 
-    function resize(){
-      cfg = effectiveCfg();
-
-      const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-      canvas.width = Math.floor(window.innerWidth * dpr);
-      canvas.height = Math.floor(window.innerHeight * dpr);
-      canvas.style.width = window.innerWidth + "px";
-      canvas.style.height = window.innerHeight + "px";
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-      const texW = Math.max(cfg.cell * 24, Math.ceil(window.innerWidth / cfg.cell) * cfg.cell);
-      const texH = Math.max(cfg.cell * 18, Math.ceil(window.innerHeight / cfg.cell) * cfg.cell);
-
-      tex.width = Math.floor(texW * dpr);
-      tex.height = Math.floor(texH * dpr);
-      t.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-      cols = Math.ceil(texW / cfg.cell);
-      rows = Math.ceil(texH / cfg.cell);
-      n = cols * rows;
-
-      cells = new Uint16Array(n);
-      blink = new Float32Array(n);
-
-      for (let i = 0; i < n; i++){
-        cells[i] = randGlyph();
-        blink[i] = 0;
+      function getAccent(){
+        return getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "120,255,180";
+      }
+      function getAccent2(){
+        return getComputedStyle(document.documentElement).getPropertyValue("--accent2").trim() || getAccent();
       }
 
-      needsRebuild = true;
-      rebuildTexture();
-      drawOnce();
-    }
+      function resize(){
+        const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+        canvas.width = Math.floor(window.innerWidth * dpr);
+        canvas.height = Math.floor(window.innerHeight * dpr);
+        canvas.style.width = window.innerWidth + "px";
+        canvas.style.height = window.innerHeight + "px";
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    // We keep an interval timer, but dynamically adjust it if tickHz changes a lot
-    let timer = null;
-    let lastTickHz = 0;
+        const texW = Math.max(base.cell * 24, Math.ceil(window.innerWidth / base.cell) * base.cell);
+        const texH = Math.max(base.cell * 18, Math.ceil(window.innerHeight / base.cell) * base.cell);
 
-    function start(){
-      if (timer) clearInterval(timer);
-      cfg = effectiveCfg();
-      lastTickHz = cfg.tickHz;
-      timer = setInterval(tick, Math.round(1000 / Math.max(6, cfg.tickHz)));
-    }
+        tex.width = Math.floor(texW * dpr);
+        tex.height = Math.floor(texH * dpr);
+        tctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    function tick(){
-      const next = effectiveCfg();
+        cols = Math.ceil(texW / base.cell);
+        rows = Math.ceil(texH / base.cell);
+        n = cols * rows;
 
-      // if tickHz changed enough (surge/charged), restart interval occasionally
-      if (Math.abs(next.tickHz - lastTickHz) > 0.9){
-        cfg = next;
-        start();
-        return;
-      }
-
-      cfg = next;
-
-      for (let k = 0; k < cfg.swapsPerTick; k++){
-        const a = (Math.random() * n) | 0;
-        const b = (Math.random() * n) | 0;
-        const tmp = cells[a]; cells[a] = cells[b]; cells[b] = tmp;
-      }
-
-      for (let i = 0; i < n; i++){
-        if (blink[i] <= 0 && Math.random() < cfg.blinkChance){
-          blink[i] = 1;
+        cells = new Uint16Array(n);
+        blink = new Float32Array(n);
+        for (let i=0;i<n;i++){
+          cells[i]=randGlyph();
+          blink[i]=0;
         }
+
+        rebuildTexture();
+        drawOnce();
       }
 
-      for (let i = 0; i < n; i++){
-        if (blink[i] > 0){
-          blink[i] -= 0.10;
-          if (blink[i] < 0) blink[i] = 0;
+      function currentCfg(){
+        const c = isCharged() ? charged : base;
+        const s = surge;
+
+        return {
+          cell: base.cell,
+          font: base.font,
+          baseAlpha: base.baseAlpha,
+          blinkAlpha: lerp(c.blinkAlpha, surgeBoost.blinkAlpha, s),
+          blinkChance: lerp(c.blinkChance, surgeBoost.blinkChance, s),
+          swaps: Math.round(lerp(c.swaps, surgeBoost.swaps, s)),
+          clean: lerp(c.clean, surgeBoost.clean, s)
+        };
+      }
+
+      function tick(){
+        const cfg = currentCfg();
+
+        for (let k=0;k<cfg.swaps;k++){
+          const a = (Math.random()*n)|0;
+          const b = (Math.random()*n)|0;
+          const tmp=cells[a]; cells[a]=cells[b]; cells[b]=tmp;
         }
-      }
 
-      rebuildTexture();
-      drawOnce();
-    }
+        for (let i=0;i<n;i++){
+          if (blink[i] <= 0 && Math.random() < cfg.blinkChance) blink[i]=1;
+        }
 
-    function rebuildTexture(){
-      const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-      const texW = tex.width / dpr;
-      const texH = tex.height / dpr;
-
-      t.clearRect(0, 0, texW, texH);
-      t.textBaseline = "top";
-      t.font = `${cfg.font}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace`;
-
-      const accent = getAccent();
-
-      let idx = 0;
-      for (let y = 0; y < rows; y++){
-        for (let x = 0; x < cols; x++){
-          const gx = x * cfg.cell + 6;
-          const gy = y * cfg.cell + 4;
-          const ch = GLYPHS[cells[idx]];
-
-          t.fillStyle = `rgba(230,230,235,${cfg.baseAlpha})`;
-          t.fillText(ch, gx, gy);
-
-          const b = blink[idx];
-          if (b > 0){
-            const a = b * cfg.blinkAlpha;
-            t.fillStyle = `rgba(${accent},${a})`;
-            t.fillText(ch, gx, gy);
-            t.fillStyle = `rgba(${accent},${a * 0.55})`;
-            t.fillText(ch, gx + 1, gy + 1);
+        for (let i=0;i<n;i++){
+          if (blink[i] > 0){
+            blink[i] -= 0.10;
+            if (blink[i] < 0) blink[i]=0;
           }
+        }
 
-          idx++;
+        rebuildTexture(cfg);
+        drawOnce(cfg);
+      }
+
+      function rebuildTexture(cfg=currentCfg()){
+        const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+        const texW = tex.width / dpr;
+        const texH = tex.height / dpr;
+
+        tctx.clearRect(0,0,texW,texH);
+        tctx.textBaseline="top";
+        tctx.font = `${cfg.font}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace`;
+
+        const accent = getAccent();
+
+        let idx=0;
+        for (let y=0;y<rows;y++){
+          for (let x=0;x<cols;x++){
+            const gx = x*cfg.cell + 6;
+            const gy = y*cfg.cell + 4;
+            const ch = GLYPHS[cells[idx]];
+
+            tctx.fillStyle = `rgba(230,230,235,${cfg.baseAlpha})`;
+            tctx.fillText(ch,gx,gy);
+
+            const b = blink[idx];
+            if (b > 0){
+              const a = b * cfg.blinkAlpha;
+              tctx.fillStyle = `rgba(${accent},${a})`;
+              tctx.fillText(ch,gx,gy);
+              tctx.fillStyle = `rgba(${accent},${a*0.55})`;
+              tctx.fillText(ch,gx+1,gy+1);
+            }
+
+            idx++;
+          }
         }
       }
 
-      needsRebuild = false;
-    }
+      function drawOnce(cfg=currentCfg()){
+        const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+        const w = canvas.width / dpr;
+        const h = canvas.height / dpr;
+        const iw = tex.width / dpr;
+        const ih = tex.height / dpr;
 
-    function drawOnce(){
-      const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-      const w = canvas.width / dpr;
-      const h = canvas.height / dpr;
-      const iw = tex.width / dpr;
-      const ih = tex.height / dpr;
+        ctx.clearRect(0,0,w,h);
 
-      ctx.clearRect(0, 0, w, h);
+        for (let y=0;y<h;y+=ih){
+          for (let x=0;x<w;x+=iw){
+            ctx.drawImage(tex,x,y,iw,ih);
+          }
+        }
 
-      for (let y = 0; y < h; y += ih){
-        for (let x = 0; x < w; x += iw){
-          ctx.drawImage(tex, x, y, iw, ih);
+        // Clean zone behind center
+        const cx = w/2, cy = h/2;
+        const grad = ctx.createRadialGradient(cx, cy, 180, cx, cy, 520);
+        grad.addColorStop(0, `rgba(7,7,10,${0.78 * cfg.clean})`);
+        grad.addColorStop(1, `rgba(7,7,10,0)`);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0,0,w,h);
+
+        // Surge “rift” bloom (background only)
+        if (surge > 0){
+          const a1 = getAccent();
+          const a2 = getAccent2();
+
+          const g1 = ctx.createRadialGradient(cx, cy, 120, cx, cy, 780);
+          g1.addColorStop(0, `rgba(${a1},${0.10*surge})`);
+          g1.addColorStop(0.35, `rgba(${a2},${0.08*surge})`);
+          g1.addColorStop(1, "rgba(0,0,0,0)");
+          ctx.fillStyle = g1;
+          ctx.fillRect(0,0,w,h);
+
+          const ringR = 360 + 160*surge;
+          const ringW = 210 + 120*surge;
+
+          const g2 = ctx.createRadialGradient(cx, cy, ringR, cx, cy, ringR + ringW);
+          g2.addColorStop(0, `rgba(0,0,0,${0.22*surge})`);
+          g2.addColorStop(0.35, `rgba(${a1},${0.08*surge})`);
+          g2.addColorStop(1, "rgba(0,0,0,0)");
+          ctx.fillStyle = g2;
+          ctx.fillRect(0,0,w,h);
         }
       }
 
-      // Clean zone behind center (keeps UI readable)
-      const cx = w / 2;
-      const cy = h / 2;
-      const grad = ctx.createRadialGradient(cx, cy, 180, cx, cy, 520);
-      grad.addColorStop(0, `rgba(7,7,10,${0.78 * cfg.cleanZoneStrength})`);
-      grad.addColorStop(1, `rgba(7,7,10,0)`);
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, w, h);
+      resize();
+      window.addEventListener("resize", resize);
 
-      // ===== W Surge Visual (background “rift”) =====
-      if (surge > 0){
-        const a1 = getAccent();
-        const a2 = getAccent2();
+      // Stable cadence: no restarting timers (prevents the “everything dies” failure mode)
+      setInterval(tick, 110); // ~9Hz-ish
 
-        // bloom glow
-        const g1 = ctx.createRadialGradient(cx, cy, 120, cx, cy, 780);
-        g1.addColorStop(0, `rgba(${a1},${0.10 * surge})`);
-        g1.addColorStop(0.35, `rgba(${a2},${0.08 * surge})`);
-        g1.addColorStop(1, "rgba(0,0,0,0)");
-        ctx.fillStyle = g1;
-        ctx.fillRect(0, 0, w, h);
-
-        // dark pressure ring + outer glow ring
-        const ringR = 360 + 160 * surge;
-        const ringW = 210 + 120 * surge;
-
-        const g2 = ctx.createRadialGradient(cx, cy, ringR, cx, cy, ringR + ringW);
-        g2.addColorStop(0, `rgba(0,0,0,${0.22 * surge})`);
-        g2.addColorStop(0.35, `rgba(${a1},${0.08 * surge})`);
-        g2.addColorStop(1, "rgba(0,0,0,0)");
-        ctx.fillStyle = g2;
-        ctx.fillRect(0, 0, w, h);
-      }
+    }catch(err){
+      console.error("Woes page script error:", err);
+      // If you open DevTools console, you'll see the exact reason.
     }
-
-    resize();
-    start();
-    window.addEventListener("resize", resize);
   </script>
 </body>
 </html>
