@@ -352,7 +352,7 @@
     pill.addEventListener("dblclick", copyName);
     generate();
 
-    // ===== Tiled Rune Field (no trails) =====
+    // ===== Rune Wallpaper + Parallax Drift (smooth) =====
     const canvas = document.getElementById("runes");
     const ctx = canvas.getContext("2d", { alpha: true });
 
@@ -361,23 +361,44 @@
       "⟡","⟠","⟟","⟐","⟁","⌁","⋄","⋆","⊕","⊗","⊘"
     ];
 
-    // Tuning knobs (safe to mess with)
-    const grid = {
-      size: 22,           // spacing between cells (px)
-      fontSize: 16,       // rune size (px)
-      baseAlpha: 0.065,   // faint background rune visibility
-      blinkAlpha: 0.26,   // glow peak alpha
-      blinkChance: 0.010, // chance per cell per tick to start blinking
-      swapPerTick: 10,    // how many random swaps per tick
-      tickMs: 140         // update rate (lower = more lively)
+    // Performance-friendly knobs
+    const cfg = {
+      cell: 24,               // spacing between runes
+      font: 16,               // rune size
+      baseAlpha: 0.06,        // faint background runes
+      blinkAlpha: 0.22,       // green glow peak
+      blinkChance: 0.012,     // higher = more blinking
+      swapsPerTick: 14,       // higher = more shuffling
+      tickHz: 10,             // how often the texture updates (NOT fps)
+      // Parallax speeds (px/sec)
+      drift1x: 7,  drift1y: 4,
+      drift2x: -3, drift2y: 6,
+      // Clean zone behind card
+      cleanZoneStrength: 0.85 // 0..1 (higher = cleaner center)
     };
 
-    let cols = 0, rows = 0;
-    let cells = [];       // glyph index per cell
-    let blink = [];       // blink intensity per cell (0..1)
+    // Offscreen textures (updated at tickHz, blitted every frame)
+    const tex1 = document.createElement("canvas");
+    const t1 = tex1.getContext("2d", { alpha: true });
 
-    function randGlyphIndex(){
-      return (Math.random() * GLYPHS.length) | 0;
+    const tex2 = document.createElement("canvas");
+    const t2 = tex2.getContext("2d", { alpha: true });
+
+    let cols = 0, rows = 0, n = 0;
+    let cells1, blink1;
+    let cells2, blink2;
+
+    const randGlyph = () => (Math.random() * GLYPHS.length) | 0;
+
+    function setCanvasSize(c, w, h){
+      const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+      c.width = Math.floor(w * dpr);
+      c.height = Math.floor(h * dpr);
+      c.style && (c.style.width = w + "px");
+      c.style && (c.style.height = h + "px");
+      const g = c.getContext ? c.getContext("2d", { alpha: true }) : null;
+      if (g) g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return dpr;
     }
 
     function resize(){
@@ -388,93 +409,175 @@
       canvas.style.height = window.innerHeight + "px";
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      cols = Math.ceil(window.innerWidth / grid.size);
-      rows = Math.ceil(window.innerHeight / grid.size);
+      // Make textures large enough to tile without obvious repetition
+      const texW = Math.max(cfg.cell * 26, Math.ceil(window.innerWidth / cfg.cell) * cfg.cell);
+      const texH = Math.max(cfg.cell * 18, Math.ceil(window.innerHeight / cfg.cell) * cfg.cell);
 
-      const n = cols * rows;
-      cells = new Uint16Array(n);
-      blink = new Float32Array(n);
+      tex1.width = Math.floor(texW * dpr);
+      tex1.height = Math.floor(texH * dpr);
+      t1.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      tex2.width = Math.floor(texW * dpr);
+      tex2.height = Math.floor(texH * dpr);
+      t2.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      cols = Math.ceil(texW / cfg.cell);
+      rows = Math.ceil(texH / cfg.cell);
+      n = cols * rows;
+
+      cells1 = new Uint16Array(n);
+      blink1 = new Float32Array(n);
+      cells2 = new Uint16Array(n);
+      blink2 = new Float32Array(n);
 
       for (let i = 0; i < n; i++){
-        cells[i] = randGlyphIndex();
-        blink[i] = 0;
+        cells1[i] = randGlyph();
+        cells2[i] = randGlyph();
+        blink1[i] = 0;
+        blink2[i] = 0;
       }
+
+      // Initial render so it’s not blank
+      rebuildTexture(t1, cells1, blink1, 0.055, 0.20);
+      rebuildTexture(t2, cells2, blink2, 0.040, 0.14);
     }
 
-    function tick(){
-      const n = cells.length;
-
-      // Random swaps (shifts the pattern around subtly)
-      for (let k = 0; k < grid.swapPerTick; k++){
+    function tickLayer(cells, blink){
+      // swaps
+      for (let k = 0; k < cfg.swapsPerTick; k++){
         const a = (Math.random() * n) | 0;
         const b = (Math.random() * n) | 0;
-        const tmp = cells[a];
-        cells[a] = cells[b];
-        cells[b] = tmp;
+        const tmp = cells[a]; cells[a] = cells[b]; cells[b] = tmp;
       }
-
-      // Start some blinks
+      // blinks start
       for (let i = 0; i < n; i++){
-        if (blink[i] <= 0 && Math.random() < grid.blinkChance){
-          blink[i] = 1; // start at max
+        if (blink[i] <= 0 && Math.random() < cfg.blinkChance){
+          blink[i] = 1;
         }
       }
-
-      // Decay blinks
+      // blinks decay (smooth-ish)
       for (let i = 0; i < n; i++){
         if (blink[i] > 0){
-          blink[i] -= 0.08; // decay speed
+          blink[i] -= 0.10;
           if (blink[i] < 0) blink[i] = 0;
         }
       }
     }
 
-    function draw(){
-      // Fully redraw every frame (no trails)
-      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    function rebuildTexture(g, cells, blink, baseA, blinkA){
+      // Redraw full texture (but only tickHz times/sec, not every frame)
+      const w = tex1.width / (window.devicePixelRatio || 1);
+      const h = tex1.height / (window.devicePixelRatio || 1);
 
-      ctx.textBaseline = "top";
-      ctx.font = `${grid.fontSize}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace`;
+      g.clearRect(0, 0, w, h);
+      g.textBaseline = "top";
+      g.font = `${cfg.font}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace`;
 
       let idx = 0;
       for (let y = 0; y < rows; y++){
         for (let x = 0; x < cols; x++){
-          const gx = x * grid.size + 6;
-          const gy = y * grid.size + 4;
+          const gx = x * cfg.cell + 6;
+          const gy = y * cfg.cell + 4;
 
-          const b = blink[idx]; // 0..1
-          const baseA = grid.baseAlpha;
-          const glowA = b * grid.blinkAlpha;
+          // faint base rune
+          g.fillStyle = `rgba(230,230,235,${baseA})`;
+          const ch = GLYPHS[cells[idx]];
+          g.fillText(ch, gx, gy);
 
-          // base rune (faint)
-          ctx.fillStyle = `rgba(230,230,235,${baseA})`;
-          ctx.fillText(GLYPHS[cells[idx]], gx, gy);
-
-          // glow overlay (green)
+          // glow overlay
+          const b = blink[idx];
           if (b > 0){
-            // soft halo effect: draw twice with slightly different offsets
-            ctx.fillStyle = `rgba(120,255,180,${glowA})`;
-            ctx.fillText(GLYPHS[cells[idx]], gx, gy);
-            ctx.fillStyle = `rgba(120,255,180,${glowA * 0.55})`;
-            ctx.fillText(GLYPHS[cells[idx]], gx + 1, gy + 1);
+            const a = b * blinkA;
+            g.fillStyle = `rgba(120,255,180,${a})`;
+            g.fillText(ch, gx, gy);
+            g.fillStyle = `rgba(120,255,180,${a * 0.55})`;
+            g.fillText(ch, gx + 1, gy + 1);
           }
 
           idx++;
         }
       }
+    }
 
-      requestAnimationFrame(draw);
+    function drawTiled(g, img, ox, oy){
+      const w = canvas.width / (window.devicePixelRatio || 1);
+      const h = canvas.height / (window.devicePixelRatio || 1);
+      const iw = img.width / (window.devicePixelRatio || 1);
+      const ih = img.height / (window.devicePixelRatio || 1);
+
+      // wrap offsets into texture size
+      ox = ((ox % iw) + iw) % iw;
+      oy = ((oy % ih) + ih) % ih;
+
+      // tile draw (up to 4 draws covers the screen)
+      for (let y = -oy; y < h; y += ih){
+        for (let x = -ox; x < w; x += iw){
+          g.drawImage(img, x, y, iw, ih);
+        }
+      }
+    }
+
+    function drawCleanZone(){
+      // soften the runes behind the central card area
+      const w = canvas.width / (window.devicePixelRatio || 1);
+      const h = canvas.height / (window.devicePixelRatio || 1);
+      const cx = w / 2;
+      const cy = h / 2;
+
+      const grad = ctx.createRadialGradient(cx, cy, 180, cx, cy, 520);
+      grad.addColorStop(0, `rgba(7,7,10,${0.65 * cfg.cleanZoneStrength})`);
+      grad.addColorStop(1, `rgba(7,7,10,0)`);
+
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+    }
+
+    let last = performance.now();
+    let acc = 0;
+    const tickInterval = 1000 / cfg.tickHz;
+
+    function loop(now){
+      const dt = now - last;
+      last = now;
+      acc += dt;
+
+      // Update textures at a lower rate (smoothness comes from drift, not redrawing cells)
+      while (acc >= tickInterval){
+        acc -= tickInterval;
+
+        tickLayer(cells1, blink1);
+        tickLayer(cells2, blink2);
+
+        // Two layers: one slightly stronger, one subtler
+        rebuildTexture(t1, cells1, blink1, cfg.baseAlpha, cfg.blinkAlpha);
+        rebuildTexture(t2, cells2, blink2, cfg.baseAlpha * 0.70, cfg.blinkAlpha * 0.55);
+      }
+
+      // Draw
+      const w = canvas.width / (window.devicePixelRatio || 1);
+      const h = canvas.height / (window.devicePixelRatio || 1);
+      ctx.clearRect(0, 0, w, h);
+
+      // Parallax drift offsets (px)
+      const t = now * 0.001;
+      const ox1 = t * cfg.drift1x;
+      const oy1 = t * cfg.drift1y;
+      const ox2 = t * cfg.drift2x;
+      const oy2 = t * cfg.drift2y;
+
+      // Layer 1
+      drawTiled(ctx, tex1, ox1, oy1);
+      // Layer 2 (adds depth)
+      drawTiled(ctx, tex2, ox2, oy2);
+
+      drawCleanZone();
+
+      requestAnimationFrame(loop);
     }
 
     resize();
-    draw();
-
-    // Tick updates separately from drawing
-    setInterval(tick, grid.tickMs);
-
-    window.addEventListener("resize", () => {
-      resize();
-    });
+    window.addEventListener("resize", resize);
+    requestAnimationFrame(loop);
   </script>
 </body>
 </html>
