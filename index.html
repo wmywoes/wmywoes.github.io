@@ -66,14 +66,14 @@
     .card{
       position: relative;
       z-index: 3;
-      width: min(860px, calc(100% - 2rem));
-      padding: 2.3rem 2.5rem 2.2rem;
+      width: min(720px, calc(100% - 2rem));
+      padding: 2.6rem 2.9rem;
       border-radius: 20px;
       background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.028));
       border: 1px solid var(--border);
       box-shadow: 0 0 70px var(--shadow);
       backdrop-filter: blur(10px);
-      text-align: left;
+      text-align: center;
       overflow: hidden;
     }
 
@@ -94,11 +94,11 @@
         radial-gradient(420px 280px at 35% 35%, rgba(120,255,180,.10), transparent 62%),
         radial-gradient(520px 360px at 70% 60%, rgba(120,180,255,.07), transparent 65%);
       filter: blur(28px);
-      opacity: .28;
+      opacity: .30;
       pointer-events: none;
     }
 
-    /* Sheen */
+    /* ===== Sheen ===== */
     .sheen{
       position:absolute;
       inset:-70%;
@@ -107,10 +107,12 @@
       opacity: 0;
       pointer-events: none;
     }
+
     .card:hover .sheen{
       opacity: 1;
       animation: sweep 1.15s ease-out infinite;
     }
+
     @keyframes sweep{
       0%   { transform: translateX(-55%) rotate(10deg); opacity: 0; }
       12%  { opacity: .85; }
@@ -118,150 +120,89 @@
       100% { transform: translateX(55%) rotate(10deg); opacity: 0; }
     }
 
-    /* Header */
-    .top{
-      display:flex;
-      align-items:flex-end;
-      justify-content:space-between;
-      gap: 1rem;
-      position: relative;
-      z-index: 4;
-    }
-
+    /* Typography */
     h1{
-      margin: 0;
+      margin: 0 0 .9rem;
       font-family: "Cinzel", serif;
-      font-size: clamp(2.1rem, 3.6vw, 2.7rem);
+      font-size: clamp(2.3rem, 4vw, 2.9rem);
       font-weight: 600;
       letter-spacing: 0.16em;
       text-transform: uppercase;
       text-shadow:
         0 0 14px rgba(120,255,180,.10),
         0 0 28px rgba(120,255,180,.06);
+      position: relative;
+      z-index: 4;
     }
 
-    .subtitle{
-      margin: .55rem 0 0;
+    .section-title{
+      margin: 1.1rem 0 .65rem;
+      font-family: "Cinzel", serif;
+      font-size: .95rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
       opacity: .72;
-      letter-spacing: .02em;
-      font-size: .98rem;
+      position: relative;
+      z-index: 4;
     }
 
     .divider{
-      width: 100%;
+      width: 210px;
       height: 1px;
-      margin: 1.2rem 0 1.1rem;
-      background: linear-gradient(to right, transparent, rgba(255,255,255,.20), transparent);
+      margin: 0 auto 1.2rem;
+      background: linear-gradient(to right, transparent, rgba(255,255,255,.28), transparent);
       position: relative;
       overflow: hidden;
       border-radius: 999px;
       z-index: 4;
+      box-shadow: 0 0 16px rgba(120,255,180,.08);
     }
+
     .divider::after{
       content:"";
       position:absolute;
       inset: -2px 0 -2px 0;
-      background: linear-gradient(to right, transparent, rgba(120,255,180,.65), transparent);
+      background: linear-gradient(to right, transparent, rgba(120,255,180,.75), transparent);
       transform: translateX(-60%);
       animation: dividerSweep 3.0s ease-in-out infinite;
       opacity: .95;
       filter: blur(.2px);
     }
+
     @keyframes dividerSweep{
-      0%   { transform: translateX(-60%); opacity:.16; }
-      50%  { transform: translateX(60%);  opacity:.85; }
-      100% { transform: translateX(-60%); opacity:.16; }
+      0%   { transform: translateX(-60%); opacity:.18; }
+      50%  { transform: translateX(60%);  opacity:.95; }
+      100% { transform: translateX(-60%); opacity:.18; }
     }
 
-    /* Tabs */
-    .tabs{
+    .row{
       display:flex;
-      gap: .55rem;
+      gap: .75rem;
+      justify-content:center;
+      align-items:center;
       flex-wrap: wrap;
-      justify-content:flex-end;
-    }
-    .tab{
-      appearance:none;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.04);
-      color: var(--fg);
-      padding: .55rem .85rem;
-      border-radius: 12px;
-      cursor:pointer;
-      font-weight: 650;
-      letter-spacing: .03em;
-      transition: transform .08s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
-      user-select: none;
-    }
-    .tab:hover{
-      background: rgba(255,255,255,.07);
-      border-color: rgba(255,255,255,.22);
-      box-shadow: 0 0 18px rgba(120,255,180,.05);
-    }
-    .tab:active{ transform: translateY(1px); }
-    .tab.active{
-      background: rgba(0,0,0,.35);
-      border-color: rgba(120,255,180,.28);
-      box-shadow: 0 0 22px rgba(120,255,180,.08);
+      position: relative;
+      z-index: 4;
     }
 
-    /* Panels */
-    .panel{ display:none; position: relative; z-index: 4; }
-    .panel.active{ display:block; }
-
-    /* Content styles */
-    .grid{
-      display:grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 1rem;
-    }
-
-    .box{
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.30);
-      border-radius: 16px;
-      padding: 1rem 1rem;
-      box-shadow: 0 0 22px rgba(0,0,0,.65);
-    }
-
-    .box h3{
-      margin: 0 0 .45rem;
-      font-family: "Cinzel", serif;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      font-size: .95rem;
-      opacity: .9;
-    }
-
-    .muted{ opacity: .72; line-height: 1.45; }
-
-    .pillrow{
-      display:flex;
-      flex-wrap: wrap;
-      gap: .6rem;
-      margin-top: .9rem;
-    }
-
-    a.pilllink{
+    .pill{
       display:inline-flex;
       align-items:center;
-      gap: .55rem;
-      text-decoration: none;
-      color: var(--fg);
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.04);
-      padding: .62rem .85rem;
-      border-radius: 14px;
+      gap:.6rem;
+      min-width: 300px;
+      justify-content:center;
+
+      font-size: .98rem;
       font-weight: 650;
-      letter-spacing: .02em;
-      transition: background .2s ease, border-color .2s ease, transform .08s ease, box-shadow .2s ease;
+      letter-spacing: .03em;
+
+      background: rgba(0,0,0,.46);
+      border: 1px solid rgba(255,255,255,.14);
+      padding: .78rem 1.05rem;
+      border-radius: 14px;
+      box-shadow: 0 0 26px rgba(0,0,0,.78);
+      user-select: none;
     }
-    a.pilllink:hover{
-      background: rgba(255,255,255,.08);
-      border-color: rgba(255,255,255,.22);
-      box-shadow: 0 0 18px rgba(120,255,180,.05);
-    }
-    a.pilllink:active{ transform: translateY(1px); }
 
     .dot{
       width: 8px;
@@ -270,32 +211,6 @@
       background: var(--accent);
       box-shadow: 0 0 18px rgba(120,255,180,.35);
       flex: 0 0 auto;
-    }
-
-    /* Archive: generator */
-    .genRow{
-      display:flex;
-      gap: .75rem;
-      align-items:center;
-      flex-wrap: wrap;
-      margin-top: .75rem;
-    }
-
-    .namePill{
-      display:inline-flex;
-      align-items:center;
-      gap:.6rem;
-      min-width: 280px;
-      justify-content:center;
-      font-size: .98rem;
-      font-weight: 650;
-      letter-spacing: .03em;
-      background: rgba(0,0,0,.46);
-      border: 1px solid rgba(255,255,255,.14);
-      padding: .78rem 1.05rem;
-      border-radius: 14px;
-      box-shadow: 0 0 26px rgba(0,0,0,.78);
-      user-select: none;
     }
 
     .btn{
@@ -309,12 +224,16 @@
       font-weight: 650;
       letter-spacing: .02em;
       transition: transform .08s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+      position: relative;
+      z-index: 4;
     }
+
     .btn:hover{
       background: rgba(255,255,255,.075);
       border-color: rgba(255,255,255,.24);
       box-shadow: 0 0 24px rgba(120,255,180,.06);
     }
+
     .btn:active{ transform: translateY(1px); }
     .btn.secondary{ background: rgba(0,0,0,.22); }
 
@@ -336,14 +255,10 @@
       transition: opacity .18s ease, transform .18s ease;
       z-index: 10;
     }
+
     .toast.show{
       opacity: 1;
       transform: translateX(-50%) translateY(-4px);
-    }
-
-    @media (max-width: 760px){
-      .top{ align-items:flex-start; flex-direction: column; }
-      .tabs{ justify-content:flex-start; }
     }
   </style>
 </head>
@@ -356,158 +271,26 @@
   <main class="card">
     <div class="sheen"></div>
 
-    <div class="top">
-      <div>
-        <h1>Woes</h1>
-        <div class="subtitle">A little personal hub. A place for projects, ideas, and whatever comes next.</div>
-      </div>
+    <h1>Woes</h1>
 
-      <div class="tabs" role="tablist" aria-label="Woes tabs">
-        <button class="tab active" data-tab="home" role="tab" aria-selected="true">Home</button>
-        <button class="tab" data-tab="projects" role="tab" aria-selected="false">Projects</button>
-        <button class="tab" data-tab="archive" role="tab" aria-selected="false">Archive</button>
-      </div>
-    </div>
-
+    <div class="section-title">Username Generator</div>
     <div class="divider"></div>
 
-    <!-- HOME -->
-    <section class="panel active" id="tab-home" role="tabpanel">
-      <div class="grid">
-        <div class="box" style="grid-column: span 7;">
-          <h3>Welcome</h3>
-          <div class="muted">
-            This is the Woes domain—currently a sandbox.<br>
-            Over time it can become a quest log, a toolbox, a portfolio, or just a cool UI playground.
-          </div>
-
-          <div class="pillrow" style="margin-top: 1rem;">
-            <a class="pilllink" href="https://github.com/wmywoes" target="_blank" rel="noreferrer">
-              <span class="dot"></span> GitHub
-            </a>
-            <a class="pilllink" href="#" onclick="return false;">
-              <span class="dot"></span> (link later)
-            </a>
-            <a class="pilllink" href="#" onclick="return false;">
-              <span class="dot"></span> (link later)
-            </a>
-          </div>
-        </div>
-
-        <div class="box" style="grid-column: span 5;">
-          <h3>Current Status</h3>
-          <div class="muted">
-            <b>Mode:</b> tinkering<br>
-            <b>Theme:</b> runes / rogue / quest log<br>
-            <b>Next:</b> pick a direction and build one small feature
-          </div>
-
-          <div class="pillrow" style="margin-top: 1rem;">
-            <a class="pilllink" href="#" id="randomIdeaBtn">
-              <span class="dot"></span> Give me an idea
-            </a>
-          </div>
-
-          <div class="muted" id="ideaText" style="margin-top: .9rem;">
-            (Click “Give me an idea”)
-          </div>
-        </div>
+    <div class="row">
+      <div class="pill" id="namePill" title="Click Copy to copy the current name">
+        <span class="dot"></span>
+        <span id="nameText">Rookshade</span>
       </div>
-    </section>
 
-    <!-- PROJECTS -->
-    <section class="panel" id="tab-projects" role="tabpanel">
-      <div class="grid">
-        <div class="box" style="grid-column: span 6;">
-          <h3>WoW Frame (RuneLite)</h3>
-          <div class="muted">
-            A RuneLite plugin concept: WoW-style player/target frames in OSRS.
-          </div>
-          <div class="pillrow">
-            <a class="pilllink" href="https://github.com/wmywoes" target="_blank" rel="noreferrer">
-              <span class="dot"></span> Repo (later)
-            </a>
-          </div>
-        </div>
-
-        <div class="box" style="grid-column: span 6;">
-          <h3>Site Sandbox</h3>
-          <div class="muted">
-            UI experiments: runes, tabs, cards, animations. Basically the “quest log” aesthetic.
-          </div>
-          <div class="pillrow">
-            <a class="pilllink" href="#" onclick="return false;">
-              <span class="dot"></span> Notes (later)
-            </a>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ARCHIVE -->
-    <section class="panel" id="tab-archive" role="tabpanel">
-      <div class="box">
-        <h3>Username Generator</h3>
-        <div class="muted">
-          Keeping it here so we don’t lose it — we can always move it into “Tools” later.
-        </div>
-
-        <div class="genRow">
-          <div class="namePill" id="namePill" title="Double-click to copy">
-            <span class="dot"></span>
-            <span id="nameText">Rookshade</span>
-          </div>
-
-          <button class="btn" id="genBtn">Generate</button>
-          <button class="btn secondary" id="copyBtn">Copy</button>
-        </div>
-      </div>
-    </section>
+      <button class="btn" id="genBtn">Generate</button>
+      <button class="btn secondary" id="copyBtn">Copy</button>
+    </div>
   </main>
 
   <div class="toast" id="toast">Copied</div>
 
   <script>
-    // ===== Tabs =====
-    const tabs = Array.from(document.querySelectorAll(".tab"));
-    const panels = {
-      home: document.getElementById("tab-home"),
-      projects: document.getElementById("tab-projects"),
-      archive: document.getElementById("tab-archive"),
-    };
-
-    function setTab(name){
-      tabs.forEach(t => {
-        const active = t.dataset.tab === name;
-        t.classList.toggle("active", active);
-        t.setAttribute("aria-selected", active ? "true" : "false");
-      });
-      Object.entries(panels).forEach(([k, el]) => {
-        el.classList.toggle("active", k === name);
-      });
-    }
-
-    tabs.forEach(t => t.addEventListener("click", () => setTab(t.dataset.tab)));
-
-    // ===== Home: idea button =====
-    const ideas = [
-      "Quest Log page: list your current projects as quests with rewards (skills learned).",
-      "A 'Rogue nameplate' tool: generate short one-word rogue names (your specialty).",
-      "A tiny 'Patch Notes' feed: each update is a 1–2 line entry with a date.",
-      "A 'Loadout' page: OSRS / WoW / DaD gear sets as cards.",
-      "A 'Rune Dictionary' page: click a rune to copy it or get a random glyph set.",
-      "A simple blog-style 'Dev Notes' page for tinkering logs."
-    ];
-    const ideaBtn = document.getElementById("randomIdeaBtn");
-    const ideaText = document.getElementById("ideaText");
-
-    ideaBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      const pick = ideas[Math.floor(Math.random() * ideas.length)];
-      ideaText.textContent = pick;
-    });
-
-    // ===== Username generator (Archive) =====
+    // ===== Username generator =====
     const starts = [
       "Rook","Wraith","Shade","Gloom","Night","Umber","Vesper","Grave","Ash","Sable",
       "Cipher","Dusk","Obsid","Ruin","Hollow","Fang","Thorn","Murk","Noct","Veil",
@@ -535,12 +318,10 @@
         : a + b;
 
       text.textContent = name;
-      if (pill.animate){
-        pill.animate(
-          [{ transform: "scale(1)" }, { transform: "scale(1.03)" }, { transform: "scale(1)" }],
-          { duration: 160, easing: "ease-out" }
-        );
-      }
+      pill.animate(
+        [{ transform: "scale(1)" }, { transform: "scale(1.03)" }, { transform: "scale(1)" }],
+        { duration: 160, easing: "ease-out" }
+      );
     }
 
     function showToast(msg){
@@ -572,25 +353,27 @@
     generate();
 
     // ===== Static Rune Wallpaper (no movement, low-lag) =====
-    const runeCanvas = document.getElementById("runes");
-    const ctx = runeCanvas.getContext("2d", { alpha: true });
+    const canvas = document.getElementById("runes");
+    const ctx = canvas.getContext("2d", { alpha: true });
 
     const GLYPHS = [
       "ᚠ","ᚢ","ᚦ","ᚨ","ᚱ","ᚲ","ᚷ","ᚹ","ᚺ","ᚾ","ᛁ","ᛃ","ᛇ","ᛈ","ᛉ","ᛋ","ᛏ","ᛒ","ᛖ","ᛗ","ᛚ","ᛜ","ᛞ","ᛟ",
       "⟡","⟠","⟟","⟐","⟁","⌁","⋄","⋆","⊕","⊗","⊘"
     ];
 
+    // Tune these if you want:
     const cfg = {
-      cell: 24,
-      font: 16,
-      baseAlpha: 0.06,
-      blinkAlpha: 0.22,
-      blinkChance: 0.012,
-      swapsPerTick: 14,
-      tickHz: 10,
+      cell: 24,           // spacing between runes
+      font: 16,           // rune size
+      baseAlpha: 0.06,    // faint background runes
+      blinkAlpha: 0.22,   // green glow peak
+      blinkChance: 0.012, // more = more blinking
+      swapsPerTick: 14,   // more = more shuffling
+      tickHz: 10,         // texture update rate (not fps)
       cleanZoneStrength: 0.85
     };
 
+    // Offscreen texture (updated at tickHz, drawn every frame)
     const tex = document.createElement("canvas");
     const t = tex.getContext("2d", { alpha: true });
 
@@ -599,14 +382,15 @@
 
     const randGlyph = () => (Math.random() * GLYPHS.length) | 0;
 
-    function resizeRunes(){
+    function resize(){
       const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-      runeCanvas.width = Math.floor(window.innerWidth * dpr);
-      runeCanvas.height = Math.floor(window.innerHeight * dpr);
-      runeCanvas.style.width = window.innerWidth + "px";
-      runeCanvas.style.height = window.innerHeight + "px";
+      canvas.width = Math.floor(window.innerWidth * dpr);
+      canvas.height = Math.floor(window.innerHeight * dpr);
+      canvas.style.width = window.innerWidth + "px";
+      canvas.style.height = window.innerHeight + "px";
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
+      // big enough texture to tile smoothly (but we keep it single-draw for speed)
       const texW = Math.max(cfg.cell * 26, Math.ceil(window.innerWidth / cfg.cell) * cfg.cell);
       const texH = Math.max(cfg.cell * 18, Math.ceil(window.innerHeight / cfg.cell) * cfg.cell);
 
@@ -627,20 +411,25 @@
       }
 
       rebuildTexture();
-      drawOnce();
+      drawOnce(); // ensure visible immediately
     }
 
-    function tickRunes(){
+    function tick(){
+      // swaps
       for (let k = 0; k < cfg.swapsPerTick; k++){
         const a = (Math.random() * n) | 0;
         const b = (Math.random() * n) | 0;
         const tmp = cells[a]; cells[a] = cells[b]; cells[b] = tmp;
       }
 
+      // start blinks
       for (let i = 0; i < n; i++){
-        if (blink[i] <= 0 && Math.random() < cfg.blinkChance) blink[i] = 1;
+        if (blink[i] <= 0 && Math.random() < cfg.blinkChance){
+          blink[i] = 1;
+        }
       }
 
+      // decay blinks
       for (let i = 0; i < n; i++){
         if (blink[i] > 0){
           blink[i] -= 0.10;
@@ -669,9 +458,11 @@
 
           const ch = GLYPHS[cells[idx]];
 
+          // base rune
           t.fillStyle = `rgba(230,230,235,${cfg.baseAlpha})`;
           t.fillText(ch, gx, gy);
 
+          // glow
           const b = blink[idx];
           if (b > 0){
             const a = b * cfg.blinkAlpha;
@@ -688,19 +479,21 @@
 
     function drawOnce(){
       const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-      const w = runeCanvas.width / dpr;
-      const h = runeCanvas.height / dpr;
+      const w = canvas.width / dpr;
+      const h = canvas.height / dpr;
       const iw = tex.width / dpr;
       const ih = tex.height / dpr;
 
       ctx.clearRect(0, 0, w, h);
 
+      // tile the texture to cover the screen
       for (let y = 0; y < h; y += ih){
         for (let x = 0; x < w; x += iw){
           ctx.drawImage(tex, x, y, iw, ih);
         }
       }
 
+      // Clean zone behind center (keeps UI readable)
       const cx = w / 2;
       const cy = h / 2;
       const grad = ctx.createRadialGradient(cx, cy, 180, cx, cy, 520);
@@ -710,15 +503,16 @@
       ctx.fillRect(0, 0, w, h);
     }
 
-    let runeTimer = null;
-    function startRunes(){
-      if (runeTimer) clearInterval(runeTimer);
-      runeTimer = setInterval(tickRunes, Math.round(1000 / cfg.tickHz));
+    // Run ticks at a steady rate
+    let timer = null;
+    function start(){
+      if (timer) clearInterval(timer);
+      timer = setInterval(tick, Math.round(1000 / cfg.tickHz));
     }
 
-    resizeRunes();
-    startRunes();
-    window.addEventListener("resize", resizeRunes);
+    resize();
+    start();
+    window.addEventListener("resize", resize);
   </script>
 </body>
 </html>
