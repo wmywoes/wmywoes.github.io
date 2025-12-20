@@ -23,6 +23,31 @@
       --cardB: rgba(255,255,255,.022);
 
       --radius: 10px;
+
+      /* Aura controls */
+      --auraOpacity: .55;
+      --auraBlur: 12px;
+      --auraSpin: 6.5s;
+      --auraScale: 1.03;
+
+      /* “pattern mix” controls */
+      --p1: .35; /* primary radial intensity */
+      --p2: .22; /* secondary radial intensity */
+      --p3: .18; /* conic intensity */
+      --p4: .14; /* conic secondary intensity */
+    }
+
+    /* Charged mode (unlock) – no text, just aura math changes */
+    :root[data-state="charged"]{
+      --auraOpacity: .72;
+      --auraBlur: 14px;
+      --auraSpin: 5.2s;
+      --auraScale: 1.055;
+
+      --p1: .46;
+      --p2: .28;
+      --p3: .26;
+      --p4: .18;
     }
 
     * { box-sizing: border-box; }
@@ -76,6 +101,7 @@
       box-shadow: 0 0 70px var(--shadow);
       backdrop-filter: blur(10px);
       overflow: hidden;
+
       transform: translateY(0);
       transition: transform .12s ease, box-shadow .22s ease, border-color .22s ease;
       user-select: none;
@@ -98,6 +124,7 @@
       z-index: 1;
     }
 
+    /* Aura edge ring */
     .aura{
       position: absolute;
       inset: -2px;
@@ -105,38 +132,41 @@
       pointer-events: none;
       z-index: 0;
 
+      /* Pattern changes between normal/charged via CSS vars */
       background:
-        radial-gradient(120px 70px at 15% 20%, rgba(var(--accent), .35), transparent 65%),
-        radial-gradient(160px 90px at 85% 70%, rgba(var(--accent2), .22), transparent 68%),
+        radial-gradient(140px 80px at 18% 24%, rgba(var(--accent), var(--p1)), transparent 65%),
+        radial-gradient(180px 110px at 82% 74%, rgba(var(--accent2), var(--p2)), transparent 70%),
+        radial-gradient(120px 90px at 65% 25%, rgba(var(--accent), calc(var(--p2) * .65)), transparent 70%),
         conic-gradient(from 90deg,
-          rgba(var(--accent), .00),
-          rgba(var(--accent), .18),
-          rgba(var(--accent), .00),
-          rgba(var(--accent2), .14),
-          rgba(var(--accent), .00)
+          rgba(var(--accent), 0),
+          rgba(var(--accent), var(--p3)),
+          rgba(var(--accent), 0),
+          rgba(var(--accent2), var(--p4)),
+          rgba(var(--accent), 0)
         );
 
-      filter: blur(12px);
-      opacity: .55;
+      filter: blur(var(--auraBlur));
+      opacity: var(--auraOpacity);
       mix-blend-mode: screen;
-      animation: auraDrift 6.5s ease-in-out infinite;
+      animation: auraDrift var(--auraSpin) ease-in-out infinite;
     }
 
     @keyframes auraDrift{
-      0%   { transform: rotate(0deg) scale(1.02); opacity: .45; }
-      50%  { transform: rotate(9deg) scale(1.04); opacity: .65; }
-      100% { transform: rotate(0deg) scale(1.02); opacity: .45; }
+      0%   { transform: rotate(0deg) scale(var(--auraScale)); opacity: calc(var(--auraOpacity) - .10); }
+      50%  { transform: rotate(10deg) scale(calc(var(--auraScale) + .015)); opacity: var(--auraOpacity); }
+      100% { transform: rotate(0deg) scale(var(--auraScale)); opacity: calc(var(--auraOpacity) - .10); }
     }
 
+    /* pulse (W hold) */
     .card.pulse .aura{
       animation: auraPulse .85s ease-out 1;
-      opacity: .85;
+      opacity: calc(var(--auraOpacity) + .18);
     }
 
     @keyframes auraPulse{
-      0%   { transform: rotate(0deg) scale(1.02); filter: blur(12px); }
-      45%  { transform: rotate(10deg) scale(1.09); filter: blur(15px); }
-      100% { transform: rotate(0deg) scale(1.02); filter: blur(12px); }
+      0%   { transform: rotate(0deg) scale(var(--auraScale)); filter: blur(var(--auraBlur)); }
+      45%  { transform: rotate(12deg) scale(calc(var(--auraScale) + .055)); filter: blur(calc(var(--auraBlur) + 3px)); }
+      100% { transform: rotate(0deg) scale(var(--auraScale)); filter: blur(var(--auraBlur)); }
     }
 
     .content{
@@ -144,8 +174,6 @@
       z-index: 2;
       display: grid;
       place-items: center;
-      /* Important: allows absolutely-positioned sigil to anchor inside */
-      min-height: 0;
     }
 
     h1{
@@ -158,29 +186,6 @@
       text-shadow:
         0 0 14px rgba(var(--accent), .12),
         0 0 34px rgba(var(--accent), .06);
-    }
-
-    /* IMPORTANT: sigil takes ZERO layout space until shown */
-    .sigil{
-      position: absolute;
-      left: 50%;
-      top: calc(100% + .45rem); /* sits just below the word once shown */
-      transform: translateX(-50%) translateY(-4px);
-
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: .8rem;
-      letter-spacing: .22em;
-      color: rgba(230,230,235,.70);
-      white-space: nowrap;
-
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .22s ease, transform .22s ease;
-    }
-
-    .sigil.show{
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
     }
 
     .toast{
@@ -206,29 +211,6 @@
       opacity: 1;
       transform: translateX(-50%) translateY(-4px);
     }
-
-    /* Top hint: now "temporary", never persisted */
-    .hint{
-      position: fixed;
-      top: 16px;
-      left: 50%;
-      transform: translateX(-50%) translateY(-4px);
-      z-index: 10;
-      padding: .45rem .7rem;
-      border-radius: 10px;
-      background: rgba(0,0,0,.45);
-      border: 1px solid rgba(255,255,255,.12);
-      color: rgba(230,230,235,.70);
-      font-weight: 650;
-      letter-spacing: .02em;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .22s ease, transform .22s ease;
-    }
-    .hint.show{
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
   </style>
 </head>
 
@@ -239,17 +221,15 @@
 
   <main class="card" id="card" aria-label="Woes">
     <div class="aura"></div>
-    <div class="content" id="content">
+    <div class="content">
       <h1>Woes</h1>
-      <div class="sigil" id="sigil">ᚹᛟᛖᛋ</div>
     </div>
   </main>
 
-  <div class="hint" id="hint">Press <b>T</b> to change theme • Press <b>?</b> for keys</div>
   <div class="toast" id="toast">Theme</div>
 
   <script>
-    // ===== Toast (longer for ? / keys) =====
+    // ===== Toast =====
     const toast = document.getElementById("toast");
     function showToast(msg, ms = 900){
       toast.textContent = msg;
@@ -258,15 +238,7 @@
       showToast._t = setTimeout(() => toast.classList.remove("show"), ms);
     }
 
-    // ===== Temporary top hint (never persisted) =====
-    const hint = document.getElementById("hint");
-    function showHint(ms = 2200){
-      hint.classList.add("show");
-      clearTimeout(showHint._t);
-      showHint._t = setTimeout(() => hint.classList.remove("show"), ms);
-    }
-
-    // ===== Themes (press T) =====
+    // ===== Theme cycling (T) =====
     const themes = [
       {
         name: "Emerald",
@@ -312,8 +284,8 @@
       const t = themes[idx];
       const root = document.documentElement;
       for (const [k,v] of Object.entries(t.vars)) root.style.setProperty(k, v);
-      showToast(`Theme: ${t.name}`);
       localStorage.setItem("woes_theme", String(idx));
+      showToast(`Theme: ${t.name}`, 900);
     }
 
     const savedTheme = Number(localStorage.getItem("woes_theme"));
@@ -322,35 +294,22 @@
       applyTheme(themeIndex);
     }
 
-    // ===== Secrets =====
-    const card = document.getElementById("card");
-    const sigil = document.getElementById("sigil");
+    // ===== Lock/Unlock aura state (Shift+Q unlock, Q lock) =====
+    // Persist it, but with ZERO UI attached.
+    const root = document.documentElement;
 
-    let clicks = 0;
-    let unlocked = localStorage.getItem("woes_unlocked") === "1";
-
-    function setUnlocked(on){
-      unlocked = on;
-      localStorage.setItem("woes_unlocked", on ? "1" : "0");
-      sigil.classList.toggle("show", on);
+    function setStateCharged(on){
+      root.setAttribute("data-state", on ? "charged" : "normal");
+      localStorage.setItem("woes_state", on ? "charged" : "normal");
     }
-    if (unlocked) setUnlocked(true);
 
-    // Click 7 times to unlock
-    card.addEventListener("click", () => {
-      clicks++;
-      if (clicks >= 7 && !unlocked){
-        setUnlocked(true);
-        showToast("Unlocked");
-        showHint(2600); // show top hint briefly, but not forever
-      } else if (clicks === 3 && !unlocked){
-        showToast("…", 700);
-      }
-      clearTimeout(card._ct);
-      card._ct = setTimeout(() => { clicks = 0; }, 900);
-    });
+    const savedState = localStorage.getItem("woes_state");
+    if (savedState === "charged") setStateCharged(true);
+    else root.setAttribute("data-state", "normal");
 
-    // Hold W to pulse
+    // ===== Pulse (hold W) =====
+    const card = document.getElementById("card");
+
     function pulse(){
       card.classList.remove("pulse");
       void card.offsetWidth;
@@ -362,7 +321,7 @@
     let wTimer = null;
 
     function showKeys(){
-      showToast("Keys: T = theme • Hold W = pulse • 7 clicks = unlock", 1600);
+      showToast("Keys: T = theme • Shift+Q = unlock • Q = lock • Hold W = pulse", 1700);
     }
 
     window.addEventListener("keydown", (e) => {
@@ -378,6 +337,18 @@
         showKeys();
       }
 
+      // Q / Shift+Q
+      if (e.key === "q" || e.key === "Q"){
+        if (e.shiftKey){
+          setStateCharged(true);
+          showToast("…", 650); // intentionally vague
+        } else {
+          setStateCharged(false);
+          showToast(" ", 260); // basically nothing; keeps it subtle
+        }
+      }
+
+      // Hold W to pulse
       if ((e.key === "w" || e.key === "W") && !wHeld){
         wHeld = true;
         clearTimeout(wTimer);
