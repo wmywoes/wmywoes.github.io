@@ -370,9 +370,6 @@
       blinkChance: 0.006,     // higher = more blinking
       swapsPerTick: 7,       // higher = more shuffling
       tickHz: 4,             // how often the texture updates (NOT fps)
-      // Parallax speeds (px/sec)
-      drift1x: 7,  drift1y: 4,
-      drift2x: -3, drift2y: 6,
       // Clean zone behind card
       cleanZoneStrength: 1.0 // 0..1 (higher = cleaner center)
     };
@@ -557,13 +554,6 @@
       const w = canvas.width / (window.devicePixelRatio || 1);
       const h = canvas.height / (window.devicePixelRatio || 1);
       ctx.clearRect(0, 0, w, h);
-
-      // Parallax drift offsets (px)
-      const t = now * 0.001;
-      const ox1 = t * cfg.drift1x;
-      const oy1 = t * cfg.drift1y;
-      const ox2 = t * cfg.drift2x;
-      const oy2 = t * cfg.drift2y;
 
       // Layer 1
       drawTiled(ctx, tex1, ox1, oy1);
