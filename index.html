@@ -16,127 +16,107 @@
       --innerBorder: rgba(255,255,255,.075);
       --shadow: rgba(0,0,0,.78);
 
-      /* comma-separated RGB */
       --accent: 120,255,180;
       --accent2: 120,180,255;
 
       --cardA: rgba(255,255,255,.040);
       --cardB: rgba(255,255,255,.022);
-
       --radius: 10px;
 
       --vignetteEdge: rgba(0,0,0,.78);
 
-      /* Aura controls */
       --auraOpacity: .55;
       --auraBlur: 12px;
       --auraSpin: 6.5s;
       --auraScale: 1.03;
 
-      /* aura pattern mix */
-      --p1: .35;
-      --p2: .22;
-      --p3: .18;
-      --p4: .14;
+      --p1: .35; --p2: .22; --p3: .18; --p4: .14;
     }
 
-    /* Charged (Shift+Q) */
     :root[data-state="charged"]{
       --auraOpacity: .72;
       --auraBlur: 14px;
       --auraSpin: 5.2s;
       --auraScale: 1.055;
 
-      --p1: .46;
-      --p2: .28;
-      --p3: .26;
-      --p4: .18;
+      --p1: .46; --p2: .28; --p3: .26; --p4: .18;
 
       --vignetteEdge: rgba(0,0,0,.86);
       --border: rgba(255,255,255,.13);
       --innerBorder: rgba(255,255,255,.105);
     }
 
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
 
     body{
-      margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      background: var(--bg);
-      color: var(--fg);
-      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      overflow: hidden;
+      margin:0;
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      background:var(--bg);
+      color:var(--fg);
+      font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      overflow:hidden;
     }
 
     canvas#runes{
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
+      position:fixed;
+      inset:0;
+      z-index:0;
+      pointer-events:none;
     }
 
     .grain{
-      position: fixed;
-      inset: 0;
-      z-index: 1;
-      pointer-events: none;
-      opacity: .07;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
-      background-size: 220px 220px;
-      mix-blend-mode: overlay;
+      position:fixed; inset:0; z-index:1; pointer-events:none;
+      opacity:.07;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+      background-size:220px 220px;
+      mix-blend-mode:overlay;
     }
 
     .vignette{
-      position: fixed;
-      inset: 0;
-      z-index: 2;
-      pointer-events: none;
-      background: radial-gradient(1200px 900px at 50% 45%, rgba(0,0,0,0) 55%, var(--vignetteEdge) 100%);
-      opacity: .95;
+      position:fixed; inset:0; z-index:2; pointer-events:none;
+      background:radial-gradient(1200px 900px at 50% 45%, rgba(0,0,0,0) 55%, var(--vignetteEdge) 100%);
+      opacity:.95;
     }
 
     .card{
-      position: relative;
-      z-index: 3;
-      padding: 1.35rem 2.15rem;
-      border-radius: var(--radius);
-      background: linear-gradient(180deg, var(--cardA), var(--cardB));
-      border: 1px solid var(--border);
-      box-shadow: 0 0 70px var(--shadow);
-      backdrop-filter: blur(10px);
-      overflow: hidden;
-
-      transform: translateY(0);
-      transition: transform .12s ease, box-shadow .22s ease, border-color .22s ease;
-      user-select: none;
-      cursor: default;
+      position:relative;
+      z-index:3;
+      padding:1.35rem 2.15rem;
+      border-radius:var(--radius);
+      background:linear-gradient(180deg, var(--cardA), var(--cardB));
+      border:1px solid var(--border);
+      box-shadow:0 0 70px var(--shadow);
+      backdrop-filter:blur(10px);
+      overflow:hidden;
+      transform:translateY(0);
+      transition:transform .12s ease, box-shadow .22s ease, border-color .22s ease;
+      user-select:none;
+      cursor:default;
     }
-
     .card:hover{
-      transform: translateY(-1px);
-      border-color: rgba(255,255,255,.16);
-      box-shadow: 0 0 80px rgba(0,0,0,.82);
+      transform:translateY(-1px);
+      border-color:rgba(255,255,255,.16);
+      box-shadow:0 0 80px rgba(0,0,0,.82);
     }
-
     .card::before{
       content:"";
-      position: absolute;
-      inset: 7px;
-      border-radius: calc(var(--radius) - 3px);
-      border: 1px solid var(--innerBorder);
-      pointer-events: none;
-      z-index: 1;
+      position:absolute;
+      inset:7px;
+      border-radius:calc(var(--radius) - 3px);
+      border:1px solid var(--innerBorder);
+      pointer-events:none;
+      z-index:1;
     }
 
     .aura{
-      position: absolute;
-      inset: -2px;
-      border-radius: calc(var(--radius) + 2px);
-      pointer-events: none;
-      z-index: 0;
+      position:absolute;
+      inset:-2px;
+      border-radius:calc(var(--radius) + 2px);
+      pointer-events:none;
+      z-index:0;
 
       background:
         radial-gradient(140px 80px at 18% 24%, rgba(var(--accent), var(--p1)), transparent 65%),
@@ -150,60 +130,49 @@
           rgba(var(--accent), 0)
         );
 
-      filter: blur(var(--auraBlur));
-      opacity: var(--auraOpacity);
-      mix-blend-mode: screen;
-      animation: auraDrift var(--auraSpin) ease-in-out infinite;
-      transform-origin: 50% 50%;
+      filter:blur(var(--auraBlur));
+      opacity:var(--auraOpacity);
+      mix-blend-mode:screen;
+      animation:auraDrift var(--auraSpin) ease-in-out infinite;
+      transform-origin:50% 50%;
     }
 
     @keyframes auraDrift{
-      0%   { transform: rotate(0deg) scale(var(--auraScale)); opacity: calc(var(--auraOpacity) - .10); }
-      50%  { transform: rotate(10deg) scale(calc(var(--auraScale) + .015)); opacity: var(--auraOpacity); }
-      100% { transform: rotate(0deg) scale(var(--auraScale)); opacity: calc(var(--auraOpacity) - .10); }
+      0%{ transform:rotate(0deg) scale(var(--auraScale)); opacity:calc(var(--auraOpacity) - .10); }
+      50%{ transform:rotate(10deg) scale(calc(var(--auraScale) + .015)); opacity:var(--auraOpacity); }
+      100%{ transform:rotate(0deg) scale(var(--auraScale)); opacity:calc(var(--auraOpacity) - .10); }
     }
 
-    .content{
-      position: relative;
-      z-index: 2;
-      display: grid;
-      place-items: center;
-    }
-
+    .content{ position:relative; z-index:2; display:grid; place-items:center; }
     h1{
-      margin: 0;
-      font-family: "Cinzel", serif;
-      font-size: clamp(2.25rem, 5vw, 2.9rem);
-      font-weight: 600;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      text-shadow:
-        0 0 14px rgba(var(--accent), .12),
-        0 0 34px rgba(var(--accent), .06);
+      margin:0;
+      font-family:"Cinzel",serif;
+      font-size:clamp(2.25rem, 5vw, 2.9rem);
+      font-weight:600;
+      letter-spacing:.22em;
+      text-transform:uppercase;
+      text-shadow:0 0 14px rgba(var(--accent), .12), 0 0 34px rgba(var(--accent), .06);
     }
 
     .toast{
-      position: fixed;
-      left: 50%;
-      bottom: 26px;
-      transform: translateX(-50%);
-      padding: .65rem .85rem;
-      border-radius: 10px;
-      background: rgba(0,0,0,.62);
-      border: 1px solid rgba(255,255,255,.14);
-      box-shadow: 0 0 30px rgba(0,0,0,.8);
-      color: rgba(230,230,235,.95);
-      font-weight: 650;
-      letter-spacing: .02em;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .18s ease, transform .18s ease;
-      z-index: 10;
+      position:fixed;
+      left:50%;
+      bottom:26px;
+      transform:translateX(-50%);
+      padding:.65rem .85rem;
+      border-radius:10px;
+      background:rgba(0,0,0,.62);
+      border:1px solid rgba(255,255,255,.14);
+      box-shadow:0 0 30px rgba(0,0,0,.8);
+      color:rgba(230,230,235,.95);
+      font-weight:650;
+      letter-spacing:.02em;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .18s ease, transform .18s ease;
+      z-index:10;
     }
-    .toast.show{
-      opacity: 1;
-      transform: translateX(-50%) translateY(-4px);
-    }
+    .toast.show{ opacity:1; transform:translateX(-50%) translateY(-4px); }
   </style>
 </head>
 
@@ -220,10 +189,12 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    // If anything throws, we still want the page to keep working.
+  (function(){
+    console.log("WOES: script started");
+
     try{
       const toast = document.getElementById("toast");
-      function showToast(msg, ms = 900){
+      function showToast(msg, ms=900){
         if (!msg || !msg.trim()) return;
         toast.textContent = msg;
         toast.classList.add("show");
@@ -231,21 +202,21 @@
         showToast._t = setTimeout(() => toast.classList.remove("show"), ms);
       }
 
-      // ===== Themes (T) =====
+      // ===== Themes =====
       const themes = [
-        { name: "Emerald", vars: { "--bg":"#07070a","--fg":"#e6e6eb","--accent":"120,255,180","--accent2":"120,180,255","--cardA":"rgba(255,255,255,.040)","--cardB":"rgba(255,255,255,.022)","--radius":"10px" } },
-        { name: "Ice",    vars: { "--bg":"#06070b","--fg":"#eef0ff","--accent":"170,220,255","--accent2":"150,255,210","--cardA":"rgba(255,255,255,.042)","--cardB":"rgba(255,255,255,.020)","--radius":"10px" } },
-        { name: "Ember",  vars: { "--bg":"#070607","--fg":"#f1eceb","--accent":"255,160,110","--accent2":"255,220,150","--cardA":"rgba(255,255,255,.038)","--cardB":"rgba(255,255,255,.020)","--radius":"10px" } },
-        { name: "Violet", vars: { "--bg":"#06060a","--fg":"#f0ecff","--accent":"190,150,255","--accent2":"120,255,240","--cardA":"rgba(255,255,255,.040)","--cardB":"rgba(255,255,255,.020)","--radius":"10px" } },
-        { name: "Acid",   vars: { "--bg":"#050607","--fg":"#eaf7ef","--accent":"180,255,120","--accent2":"255,255,160","--cardA":"rgba(255,255,255,.036)","--cardB":"rgba(255,255,255,.018)","--radius":"10px" } },
-        { name: "Mono",   vars: { "--bg":"#07070a","--fg":"#f0f0f4","--accent":"230,230,235","--accent2":"230,230,235","--cardA":"rgba(255,255,255,.035)","--cardB":"rgba(255,255,255,.018)","--radius":"10px" } }
+        { name:"Emerald", vars:{ "--bg":"#07070a","--fg":"#e6e6eb","--accent":"120,255,180","--accent2":"120,180,255","--cardA":"rgba(255,255,255,.040)","--cardB":"rgba(255,255,255,.022)","--radius":"10px" } },
+        { name:"Ice",    vars:{ "--bg":"#06070b","--fg":"#eef0ff","--accent":"170,220,255","--accent2":"150,255,210","--cardA":"rgba(255,255,255,.042)","--cardB":"rgba(255,255,255,.020)","--radius":"10px" } },
+        { name:"Ember",  vars:{ "--bg":"#070607","--fg":"#f1eceb","--accent":"255,160,110","--accent2":"255,220,150","--cardA":"rgba(255,255,255,.038)","--cardB":"rgba(255,255,255,.020)","--radius":"10px" } },
+        { name:"Violet", vars:{ "--bg":"#06060a","--fg":"#f0ecff","--accent":"190,150,255","--accent2":"120,255,240","--cardA":"rgba(255,255,255,.040)","--cardB":"rgba(255,255,255,.020)","--radius":"10px" } },
+        { name:"Acid",   vars:{ "--bg":"#050607","--fg":"#eaf7ef","--accent":"180,255,120","--accent2":"255,255,160","--cardA":"rgba(255,255,255,.036)","--cardB":"rgba(255,255,255,.018)","--radius":"10px" } },
+        { name:"Mono",   vars:{ "--bg":"#07070a","--fg":"#f0f0f4","--accent":"230,230,235","--accent2":"230,230,235","--cardA":"rgba(255,255,255,.035)","--cardB":"rgba(255,255,255,.018)","--radius":"10px" } }
       ];
 
       let themeIndex = 0;
       function applyTheme(idx, quiet=false){
         const t = themes[idx];
         const root = document.documentElement;
-        for (const [k,v] of Object.entries(t.vars)) root.style.setProperty(k, v);
+        for (const k in t.vars) root.style.setProperty(k, t.vars[k]);
         localStorage.setItem("woes_theme", String(idx));
         if (!quiet) showToast(`Theme: ${t.name}`, 900);
       }
@@ -256,49 +227,34 @@
         applyTheme(themeIndex, true);
       }
 
-      // ===== Silent Lock/Unlock (Shift+Q / Q) =====
+      // ===== Silent state =====
       const root = document.documentElement;
-
-      function isCharged(){
-        return root.getAttribute("data-state") === "charged";
-      }
-
+      function isCharged(){ return root.getAttribute("data-state") === "charged"; }
       function setStateCharged(on){
         root.setAttribute("data-state", on ? "charged" : "normal");
         localStorage.setItem("woes_state", on ? "charged" : "normal");
       }
-
       const savedState = localStorage.getItem("woes_state");
       if (savedState === "charged") setStateCharged(true);
       else root.setAttribute("data-state", "normal");
 
-      // ===== W Hold => Background Surge (smooth 0..1) =====
+      // ===== Hold W => background surge =====
       let surge = 0;
       let surgeTarget = 0;
+      let wHeld = false;
 
       function stepSurge(){
-        const up = 0.12;
-        const down = 0.07;
+        const up = 0.12, down = 0.07;
         if (surgeTarget > surge) surge = Math.min(1, surge + up);
         else surge = Math.max(0, surge - down);
-
         if (surge !== surgeTarget) requestAnimationFrame(stepSurge);
       }
-
-      function startSurge(){
-        surgeTarget = 1;
-        requestAnimationFrame(stepSurge);
-      }
-      function stopSurge(){
-        surgeTarget = 0;
-        requestAnimationFrame(stepSurge);
-      }
+      function startSurge(){ surgeTarget = 1; requestAnimationFrame(stepSurge); }
+      function stopSurge(){ surgeTarget = 0; requestAnimationFrame(stepSurge); }
 
       function showKeys(){
         showToast("Keys: T=theme • Shift+Q=unlock • Q=lock • Hold W=surge • ?=keys", 1900);
       }
-
-      let wHeld = false;
 
       window.addEventListener("keydown", (e) => {
         const tag = (document.activeElement && document.activeElement.tagName || "").toLowerCase();
@@ -308,13 +264,13 @@
           themeIndex = (themeIndex + 1) % themes.length;
           applyTheme(themeIndex, false);
         }
-        if (e.key === "?"){
-          showKeys();
-        }
+        if (e.key === "?") showKeys();
+
         if (e.key === "q" || e.key === "Q"){
           if (e.shiftKey) setStateCharged(true);
           else setStateCharged(false);
         }
+
         if ((e.key === "w" || e.key === "W") && !wHeld){
           wHeld = true;
           startSurge();
@@ -333,7 +289,7 @@
         stopSurge();
       });
 
-      // ===== Rune Wallpaper (stable tick) =====
+      // ===== Runes =====
       const canvas = document.getElementById("runes");
       const ctx = canvas.getContext("2d", { alpha: true });
 
@@ -342,32 +298,10 @@
         "⟡","⟠","⟟","⟐","⟁","⌁","⋄","⋆","⊕","⊗","⊘"
       ];
 
-      const base = {
-        cell: 26,
-        font: 16,
-        baseAlpha: 0.055,
-        blinkAlpha: 0.20,
-        blinkChance: 0.010,
-        swaps: 12,
-        clean: 0.94
-      };
-
-      const charged = {
-        blinkAlpha: 0.26,
-        blinkChance: 0.016,
-        swaps: 18,
-        clean: 0.92
-      };
-
-      // surge is additive on top (scaled by surge 0..1)
-      const surgeBoost = {
-        blinkAlpha: 0.34,
-        blinkChance: 0.030,
-        swaps: 26,
-        clean: 0.90
-      };
-
-      function lerp(a,b,t){ return a + (b-a)*t; }
+      const base = { cell:26, font:16, baseAlpha:0.055, blinkAlpha:0.20, blinkChance:0.010, swaps:12, clean:0.94 };
+      const chargedCfg = { blinkAlpha:0.26, blinkChance:0.016, swaps:18, clean:0.92 };
+      const surgeBoost = { blinkAlpha:0.34, blinkChance:0.030, swaps:26, clean:0.90 };
+      const lerp = (a,b,t) => a + (b-a)*t;
 
       const tex = document.createElement("canvas");
       const tctx = tex.getContext("2d", { alpha: true });
@@ -384,20 +318,34 @@
         return getComputedStyle(document.documentElement).getPropertyValue("--accent2").trim() || getAccent();
       }
 
+      function cfg(){
+        const c = isCharged() ? chargedCfg : base;
+        const s = surge;
+        return {
+          cell: base.cell,
+          font: base.font,
+          baseAlpha: base.baseAlpha,
+          blinkAlpha: lerp(c.blinkAlpha, surgeBoost.blinkAlpha, s),
+          blinkChance: lerp(c.blinkChance, surgeBoost.blinkChance, s),
+          swaps: Math.round(lerp(c.swaps, surgeBoost.swaps, s)),
+          clean: lerp(c.clean, surgeBoost.clean, s)
+        };
+      }
+
       function resize(){
         const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
         canvas.width = Math.floor(window.innerWidth * dpr);
         canvas.height = Math.floor(window.innerHeight * dpr);
         canvas.style.width = window.innerWidth + "px";
         canvas.style.height = window.innerHeight + "px";
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.setTransform(dpr,0,0,dpr,0,0);
 
-        const texW = Math.max(base.cell * 24, Math.ceil(window.innerWidth / base.cell) * base.cell);
-        const texH = Math.max(base.cell * 18, Math.ceil(window.innerHeight / base.cell) * base.cell);
+        const texW = Math.max(base.cell*24, Math.ceil(window.innerWidth/base.cell)*base.cell);
+        const texH = Math.max(base.cell*18, Math.ceil(window.innerHeight/base.cell)*base.cell);
 
         tex.width = Math.floor(texW * dpr);
         tex.height = Math.floor(texH * dpr);
-        tctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        tctx.setTransform(dpr,0,0,dpr,0,0);
 
         cols = Math.ceil(texW / base.cell);
         rows = Math.ceil(texH / base.cell);
@@ -410,76 +358,37 @@
           blink[i]=0;
         }
 
-        rebuildTexture();
-        drawOnce();
+        rebuild();
+        draw();
       }
 
-      function currentCfg(){
-        const c = isCharged() ? charged : base;
-        const s = surge;
-
-        return {
-          cell: base.cell,
-          font: base.font,
-          baseAlpha: base.baseAlpha,
-          blinkAlpha: lerp(c.blinkAlpha, surgeBoost.blinkAlpha, s),
-          blinkChance: lerp(c.blinkChance, surgeBoost.blinkChance, s),
-          swaps: Math.round(lerp(c.swaps, surgeBoost.swaps, s)),
-          clean: lerp(c.clean, surgeBoost.clean, s)
-        };
-      }
-
-      function tick(){
-        const cfg = currentCfg();
-
-        for (let k=0;k<cfg.swaps;k++){
-          const a = (Math.random()*n)|0;
-          const b = (Math.random()*n)|0;
-          const tmp=cells[a]; cells[a]=cells[b]; cells[b]=tmp;
-        }
-
-        for (let i=0;i<n;i++){
-          if (blink[i] <= 0 && Math.random() < cfg.blinkChance) blink[i]=1;
-        }
-
-        for (let i=0;i<n;i++){
-          if (blink[i] > 0){
-            blink[i] -= 0.10;
-            if (blink[i] < 0) blink[i]=0;
-          }
-        }
-
-        rebuildTexture(cfg);
-        drawOnce(cfg);
-      }
-
-      function rebuildTexture(cfg=currentCfg()){
+      function rebuild(){
+        const C = cfg();
         const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
         const texW = tex.width / dpr;
         const texH = tex.height / dpr;
 
         tctx.clearRect(0,0,texW,texH);
         tctx.textBaseline="top";
-        tctx.font = `${cfg.font}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace`;
+        tctx.font = `${C.font}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace`;
 
         const accent = getAccent();
 
         let idx=0;
         for (let y=0;y<rows;y++){
           for (let x=0;x<cols;x++){
-            const gx = x*cfg.cell + 6;
-            const gy = y*cfg.cell + 4;
-            const ch = GLYPHS[cells[idx]];
+            const gx=x*C.cell+6, gy=y*C.cell+4;
+            const ch=GLYPHS[cells[idx]];
 
-            tctx.fillStyle = `rgba(230,230,235,${cfg.baseAlpha})`;
+            tctx.fillStyle=`rgba(230,230,235,${C.baseAlpha})`;
             tctx.fillText(ch,gx,gy);
 
-            const b = blink[idx];
-            if (b > 0){
-              const a = b * cfg.blinkAlpha;
-              tctx.fillStyle = `rgba(${accent},${a})`;
+            const b=blink[idx];
+            if (b>0){
+              const a=b*C.blinkAlpha;
+              tctx.fillStyle=`rgba(${accent},${a})`;
               tctx.fillText(ch,gx,gy);
-              tctx.fillStyle = `rgba(${accent},${a*0.55})`;
+              tctx.fillStyle=`rgba(${accent},${a*0.55})`;
               tctx.fillText(ch,gx+1,gy+1);
             }
 
@@ -488,12 +397,11 @@
         }
       }
 
-      function drawOnce(cfg=currentCfg()){
+      function draw(){
+        const C = cfg();
         const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-        const w = canvas.width / dpr;
-        const h = canvas.height / dpr;
-        const iw = tex.width / dpr;
-        const ih = tex.height / dpr;
+        const w = canvas.width / dpr, h = canvas.height / dpr;
+        const iw = tex.width / dpr, ih = tex.height / dpr;
 
         ctx.clearRect(0,0,w,h);
 
@@ -503,30 +411,28 @@
           }
         }
 
-        // Clean zone behind center
-        const cx = w/2, cy = h/2;
-        const grad = ctx.createRadialGradient(cx, cy, 180, cx, cy, 520);
-        grad.addColorStop(0, `rgba(7,7,10,${0.78 * cfg.clean})`);
+        const cx=w/2, cy=h/2;
+
+        const grad = ctx.createRadialGradient(cx,cy,180,cx,cy,520);
+        grad.addColorStop(0, `rgba(7,7,10,${0.78 * C.clean})`);
         grad.addColorStop(1, `rgba(7,7,10,0)`);
         ctx.fillStyle = grad;
         ctx.fillRect(0,0,w,h);
 
-        // Surge “rift” bloom (background only)
         if (surge > 0){
           const a1 = getAccent();
           const a2 = getAccent2();
 
-          const g1 = ctx.createRadialGradient(cx, cy, 120, cx, cy, 780);
+          const g1 = ctx.createRadialGradient(cx,cy,120,cx,cy,780);
           g1.addColorStop(0, `rgba(${a1},${0.10*surge})`);
           g1.addColorStop(0.35, `rgba(${a2},${0.08*surge})`);
           g1.addColorStop(1, "rgba(0,0,0,0)");
           ctx.fillStyle = g1;
           ctx.fillRect(0,0,w,h);
 
-          const ringR = 360 + 160*surge;
-          const ringW = 210 + 120*surge;
-
-          const g2 = ctx.createRadialGradient(cx, cy, ringR, cx, cy, ringR + ringW);
+          const ringR=360+160*surge;
+          const ringW=210+120*surge;
+          const g2 = ctx.createRadialGradient(cx,cy,ringR,cx,cy,ringR+ringW);
           g2.addColorStop(0, `rgba(0,0,0,${0.22*surge})`);
           g2.addColorStop(0.35, `rgba(${a1},${0.08*surge})`);
           g2.addColorStop(1, "rgba(0,0,0,0)");
@@ -535,16 +441,42 @@
         }
       }
 
+      function tick(){
+        const C = cfg();
+
+        for (let k=0;k<C.swaps;k++){
+          const a=(Math.random()*n)|0;
+          const b=(Math.random()*n)|0;
+          const tmp=cells[a]; cells[a]=cells[b]; cells[b]=tmp;
+        }
+
+        for (let i=0;i<n;i++){
+          if (blink[i] <= 0 && Math.random() < C.blinkChance) blink[i]=1;
+        }
+
+        for (let i=0;i<n;i++){
+          if (blink[i] > 0){
+            blink[i] -= 0.10;
+            if (blink[i] < 0) blink[i]=0;
+          }
+        }
+
+        rebuild();
+        draw();
+      }
+
       resize();
       window.addEventListener("resize", resize);
 
-      // Stable cadence: no restarting timers (prevents the “everything dies” failure mode)
-      setInterval(tick, 110); // ~9Hz-ish
+      // stable tick – no interval restarts
+      setInterval(tick, 110);
+
+      console.log("WOES: runes OK");
 
     }catch(err){
-      console.error("Woes page script error:", err);
-      // If you open DevTools console, you'll see the exact reason.
+      console.error("WOES: fatal", err);
     }
+  })();
   </script>
 </body>
 </html>
