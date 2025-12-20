@@ -5,15 +5,25 @@
   <title>Woes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
   <style>
     :root{
       --bg: #07070a;
       --fg: #e6e6eb;
-      --border: rgba(255,255,255,.11);
-      --shadow: rgba(0,0,0,.72);
-      --accent: rgba(120, 255, 180, .95);
+
+      --border: rgba(255,255,255,.10);
+      --inner: rgba(255,255,255,.07);
+      --shadow: rgba(0,0,0,.78);
+
+      /* Theme accent */
+      --accent: 120 255 180;   /* rgb triplet for glow */
+      --accent2: 120 180 255;  /* secondary glow */
+
+      --cardA: rgba(255,255,255,.040);
+      --cardB: rgba(255,255,255,.022);
+
+      --radius: 10px; /* more squared */
     }
 
     * { box-sizing: border-box; }
@@ -31,7 +41,7 @@
     }
 
     /* ===== Background layers ===== */
-    canvas#runes {
+    canvas#runes{
       position: fixed;
       inset: 0;
       z-index: 0;
@@ -54,7 +64,7 @@
       inset: 0;
       z-index: 2;
       pointer-events: none;
-      background: radial-gradient(1200px 900px at 50% 45%, rgba(0,0,0,0) 55%, rgba(0,0,0,.75) 100%);
+      background: radial-gradient(1200px 900px at 50% 45%, rgba(0,0,0,0) 55%, rgba(0,0,0,.78) 100%);
       opacity: .95;
     }
 
@@ -62,47 +72,168 @@
     .card{
       position: relative;
       z-index: 3;
-      padding: 1.6rem 2.2rem;
-      border-radius: 18px;
-      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.028));
+
+      padding: 1.35rem 2.15rem;
+      border-radius: var(--radius);
+
+      background: linear-gradient(180deg, var(--cardA), var(--cardB));
       border: 1px solid var(--border);
-      box-shadow: 0 0 60px var(--shadow);
+      box-shadow: 0 0 70px var(--shadow);
       backdrop-filter: blur(10px);
+
+      /* squared “frame” feel */
       overflow: hidden;
+
+      /* tiny lift on hover (super subtle) */
+      transform: translateY(0);
+      transition: transform .12s ease, box-shadow .22s ease, border-color .22s ease;
+      user-select: none;
+      cursor: default;
     }
 
+    .card:hover{
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,.16);
+      box-shadow: 0 0 80px rgba(0,0,0,.82);
+    }
+
+    /* inner frame line */
     .card::before{
       content:"";
       position: absolute;
-      inset: 8px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.08);
+      inset: 7px;
+      border-radius: calc(var(--radius) - 3px);
+      border: 1px solid rgba(255,255,255,.075);
       pointer-events: none;
     }
 
-    .card::after{
-      content:"";
+    /* AURA EDGE: animated glow ring */
+    .aura{
       position: absolute;
-      inset: -60%;
-      background:
-        radial-gradient(360px 240px at 35% 35%, rgba(120,255,180,.10), transparent 62%),
-        radial-gradient(420px 300px at 70% 60%, rgba(120,180,255,.06), transparent 65%);
-      filter: blur(26px);
-      opacity: .28;
+      inset: -2px;
+      border-radius: calc(var(--radius) + 2px);
       pointer-events: none;
+      z-index: 0;
+
+      background:
+        radial-gradient(120px 70px at 15% 20%, rgba(var(--accent), .35), transparent 65%),
+        radial-gradient(160px 90px at 85% 70%, rgba(var(--accent2), .22), transparent 68%),
+        conic-gradient(from 90deg,
+          rgba(var(--accent), .00),
+          rgba(var(--accent), .18),
+          rgba(var(--accent), .00),
+          rgba(var(--accent2), .14),
+          rgba(var(--accent), .00)
+        );
+
+      filter: blur(12px);
+      opacity: .55;
+      mix-blend-mode: screen;
+      animation: auraDrift 6.5s ease-in-out infinite;
+    }
+
+    @keyframes auraDrift{
+      0%   { transform: rotate(0deg) scale(1.02); opacity: .45; }
+      50%  { transform: rotate(9deg) scale(1.04); opacity: .65; }
+      100% { transform: rotate(0deg) scale(1.02); opacity: .45; }
+    }
+
+    /* “pulse” state (secret) */
+    .card.pulse .aura{
+      animation: auraPulse .85s ease-out 1;
+      opacity: .85;
+    }
+
+    @keyframes auraPulse{
+      0%   { transform: rotate(0deg) scale(1.02); filter: blur(12px); }
+      45%  { transform: rotate(10deg) scale(1.09); filter: blur(15px); }
+      100% { transform: rotate(0deg) scale(1.02); filter: blur(12px); }
+    }
+
+    /* content */
+    .content{
+      position: relative;
+      z-index: 2;
+      display: grid;
+      place-items: center;
     }
 
     h1{
       margin: 0;
       font-family: "Cinzel", serif;
-      font-size: clamp(2.4rem, 5vw, 3rem);
+      font-size: clamp(2.25rem, 5vw, 2.9rem);
       font-weight: 600;
       letter-spacing: 0.22em;
       text-transform: uppercase;
       text-shadow:
-        0 0 14px rgba(120,255,180,.12),
-        0 0 32px rgba(120,255,180,.06);
-      user-select: none;
+        0 0 14px rgba(var(--accent), .12),
+        0 0 34px rgba(var(--accent), .06);
+    }
+
+    /* hidden sigil (unlocked) */
+    .sigil{
+      margin-top: .55rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: .8rem;
+      letter-spacing: .22em;
+      color: rgba(230,230,235,.70);
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: opacity .22s ease, transform .22s ease;
+      white-space: nowrap;
+    }
+
+    .sigil.show{
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Toast */
+    .toast{
+      position: fixed;
+      left: 50%;
+      bottom: 26px;
+      transform: translateX(-50%);
+      padding: .65rem .85rem;
+      border-radius: 10px;
+      background: rgba(0,0,0,.62);
+      border: 1px solid rgba(255,255,255,.14);
+      box-shadow: 0 0 30px rgba(0,0,0,.8);
+      color: rgba(230,230,235,.95);
+      font-weight: 650;
+      letter-spacing: .02em;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease, transform .18s ease;
+      z-index: 10;
+    }
+
+    .toast.show{
+      opacity: 1;
+      transform: translateX(-50%) translateY(-4px);
+    }
+
+    /* Tiny hint that only shows after unlock */
+    .hint{
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      padding: .45rem .7rem;
+      border-radius: 10px;
+      background: rgba(0,0,0,.45);
+      border: 1px solid rgba(255,255,255,.12);
+      color: rgba(230,230,235,.70);
+      font-weight: 650;
+      letter-spacing: .02em;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .22s ease, transform .22s ease;
+    }
+    .hint.show{
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
     }
   </style>
 </head>
@@ -112,11 +243,165 @@
   <div class="grain"></div>
   <div class="vignette"></div>
 
-  <main class="card" aria-label="Woes">
-    <h1>Woes</h1>
+  <main class="card" id="card" aria-label="Woes">
+    <div class="aura"></div>
+    <div class="content">
+      <h1>Woes</h1>
+      <div class="sigil" id="sigil">ᚹᛟᛖᛋ</div>
+    </div>
   </main>
 
+  <div class="hint" id="hint">Press <b>T</b> to change theme • Press <b>?</b> for keys</div>
+  <div class="toast" id="toast">Theme</div>
+
   <script>
+    // ===== Themes (press T) =====
+    const themes = [
+      {
+        name: "Emerald",
+        vars: {
+          "--bg": "#07070a",
+          "--fg": "#e6e6eb",
+          "--accent": "120 255 180",
+          "--accent2": "120 180 255",
+          "--cardA": "rgba(255,255,255,.040)",
+          "--cardB": "rgba(255,255,255,.022)",
+          "--radius": "10px"
+        }
+      },
+      {
+        name: "Ice",
+        vars: {
+          "--bg": "#06070b",
+          "--fg": "#eef0ff",
+          "--accent": "170 220 255",
+          "--accent2": "150 255 210",
+          "--cardA": "rgba(255,255,255,.042)",
+          "--cardB": "rgba(255,255,255,.020)",
+          "--radius": "10px"
+        }
+      },
+      {
+        name: "Ember",
+        vars: {
+          "--bg": "#070607",
+          "--fg": "#f1eceb",
+          "--accent": "255 160 110",
+          "--accent2": "255 220 150",
+          "--cardA": "rgba(255,255,255,.038)",
+          "--cardB": "rgba(255,255,255,.020)",
+          "--radius": "10px"
+        }
+      }
+    ];
+
+    let themeIndex = 0;
+
+    function applyTheme(idx){
+      const t = themes[idx];
+      const root = document.documentElement;
+      for (const [k,v] of Object.entries(t.vars)) root.style.setProperty(k, v);
+      showToast(`Theme: ${t.name}`);
+      localStorage.setItem("woes_theme", String(idx));
+    }
+
+    // load theme
+    const saved = Number(localStorage.getItem("woes_theme"));
+    if (!Number.isNaN(saved) && saved >= 0 && saved < themes.length){
+      themeIndex = saved;
+      applyTheme(themeIndex);
+    }
+
+    // ===== Toast =====
+    const toast = document.getElementById("toast");
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.classList.add("show");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.remove("show"), 900);
+    }
+
+    // ===== Secrets =====
+    const card = document.getElementById("card");
+    const sigil = document.getElementById("sigil");
+    const hint = document.getElementById("hint");
+
+    let clicks = 0;
+    let unlocked = localStorage.getItem("woes_unlocked") === "1";
+
+    function setUnlocked(on){
+      unlocked = on;
+      localStorage.setItem("woes_unlocked", on ? "1" : "0");
+      sigil.classList.toggle("show", on);
+      hint.classList.toggle("show", on);
+    }
+
+    if (unlocked) setUnlocked(true);
+
+    // Click 7 times to unlock
+    card.addEventListener("click", () => {
+      clicks++;
+      if (clicks >= 7 && !unlocked){
+        setUnlocked(true);
+        showToast("Unlocked");
+      } else if (clicks === 3 && !unlocked){
+        // tiny nudge (barely)
+        showToast("…");
+      }
+      clearTimeout(card._ct);
+      card._ct = setTimeout(() => { clicks = 0; }, 900);
+    });
+
+    // Hold W to pulse
+    let wDownAt = null;
+    function pulse(){
+      card.classList.remove("pulse");
+      // force reflow so retrigger works
+      void card.offsetWidth;
+      card.classList.add("pulse");
+      setTimeout(() => card.classList.remove("pulse"), 900);
+    }
+
+    // ? shows hotkeys (always allowed, but nicer after unlock)
+    function showKeys(){
+      showToast("Keys: T = theme • Hold W = pulse • 7 clicks = unlock");
+    }
+
+    // ===== Key handling =====
+    window.addEventListener("keydown", (e) => {
+      const key = e.key;
+
+      // avoid triggering while typing in inputs (none exist now, but safe)
+      const tag = (document.activeElement && document.activeElement.tagName || "").toLowerCase();
+      if (tag === "input" || tag === "textarea") return;
+
+      if (key === "t" || key === "T"){
+        themeIndex = (themeIndex + 1) % themes.length;
+        applyTheme(themeIndex);
+      }
+
+      if (key === "?"){
+        showKeys();
+      }
+
+      if ((key === "w" || key === "W") && wDownAt === null){
+        wDownAt = performance.now();
+        clearTimeout(window._wh);
+        window._wh = setTimeout(() => {
+          // only pulse if still held
+          if (wDownAt !== null) pulse();
+        }, 1200);
+      }
+    });
+
+    window.addEventListener("keyup", (e) => {
+      const key = e.key;
+      if (key === "w" || key === "W"){
+        wDownAt = null;
+        clearTimeout(window._wh);
+      }
+    });
+
     // ===== Static Rune Wallpaper (low-lag) =====
     const canvas = document.getElementById("runes");
     const ctx = canvas.getContext("2d", { alpha: true });
@@ -134,7 +419,7 @@
       blinkChance: 0.010,
       swapsPerTick: 12,
       tickHz: 9,
-      cleanZoneStrength: 0.95
+      cleanZoneStrength: 0.94
     };
 
     const tex = document.createElement("canvas");
@@ -222,9 +507,11 @@
           const b = blink[idx];
           if (b > 0){
             const a = b * cfg.blinkAlpha;
-            t.fillStyle = `rgba(120,255,180,${a})`;
+            // use theme accent for glow
+            const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || "120 255 180";
+            t.fillStyle = `rgba(${accent},${a})`;
             t.fillText(ch, gx, gy);
-            t.fillStyle = `rgba(120,255,180,${a * 0.55})`;
+            t.fillStyle = `rgba(${accent},${a * 0.55})`;
             t.fillText(ch, gx + 1, gy + 1);
           }
 
@@ -248,6 +535,7 @@
         }
       }
 
+      // clean zone behind center
       const cx = w / 2;
       const cy = h / 2;
       const grad = ctx.createRadialGradient(cx, cy, 180, cx, cy, 520);
