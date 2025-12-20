@@ -5,7 +5,7 @@
   <title>Woes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 
   <style>
     :root{
@@ -14,7 +14,6 @@
       --border: rgba(255,255,255,.11);
       --shadow: rgba(0,0,0,.72);
       --accent: rgba(120, 255, 180, .95);
-      --muted: rgba(230,230,235,.62);
     }
 
     * { box-sizing: border-box; }
@@ -48,7 +47,6 @@
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
       background-size: 220px 220px;
       mix-blend-mode: overlay;
-      transform: translateZ(0);
     }
 
     .vignette{
@@ -56,30 +54,28 @@
       inset: 0;
       z-index: 2;
       pointer-events: none;
-      background: radial-gradient(1200px 900px at 50% 45%, rgba(0,0,0,0) 55%, rgba(0,0,0,.72) 100%);
+      background: radial-gradient(1200px 900px at 50% 45%, rgba(0,0,0,0) 55%, rgba(0,0,0,.75) 100%);
       opacity: .95;
     }
 
-    /* ===== Main card ===== */
+    /* ===== Minimal card ===== */
     .card{
       position: relative;
       z-index: 3;
-      width: min(720px, calc(100% - 2rem));
-      padding: 3rem 2.6rem 2.4rem;
-      border-radius: 20px;
+      padding: 1.6rem 2.2rem;
+      border-radius: 18px;
       background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.028));
       border: 1px solid var(--border);
-      box-shadow: 0 0 70px var(--shadow);
+      box-shadow: 0 0 60px var(--shadow);
       backdrop-filter: blur(10px);
-      text-align: center;
       overflow: hidden;
     }
 
     .card::before{
       content:"";
       position: absolute;
-      inset: 10px;
-      border-radius: 16px;
+      inset: 8px;
+      border-radius: 14px;
       border: 1px solid rgba(255,255,255,.08);
       pointer-events: none;
     }
@@ -89,143 +85,35 @@
       position: absolute;
       inset: -60%;
       background:
-        radial-gradient(420px 280px at 35% 35%, rgba(120,255,180,.10), transparent 62%),
-        radial-gradient(520px 360px at 70% 60%, rgba(120,180,255,.06), transparent 65%);
-      filter: blur(28px);
-      opacity: .30;
+        radial-gradient(360px 240px at 35% 35%, rgba(120,255,180,.10), transparent 62%),
+        radial-gradient(420px 300px at 70% 60%, rgba(120,180,255,.06), transparent 65%);
+      filter: blur(26px);
+      opacity: .28;
       pointer-events: none;
-    }
-
-    /* ===== Sheen ===== */
-    .sheen{
-      position:absolute;
-      inset:-70%;
-      background: linear-gradient(120deg, transparent 35%, rgba(255,255,255,.08) 50%, transparent 65%);
-      transform: translateX(-55%) rotate(10deg);
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .card:hover .sheen{
-      opacity: 1;
-      animation: sweep 1.15s ease-out infinite;
-    }
-
-    @keyframes sweep{
-      0%   { transform: translateX(-55%) rotate(10deg); opacity: 0; }
-      12%  { opacity: .85; }
-      60%  { opacity: .45; }
-      100% { transform: translateX(55%) rotate(10deg); opacity: 0; }
     }
 
     h1{
       margin: 0;
       font-family: "Cinzel", serif;
-      font-size: clamp(2.8rem, 5vw, 3.35rem);
+      font-size: clamp(2.4rem, 5vw, 3rem);
       font-weight: 600;
-      letter-spacing: 0.18em;
+      letter-spacing: 0.22em;
       text-transform: uppercase;
       text-shadow:
         0 0 14px rgba(120,255,180,.12),
-        0 0 32px rgba(120,255,180,.07);
-      position: relative;
-      z-index: 4;
-    }
-
-    .sub{
-      margin-top: .9rem;
-      color: var(--muted);
-      font-weight: 600;
-      letter-spacing: .06em;
-      text-transform: lowercase;
-      position: relative;
-      z-index: 4;
+        0 0 32px rgba(120,255,180,.06);
       user-select: none;
-    }
-
-    .divider{
-      width: 180px;
-      height: 1px;
-      margin: 1.35rem auto 0;
-      background: linear-gradient(to right, transparent, rgba(255,255,255,.26), transparent);
-      position: relative;
-      overflow: hidden;
-      border-radius: 999px;
-      z-index: 4;
-      box-shadow: 0 0 16px rgba(120,255,180,.06);
-    }
-
-    .divider::after{
-      content:"";
-      position:absolute;
-      inset: -2px 0 -2px 0;
-      background: linear-gradient(to right, transparent, rgba(120,255,180,.70), transparent);
-      transform: translateX(-60%);
-      animation: dividerSweep 3.2s ease-in-out infinite;
-      opacity: .85;
-    }
-
-    @keyframes dividerSweep{
-      0%   { transform: translateX(-60%); opacity:.18; }
-      50%  { transform: translateX(60%);  opacity:.85; }
-      100% { transform: translateX(-60%); opacity:.18; }
-    }
-
-    /* Optional single link */
-    .linkrow{
-      margin-top: 1.3rem;
-      display:flex;
-      justify-content:center;
-      gap:.75rem;
-      position: relative;
-      z-index: 4;
-    }
-
-    .btn{
-      appearance:none;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(0,0,0,.26);
-      color: rgba(230,230,235,.92);
-      padding: .72rem 1.05rem;
-      border-radius: 999px;
-      cursor:pointer;
-      font-weight: 700;
-      letter-spacing: .03em;
-      text-decoration:none;
-      transition: background .2s ease, border-color .2s ease, transform .08s ease, box-shadow .2s ease;
-    }
-
-    .btn:hover{
-      background: rgba(255,255,255,.06);
-      border-color: rgba(255,255,255,.22);
-      box-shadow: 0 0 22px rgba(120,255,180,.05);
-    }
-    .btn:active{ transform: translateY(1px); }
-
-    /* ===== Subtle “aura” accent dot ===== */
-    .auraDot{
-      width: 7px;
-      height: 7px;
-      border-radius: 999px;
-      background: var(--accent);
-      box-shadow: 0 0 18px rgba(120,255,180,.35);
-      display:inline-block;
-      vertical-align: middle;
-      margin: 0 .55rem;
-      opacity: .9;
     }
   </style>
 </head>
-  
+
 <body>
   <canvas id="runes"></canvas>
   <div class="grain"></div>
   <div class="vignette"></div>
 
   <main class="card" aria-label="Woes">
-    <div class="sheen"></div>
-    
-    </div>
+    <h1>Woes</h1>
   </main>
 
   <script>
@@ -239,14 +127,14 @@
     ];
 
     const cfg = {
-      cell: 24,
+      cell: 26,
       font: 16,
-      baseAlpha: 0.06,
-      blinkAlpha: 0.22,
-      blinkChance: 0.012,
-      swapsPerTick: 14,
-      tickHz: 10,
-      cleanZoneStrength: 0.92
+      baseAlpha: 0.055,
+      blinkAlpha: 0.20,
+      blinkChance: 0.010,
+      swapsPerTick: 12,
+      tickHz: 9,
+      cleanZoneStrength: 0.95
     };
 
     const tex = document.createElement("canvas");
@@ -265,7 +153,7 @@
       canvas.style.height = window.innerHeight + "px";
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      const texW = Math.max(cfg.cell * 26, Math.ceil(window.innerWidth / cfg.cell) * cfg.cell);
+      const texW = Math.max(cfg.cell * 24, Math.ceil(window.innerWidth / cfg.cell) * cfg.cell);
       const texH = Math.max(cfg.cell * 18, Math.ceil(window.innerHeight / cfg.cell) * cfg.cell);
 
       tex.width = Math.floor(texW * dpr);
@@ -360,11 +248,10 @@
         }
       }
 
-      // Clean zone behind center (keeps it readable)
       const cx = w / 2;
       const cy = h / 2;
-      const grad = ctx.createRadialGradient(cx, cy, 210, cx, cy, 600);
-      grad.addColorStop(0, `rgba(7,7,10,${0.72 * cfg.cleanZoneStrength})`);
+      const grad = ctx.createRadialGradient(cx, cy, 180, cx, cy, 520);
+      grad.addColorStop(0, `rgba(7,7,10,${0.78 * cfg.cleanZoneStrength})`);
       grad.addColorStop(1, `rgba(7,7,10,0)`);
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, w, h);
