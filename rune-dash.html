@@ -3,297 +3,439 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Rune Dash</title>
+  <title>Rune Dash — Side Scroller</title>
   <style>
-    html, body { height: 100%; margin: 0; background: #050607; overflow: hidden; }
+    html, body { height: 100%; margin: 0; background:#050607; overflow:hidden; }
     canvas { display:block; width:100vw; height:100vh; }
-    .hud {
-      position: fixed; left: 12px; top: 12px; color: rgba(235,245,255,.92);
+    .hud{
+      position: fixed; left: 12px; top: 12px;
       font: 14px/1.3 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      user-select: none;
+      color: rgba(235,245,255,.92);
       text-shadow: 0 1px 10px rgba(0,0,0,.8);
+      user-select:none;
     }
-    .hud b { font-size: 16px; }
-    .hint { opacity:.75; margin-top:6px; }
+    .hud b{ font-size:16px; }
+    .hint{ opacity:.75; margin-top:6px; }
   </style>
 </head>
 <body>
-  <canvas id="c"></canvas>
-  <div class="hud" id="hud"></div>
+<canvas id="c"></canvas>
+<div class="hud" id="hud"></div>
 
 <script>
 (() => {
   const canvas = document.getElementById("c");
-  const ctx = canvas.getContext("2d", { alpha: false });
-
+  const ctx = canvas.getContext("2d", { alpha:false });
   const hud = document.getElementById("hud");
 
-  // --- Resize handling
-  function resize() {
+  function resize(){
     const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-    canvas.width  = Math.floor(innerWidth * dpr);
+    canvas.width = Math.floor(innerWidth * dpr);
     canvas.height = Math.floor(innerHeight * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
   }
-  window.addEventListener("resize", resize, { passive: true });
+  addEventListener("resize", resize, {passive:true});
   resize();
 
-  // --- Themes (press T to cycle)
+  // Themes (T to cycle)
   const themes = [
-    { name: "Void Neon", bg: "#050607", player: "#9ff", rune: "#7f7", danger: "#ff6b6b", ui: "rgba(235,245,255,.92)" },
-    { name: "Arcane Violet", bg: "#07050a", player: "#d7b5ff", rune: "#9ad5ff", danger: "#ff7bd4", ui: "rgba(245,235,255,.92)" },
-    { name: "Amber Relic", bg: "#070605", player: "#ffd9a8", rune: "#ffe27a", danger: "#ff6a3d", ui: "rgba(255,245,235,.92)" },
-    { name: "Frost", bg: "#05070a", player: "#b7e7ff", rune: "#c8ffd8", danger: "#ff7c7c", ui: "rgba(235,250,255,.92)" },
+    { name:"Void Neon", bg:"#050607", ground:"#0a0f10", line:"rgba(180,255,220,.22)", player:"#9ff", rune:"#7f7", danger:"#ff6b6b", ui:"rgba(235,245,255,.92)" },
+    { name:"Arcane Violet", bg:"#07050a", ground:"#0c0713", line:"rgba(220,180,255,.22)", player:"#d7b5ff", rune:"#9ad5ff", danger:"#ff7bd4", ui:"rgba(245,235,255,.92)" },
+    { name:"Amber Relic", bg:"#070605", ground:"#120b07", line:"rgba(255,220,140,.22)", player:"#ffd9a8", rune:"#ffe27a", danger:"#ff6a3d", ui:"rgba(255,245,235,.92)" },
+    { name:"Frost", bg:"#05070a", ground:"#070c12", line:"rgba(190,235,255,.22)", player:"#b7e7ff", rune:"#c8ffd8", danger:"#ff7c7c", ui:"rgba(235,250,255,.92)" },
   ];
   let themeIdx = 0;
   const theme = () => themes[themeIdx];
 
-  // --- Input
+  // Input
   const keys = new Set();
-  addEventListener("keydown", (e) => {
+  function pressJump(){
+    if (!state.running) { reset(); return; }
+    playerJump();
+  }
+  addEventListener("keydown", (e)=>{
     const k = e.key.toLowerCase();
-    if (k === "t") { themeIdx = (themeIdx + 1) % themes.length; return; }
-    if (k === "r") { if (!state.running) reset(); return; }
+    if (k === "t") { themeIdx = (themeIdx+1) % themes.length; return; }
+    if (k === "r") { reset(); return; }
+    if (k === " " || k === "w" || k === "arrowup") { e.preventDefault(); pressJump(); return; }
     keys.add(k);
-    // prevent scroll on arrows/space
-    if (["arrowup","arrowdown","arrowleft","arrowright"," "].includes(e.key)) e.preventDefault();
-  }, { passive: false });
+  }, {passive:false});
+  addEventListener("keyup", (e)=> keys.delete(e.key.toLowerCase()), {passive:true});
+  addEventListener("pointerdown", ()=> pressJump(), {passive:true}); // tap to jump on mobile
 
-  addEventListener("keyup", (e) => keys.delete(e.key.toLowerCase()), { passive: true });
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const rand=(a,b)=>a+Math.random()*(b-a);
 
-  // --- Utility
-  const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
-  const rand = (a,b)=>a+Math.random()*(b-a);
-  const hypot = Math.hypot;
-
-  // --- Game state
+  // World
   const state = {
     running: true,
     time: 0,
     score: 0,
-    best: 0,
-    difficulty: 1,
-    spawnTimer: 0,
-    runeTimer: 0,
-    shake: 0
+    best: Number(localStorage.getItem("rune_dash_best_side")||0),
+    speed: 360,        // world scroll speed
+    diff: 1,
+    spawnT: 0,
+    runeT: 0,
+    shake: 0,
+  };
+
+  const world = {
+    floorY: () => innerHeight * 0.78,
+    gravity: 2200,
   };
 
   const player = {
-    x: innerWidth/2, y: innerHeight/2,
-    r: 10,
-    speed: 260,
-    invuln: 0
+    x: () => innerWidth * 0.20,
+    y: 0,
+    vy: 0,
+    r: 12,
+    onGround: false,
+    jumpsLeft: 2,
+    coyote: 0,     // short grace after leaving ground
+    jumpBuf: 0,    // jump buffer (feel-good)
   };
 
-  const enemies = [];
-  const runes = [];
-  const particles = [];
+  const obstacles = []; // {x,w,h,type}
+  const runes = [];     // {x,y,r,t}
+  const particles = []; // {x,y,vx,vy,life,t,color}
 
-  function reset() {
+  function reset(){
     state.running = true;
     state.time = 0;
     state.score = 0;
-    state.difficulty = 1;
-    state.spawnTimer = 0;
-    state.runeTimer = 0;
+    state.speed = 360;
+    state.diff = 1;
+    state.spawnT = 0.6;
+    state.runeT = 1.2;
     state.shake = 0;
-    enemies.length = 0;
+    obstacles.length = 0;
     runes.length = 0;
     particles.length = 0;
-    player.x = innerWidth/2; player.y = innerHeight/2;
-    player.invuln = 0;
+
+    player.y = world.floorY() - player.r;
+    player.vy = 0;
+    player.onGround = true;
+    player.jumpsLeft = 2;
+    player.coyote = 0;
+    player.jumpBuf = 0;
   }
 
-  // spawn from edges, heading inward-ish
-  function spawnEnemy() {
-    const side = Math.floor(Math.random()*4);
-    let x,y;
-    if (side===0){ x = rand(0, innerWidth); y = -20; }
-    if (side===1){ x = innerWidth+20; y = rand(0, innerHeight); }
-    if (side===2){ x = rand(0, innerWidth); y = innerHeight+20; }
-    if (side===3){ x = -20; y = rand(0, innerHeight); }
-
-    const angle = Math.atan2(player.y - y, player.x - x) + rand(-0.6, 0.6);
-    const speed = rand(80, 120) + state.difficulty * rand(12, 20);
-    enemies.push({
-      x, y,
-      vx: Math.cos(angle)*speed,
-      vy: Math.sin(angle)*speed,
-      r: rand(10, 16),
-      spin: rand(-3, 3),
-      a: rand(0, Math.PI*2)
-    });
-  }
-
-  function spawnRune() {
-    const x = rand(40, innerWidth-40);
-    const y = rand(40, innerHeight-40);
-    runes.push({ x, y, r: 8, t: 0 });
-  }
-
-  function burst(x,y,color,amount=14) {
+  function burst(x,y,color,amount=16){
     for (let i=0;i<amount;i++){
       const a = rand(0, Math.PI*2);
-      const s = rand(60, 240);
-      particles.push({ x, y, vx: Math.cos(a)*s, vy: Math.sin(a)*s, life: rand(0.35, 0.7), t: 0, color });
+      const s = rand(80, 320);
+      particles.push({ x, y, vx: Math.cos(a)*s, vy: Math.sin(a)*s, life: rand(0.25,0.7), t:0, color });
     }
   }
 
-  function gameOver() {
-    state.running = false;
-    state.best = Math.max(state.best, Math.floor(state.score));
-    state.shake = 0.18;
-    burst(player.x, player.y, theme().danger, 28);
+  function playerJump(){
+    // buffer jump so it still triggers if pressed a hair early
+    player.jumpBuf = 0.12;
   }
 
-  // --- Main loop
+  function doJump(){
+    player.vy = -820;
+    player.onGround = false;
+    player.jumpsLeft = Math.max(0, player.jumpsLeft - 1);
+    burst(player.x(), player.y, theme().player, 8);
+    state.shake = Math.min(0.12, state.shake + 0.03);
+  }
+
+  function spawnObstacle(){
+    // types: spike (low), block (tall)
+    const type = Math.random() < 0.6 ? "spike" : "block";
+    const floor = world.floorY();
+    if (type === "spike"){
+      const w = rand(24, 44);
+      const h = rand(26, 42);
+      obstacles.push({ x: innerWidth + 80, w, h, y: floor, type });
+    } else {
+      const w = rand(28, 54);
+      const h = rand(50, 110);
+      obstacles.push({ x: innerWidth + 80, w, h, y: floor, type });
+    }
+  }
+
+  function spawnRune(){
+    const floor = world.floorY();
+    const y = floor - rand(110, 240);
+    runes.push({ x: innerWidth + 80, y, r: 9, t: 0 });
+  }
+
+  function gameOver(){
+    state.running = false;
+    state.best = Math.max(state.best, Math.floor(state.score));
+    localStorage.setItem("rune_dash_best_side", String(state.best));
+    state.shake = 0.18;
+    burst(player.x(), player.y, theme().danger, 30);
+  }
+
+  // Drawing helpers
+  function drawGround(){
+    const floor = world.floorY();
+    ctx.fillStyle = theme().ground;
+    ctx.fillRect(0, floor, innerWidth, innerHeight - floor);
+
+    // grid-ish lines
+    ctx.strokeStyle = theme().line;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let x=0; x<=innerWidth; x+=48){
+      ctx.moveTo(x, floor);
+      ctx.lineTo(x, innerHeight);
+    }
+    for (let y=floor; y<=innerHeight; y+=40){
+      ctx.moveTo(0, y);
+      ctx.lineTo(innerWidth, y);
+    }
+    ctx.stroke();
+
+    // floor edge
+    ctx.globalAlpha = 0.35;
+    ctx.strokeStyle = theme().rune;
+    ctx.beginPath();
+    ctx.moveTo(0, floor+0.5);
+    ctx.lineTo(innerWidth, floor+0.5);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  function drawBackground(){
+    // cheap parallax layers using repeated rune glyphs
+    const t = state.time;
+    const layers = [
+      { speed: 0.15, alpha: 0.10, size: 18, y0: innerHeight*0.18 },
+      { speed: 0.30, alpha: 0.08, size: 24, y0: innerHeight*0.30 },
+      { speed: 0.55, alpha: 0.06, size: 30, y0: innerHeight*0.44 },
+    ];
+    const glyphs = ["ᚠ","ᚢ","ᚦ","ᚨ","ᚱ","ᚲ","ᚷ","ᚹ","ᚺ","ᚾ","ᛁ","ᛃ","ᛇ","ᛈ","ᛉ","ᛊ","ᛏ"];
+    for (const L of layers){
+      ctx.globalAlpha = L.alpha;
+      ctx.fillStyle = theme().rune;
+      ctx.font = `${L.size}px ui-monospace, Menlo, Consolas, monospace`;
+      const spacing = L.size * 3.0;
+      const offset = (t * state.speed * L.speed) % spacing;
+      for (let x = -spacing; x < innerWidth + spacing; x += spacing){
+        const gx = x - offset;
+        const gy = L.y0 + Math.sin((gx*0.01) + t*0.7) * 18;
+        const g = glyphs[(Math.floor((gx/spacing)+1000) + Math.floor(t*2)) % glyphs.length];
+        ctx.fillText(g, gx, gy);
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // Init
+  reset();
+
   let last = performance.now();
   function tick(now){
-    const dt = Math.min(0.033, (now - last) / 1000);
+    const dt = Math.min(0.033, (now-last)/1000);
     last = now;
 
-    // Clear
+    // background clear
     ctx.fillStyle = theme().bg;
     ctx.fillRect(0,0,innerWidth,innerHeight);
 
-    // Screen shake
+    // shake
     if (state.shake > 0) state.shake = Math.max(0, state.shake - dt);
     const shakeAmt = state.shake * 10;
-    const sx = (Math.random()*2-1) * shakeAmt;
-    const sy = (Math.random()*2-1) * shakeAmt;
+    const sx = (Math.random()*2-1)*shakeAmt;
+    const sy = (Math.random()*2-1)*shakeAmt;
+
     ctx.save();
     ctx.translate(sx, sy);
 
-    // Update timers
-    state.time += dt;
-    if (state.running) {
-      state.score += dt * 10;
-      state.difficulty = 1 + state.time * 0.08;
+    // update
+    if (state.running){
+      state.time += dt;
+      state.score += dt * 12;
+      state.diff = 1 + state.time*0.08;
+      state.speed = 360 + state.diff*18;
     }
 
-    // Spawning
-    if (state.running) {
-      state.spawnTimer -= dt;
-      const spawnEvery = clamp(0.9 - state.difficulty*0.03, 0.22, 0.9);
-      if (state.spawnTimer <= 0) {
-        state.spawnTimer = spawnEvery;
-        spawnEnemy();
+    // draw bg layers
+    drawBackground();
+
+    // ground
+    drawGround();
+    const floor = world.floorY();
+
+    // spawn logic
+    if (state.running){
+      state.spawnT -= dt;
+      const every = clamp(0.85 - state.diff*0.03, 0.24, 0.85);
+      if (state.spawnT <= 0){
+        state.spawnT = every + rand(-0.07, 0.12);
+        spawnObstacle();
       }
 
-      state.runeTimer -= dt;
-      if (state.runeTimer <= 0) {
-        state.runeTimer = rand(2.5, 4.2);
+      state.runeT -= dt;
+      if (state.runeT <= 0){
+        state.runeT = rand(1.7, 3.0);
         spawnRune();
       }
     }
 
-    // Player movement
-    const ax = (keys.has("a")||keys.has("arrowleft") ? -1 : 0) + (keys.has("d")||keys.has("arrowright") ? 1 : 0);
-    const ay = (keys.has("w")||keys.has("arrowup") ? -1 : 0) + (keys.has("s")||keys.has("arrowdown") ? 1 : 0);
-    const len = Math.hypot(ax, ay) || 1;
+    // player physics
+    const px = player.x();
+    player.onGround = false;
 
-    if (state.running) {
-      player.x += (ax/len) * player.speed * dt;
-      player.y += (ay/len) * player.speed * dt;
-      player.x = clamp(player.x, player.r+4, innerWidth - player.r-4);
-      player.y = clamp(player.y, player.r+4, innerHeight - player.r-4);
-      player.invuln = Math.max(0, player.invuln - dt);
+    // jump buffer / coyote time
+    player.jumpBuf = Math.max(0, player.jumpBuf - dt);
+
+    // gravity
+    player.vy += world.gravity * dt;
+    player.y += player.vy * dt;
+
+    // ground collision
+    if (player.y >= floor - player.r){
+      player.y = floor - player.r;
+      player.vy = 0;
+      if (!player.onGround){
+        // landing
+        if (state.running) burst(px, player.y + player.r, theme().player, 6);
+      }
+      player.onGround = true;
+      player.jumpsLeft = 2;
+      player.coyote = 0.10;
+    } else {
+      player.coyote = Math.max(0, player.coyote - dt);
     }
 
-    // Update enemies
-    for (let i=enemies.length-1;i>=0;i--){
-      const e = enemies[i];
-      if (state.running) {
-        // slight homing as difficulty rises
-        const toA = Math.atan2(player.y - e.y, player.x - e.x);
-        const curA = Math.atan2(e.vy, e.vx);
-        const turn = clamp((toA - curA + Math.PI*3)%(Math.PI*2)-Math.PI, -1, 1);
-        const turnRate = 0.6 + state.difficulty*0.05;
-        const a = curA + turn*turnRate*dt;
-        const sp = Math.hypot(e.vx, e.vy);
-        e.vx = Math.cos(a)*sp;
-        e.vy = Math.sin(a)*sp;
-      }
-
-      e.x += e.vx * dt;
-      e.y += e.vy * dt;
-      e.a += e.spin * dt;
-
-      // collision with player
-      const d = hypot(player.x - e.x, player.y - e.y);
-      if (state.running && player.invuln <= 0 && d < player.r + e.r) {
-        gameOver();
-      }
-
-      // cleanup if far off screen
-      if (e.x < -200 || e.x > innerWidth+200 || e.y < -200 || e.y > innerHeight+200) {
-        enemies.splice(i,1);
+    // consume buffered jump if possible
+    if (state.running && player.jumpBuf > 0){
+      const canJump = player.onGround || player.coyote > 0 || player.jumpsLeft > 0;
+      if (canJump && player.jumpsLeft > 0){
+        player.jumpBuf = 0;
+        doJump();
       }
     }
 
-    // Update runes (collect)
+    // move world objects
+    const scroll = (state.running ? state.speed : 0) * dt;
+
+    for (let i=obstacles.length-1;i>=0;i--){
+      const o = obstacles[i];
+      o.x -= scroll;
+      if (o.x + o.w < -80) obstacles.splice(i,1);
+    }
     for (let i=runes.length-1;i>=0;i--){
       const r = runes[i];
+      r.x -= scroll;
       r.t += dt;
-      const d = hypot(player.x - r.x, player.y - r.y);
-      if (state.running && d < player.r + r.r + 2) {
-        runes.splice(i,1);
-        state.score += 25;
-        player.invuln = 0.25; // tiny grace
-        state.shake = Math.min(0.12, state.shake + 0.04);
-        burst(r.x, r.y, theme().rune, 18);
+      if (r.x + r.r < -80) runes.splice(i,1);
+    }
+
+    // collisions
+    if (state.running){
+      // obstacles: simple circle vs rect
+      for (const o of obstacles){
+        const rx = o.x, ry = o.y - o.h, rw = o.w, rh = o.h;
+        const cx = clamp(px, rx, rx+rw);
+        const cy = clamp(player.y, ry, ry+rh);
+        const dx = px - cx;
+        const dy = player.y - cy;
+        if (dx*dx + dy*dy < player.r*player.r){
+          gameOver();
+          break;
+        }
+      }
+
+      // rune pickup
+      for (let i=runes.length-1;i>=0;i--){
+        const r = runes[i];
+        const dx = px - r.x;
+        const dy = player.y - r.y;
+        if (dx*dx + dy*dy < (player.r + r.r + 2)*(player.r + r.r + 2)){
+          runes.splice(i,1);
+          state.score += 30;
+          state.shake = Math.min(0.12, state.shake + 0.04);
+          burst(r.x, r.y, theme().rune, 18);
+
+          // fun: small chance to auto theme-swap on pickup
+          if (Math.random() < 0.18) themeIdx = (themeIdx+1) % themes.length;
+        }
       }
     }
 
-    // Update particles
+    // particles
     for (let i=particles.length-1;i>=0;i--){
       const p = particles[i];
       p.t += dt;
       p.x += p.vx*dt;
       p.y += p.vy*dt;
-      p.vx *= Math.pow(0.02, dt); // quick damp
+      p.vx *= Math.pow(0.02, dt);
       p.vy *= Math.pow(0.02, dt);
       if (p.t >= p.life) particles.splice(i,1);
     }
 
-    // Draw runes
+    // draw runes
     for (const r of runes){
-      const pulse = 1 + Math.sin(r.t*6)*0.12;
+      const pulse = 1 + Math.sin(r.t*7)*0.13;
       ctx.save();
       ctx.translate(r.x, r.y);
       ctx.scale(pulse, pulse);
+      ctx.globalAlpha = 0.9;
+      ctx.fillStyle = theme().rune;
       ctx.beginPath();
       ctx.arc(0,0,r.r,0,Math.PI*2);
-      ctx.fillStyle = theme().rune;
-      ctx.globalAlpha = 0.9;
       ctx.fill();
       ctx.globalAlpha = 0.25;
       ctx.lineWidth = 2;
       ctx.strokeStyle = theme().rune;
       ctx.stroke();
       ctx.restore();
+      ctx.globalAlpha = 1;
     }
 
-    // Draw enemies (spiky orbs)
-    for (const e of enemies){
-      const spikes = 10;
-      ctx.save();
-      ctx.translate(e.x, e.y);
-      ctx.rotate(e.a);
-      ctx.beginPath();
-      for (let i=0;i<spikes;i++){
-        const a = (i/spikes)*Math.PI*2;
-        const rr = e.r * (i%2===0 ? 1.18 : 0.82);
-        ctx.lineTo(Math.cos(a)*rr, Math.sin(a)*rr);
+    // draw obstacles
+    for (const o of obstacles){
+      if (o.type === "spike"){
+        const baseY = o.y;
+        ctx.fillStyle = theme().danger;
+        ctx.beginPath();
+        ctx.moveTo(o.x, baseY);
+        ctx.lineTo(o.x + o.w*0.5, baseY - o.h);
+        ctx.lineTo(o.x + o.w, baseY);
+        ctx.closePath();
+        ctx.globalAlpha = 0.95;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      } else {
+        ctx.fillStyle = theme().danger;
+        ctx.globalAlpha = 0.92;
+        ctx.fillRect(o.x, o.y - o.h, o.w, o.h);
+        ctx.globalAlpha = 1;
       }
-      ctx.closePath();
-      ctx.fillStyle = theme().danger;
-      ctx.globalAlpha = 0.92;
-      ctx.fill();
-      ctx.restore();
     }
 
-    // Draw particles
+    // draw player (little rogue orb + dagger)
+    ctx.save();
+    ctx.translate(px, player.y);
+
+    // subtle tilt based on vertical velocity
+    ctx.rotate(clamp(player.vy/1200, -0.35, 0.35));
+
+    // body
+    ctx.fillStyle = theme().player;
+    ctx.beginPath();
+    ctx.arc(0,0,player.r,0,Math.PI*2);
+    ctx.fill();
+
+    // dagger nose
+    ctx.globalAlpha = 0.75;
+    ctx.beginPath();
+    ctx.moveTo(player.r*0.1, -player.r*0.25);
+    ctx.lineTo(player.r*1.55, 0);
+    ctx.lineTo(player.r*0.1, player.r*0.25);
+    ctx.closePath();
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    ctx.restore();
+
+    // particles draw
     for (const p of particles){
       const k = 1 - (p.t/p.life);
       ctx.globalAlpha = k;
@@ -302,43 +444,17 @@
     }
     ctx.globalAlpha = 1;
 
-    // Draw player (rogue-ish: circle + little dagger notch)
-    ctx.save();
-    ctx.translate(player.x, player.y);
-    const blink = player.invuln > 0 ? (Math.sin(now*0.04) > 0 ? 0.35 : 1) : 1;
-    ctx.globalAlpha = blink;
-
-    // body
-    ctx.beginPath();
-    ctx.arc(0,0,player.r,0,Math.PI*2);
-    ctx.fillStyle = theme().player;
-    ctx.fill();
-
-    // dagger mark
-    ctx.beginPath();
-    ctx.moveTo(player.r*0.2, -player.r*0.2);
-    ctx.lineTo(player.r*1.35, 0);
-    ctx.lineTo(player.r*0.2, player.r*0.2);
-    ctx.closePath();
-    ctx.globalAlpha = 0.75 * blink;
-    ctx.fillStyle = theme().player;
-    ctx.fill();
-
-    ctx.restore();
-    ctx.globalAlpha = 1;
-
     ctx.restore(); // unshake
 
     // HUD
     hud.style.color = theme().ui;
     const s = Math.floor(state.score);
-    const b = Math.max(state.best, s);
     hud.innerHTML = `
-      <b>Rune Dash</b><br/>
-      Score: <b>${s}</b> &nbsp; Best: <b>${b}</b><br/>
+      <b>Rune Dash — Side Scroller</b><br/>
+      Score: <b>${s}</b> &nbsp; Best: <b>${Math.max(state.best, s)}</b><br/>
       Theme: <b>${theme().name}</b>
-      <div class="hint">Move: WASD / Arrows &nbsp; | &nbsp; T: Theme &nbsp; | &nbsp; R: Restart</div>
-      ${state.running ? "" : `<div class="hint"><b>Game Over.</b> Press <b>R</b>.</div>`}
+      <div class="hint">Jump: Space / W / ↑ / Click &nbsp; | &nbsp; T: Theme &nbsp; | &nbsp; R: Restart</div>
+      ${state.running ? "" : `<div class="hint"><b>Game Over.</b> Press <b>R</b> or Jump to restart.</div>`}
     `;
 
     requestAnimationFrame(tick);
