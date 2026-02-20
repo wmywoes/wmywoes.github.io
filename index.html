@@ -2,469 +2,239 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Woes</title>
+  <title>Woes Armory Prototype</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-
   <style>
     :root{
-      --bg: #07070a;
-      --fg: #e6e6eb;
-
-      --border: rgba(255,255,255,.10);
-      --innerBorder: rgba(255,255,255,.075);
-      --shadow: rgba(0,0,0,.78);
-
-      /* comma-separated RGB */
-      --accent: 120,255,180;
-      --accent2: 120,180,255;
-
-      --cardA: rgba(255,255,255,.040);
-      --cardB: rgba(255,255,255,.022);
-
-      --radius: 10px;
-
-      --vignetteEdge: rgba(0,0,0,.78);
-
-      --auraOpacity: .55;
-      --auraBlur: 12px;
-      --auraSpin: 6.5s;
-      --auraScale: 1.03;
-
-      --p1: .35; --p2: .22; --p3: .18; --p4: .14;
+      --bg:#07070a;
+      --fg:#e8e8ef;
+      --accent:#78ffb4;
+      --card:rgba(255,255,255,.06);
+      --border:rgba(255,255,255,.14);
+      --muted:rgba(232,232,239,.72);
     }
 
-    *{ box-sizing:border-box; }
-    html,body{ height:100%; }
-
+    *{box-sizing:border-box}
+    html,body{height:100%}
     body{
       margin:0;
-      min-height:100vh;
-      display:grid;
-      place-items:center;
       background:var(--bg);
       color:var(--fg);
-      font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;
       overflow:hidden;
     }
 
-    canvas#runes{
-      position:fixed;
-      inset:0;
-      z-index:0;
-      pointer-events:none;
-    }
+    #runes{position:fixed;inset:0;z-index:0;pointer-events:none}
+    .grain,.vignette{position:fixed;inset:0;pointer-events:none}
+    .grain{z-index:1;opacity:.06;background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,.28) 1px,transparent 0);background-size:3px 3px}
+    .vignette{z-index:2;background:radial-gradient(1200px 900px at 50% 40%,rgba(0,0,0,0) 52%,rgba(0,0,0,.82) 100%)}
 
-    .grain{
-      position:fixed;
-      inset:0;
-      z-index:1;
-      pointer-events:none;
-      opacity:.07;
-      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
-      background-size:220px 220px;
-      mix-blend-mode:overlay;
-    }
-
-    .vignette{
-      position:fixed;
-      inset:0;
-      z-index:2;
-      pointer-events:none;
-      background:radial-gradient(1200px 900px at 50% 45%, rgba(0,0,0,0) 55%, var(--vignetteEdge) 100%);
-      opacity:.95;
+    main{
+      position:relative;
+      z-index:3;
+      min-height:100%;
+      display:grid;
+      place-items:center;
+      padding:24px;
     }
 
     .card{
-      position:relative;
-      z-index:3;
-      padding:1.35rem 2.15rem;
-      border-radius:var(--radius);
-      background:linear-gradient(180deg, var(--cardA), var(--cardB));
+      width:min(920px,100%);
       border:1px solid var(--border);
-      box-shadow:0 0 70px var(--shadow);
-      backdrop-filter:blur(10px);
-      overflow:hidden;
-      transform:translateY(0);
-      transition:transform .12s ease, box-shadow .22s ease, border-color .22s ease;
-      user-select:none;
-      cursor:default;
+      border-radius:14px;
+      background:linear-gradient(180deg,var(--card),rgba(255,255,255,.025));
+      backdrop-filter:blur(8px);
+      box-shadow:0 20px 80px rgba(0,0,0,.6);
+      padding:22px;
     }
 
-    .card:hover{
-      transform:translateY(-1px);
-      border-color:rgba(255,255,255,.16);
-      box-shadow:0 0 80px rgba(0,0,0,.82);
+    h1{margin:0 0 8px;font-size:clamp(1.7rem,4vw,2.4rem);letter-spacing:.06em;text-transform:uppercase}
+    p{margin:0;color:var(--muted)}
+
+    form{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 8px}
+    input,button{
+      border-radius:10px;
+      border:1px solid var(--border);
+      background:rgba(0,0,0,.28);
+      color:var(--fg);
+      padding:11px 13px;
+      font-size:1rem;
     }
+    input{flex:1;min-width:220px}
+    button{cursor:pointer}
+    button:hover{border-color:rgba(120,255,180,.55)}
 
-    .card::before{
-      content:"";
-      position:absolute;
-      inset:7px;
-      border-radius:calc(var(--radius) - 3px);
-      border:1px solid var(--innerBorder);
-      pointer-events:none;
-      z-index:1;
-    }
+    .status{min-height:22px;margin:10px 0 16px;color:var(--muted)}
+    .status.error{color:#ff9fa2}
+    .status.ok{color:#b8ffd9}
 
-    .aura{
-      position:absolute;
-      inset:-2px;
-      border-radius:calc(var(--radius) + 2px);
-      pointer-events:none;
-      z-index:0;
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:14px}
+    .panel{border:1px solid var(--border);border-radius:10px;padding:12px;background:rgba(0,0,0,.18)}
+    .k{font-size:.82rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+    .v{font-size:1.28rem;font-weight:600;margin-top:4px}
 
-      background:
-        radial-gradient(140px 80px at 18% 24%, rgba(var(--accent), var(--p1)), transparent 65%),
-        radial-gradient(180px 110px at 82% 74%, rgba(var(--accent2), var(--p2)), transparent 70%),
-        radial-gradient(120px 90px at 65% 25%, rgba(var(--accent), .14), transparent 70%),
-        conic-gradient(from 90deg,
-          rgba(var(--accent), 0),
-          rgba(var(--accent), var(--p3)),
-          rgba(var(--accent), 0),
-          rgba(var(--accent2), var(--p4)),
-          rgba(var(--accent), 0)
-        );
+    table{width:100%;border-collapse:collapse;font-size:.95rem}
+    th,td{padding:8px 6px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left}
+    th{color:var(--muted);font-weight:600}
 
-      filter:blur(var(--auraBlur));
-      opacity:var(--auraOpacity);
-      mix-blend-mode:screen;
-      animation:auraDrift var(--auraSpin) ease-in-out infinite;
-      transform-origin:50% 50%;
-      transform: scale(var(--auraScale));
-    }
-
-    @keyframes auraDrift{
-      0%{ rotate:0deg; opacity:calc(var(--auraOpacity) - .10); }
-      50%{ rotate:10deg; opacity:var(--auraOpacity); }
-      100%{ rotate:0deg; opacity:calc(var(--auraOpacity) - .10); }
-    }
-
-    .content{ position:relative; z-index:2; display:grid; place-items:center; }
-
-    h1{
-      margin:0;
-      font-family:"Cinzel",serif;
-      font-size:clamp(2.25rem, 5vw, 2.9rem);
-      font-weight:600;
-      letter-spacing:.22em;
-      text-transform:uppercase;
-      text-shadow:0 0 14px rgba(var(--accent), .12), 0 0 34px rgba(var(--accent), .06);
-    }
+    .hint{margin-top:12px;font-size:.9rem;color:var(--muted)}
   </style>
 </head>
-
 <body>
   <canvas id="runes"></canvas>
   <div class="grain"></div>
   <div class="vignette"></div>
 
-  <main class="card" aria-label="Woes">
-    <div class="aura"></div>
-    <div class="content"><h1>Woes</h1></div>
+  <main>
+    <section class="card">
+      <h1>OSRS Armory Prototype</h1>
+      <p>First step: search a player and view core skill stats. Demo data is available if API access fails.</p>
+
+      <form id="lookupForm">
+        <input id="playerInput" name="player" placeholder="Enter RSN (e.g. Zezima)" autocomplete="off" required />
+        <button type="submit">Lookup</button>
+        <button type="button" id="demoBtn">Load Demo</button>
+      </form>
+
+      <div class="status" id="status"></div>
+
+      <div class="grid">
+        <div class="panel"><div class="k">Player</div><div class="v" id="playerName">-</div></div>
+        <div class="panel"><div class="k">Total Level</div><div class="v" id="totalLevel">-</div></div>
+        <div class="panel"><div class="k">Combat Level</div><div class="v" id="combatLevel">-</div></div>
+      </div>
+
+      <table>
+        <thead><tr><th>Skill</th><th>Level</th><th>XP</th><th>Rank</th></tr></thead>
+        <tbody id="skillsBody"><tr><td colspan="4">No data yet.</td></tr></tbody>
+      </table>
+
+      <p class="hint">Note: browser-to-OSRS API calls may fail due to CORS depending on endpoint policies. This prototype includes a demo fallback so UI work can continue.</p>
+    </section>
   </main>
 
   <script>
   (function(){
-    // ===== Themes: press T to cycle =====
-    const root = document.documentElement;
-
-    const themes = [
-      // 1) Emerald Void (classic)
-      { name:"Emerald Void", vars:{
-        "--bg":"#07070a","--fg":"#e6e6eb",
-        "--accent":"120,255,180","--accent2":"120,180,255",
-        "--border":"rgba(255,255,255,.10)","--innerBorder":"rgba(255,255,255,.075)",
-        "--cardA":"rgba(255,255,255,.040)","--cardB":"rgba(255,255,255,.022)",
-        "--vignetteEdge":"rgba(0,0,0,.78)",
-        "--auraOpacity":".55","--auraBlur":"12px","--auraSpin":"6.5s","--auraScale":"1.03",
-        "--p1":".35","--p2":".22","--p3":".18","--p4":".14",
-        "--radius":"10px"
-      }},
-      // 2) Ice Cathedral
-      { name:"Ice Cathedral", vars:{
-        "--bg":"#06070b","--fg":"#eef0ff",
-        "--accent":"170,220,255","--accent2":"150,255,210",
-        "--border":"rgba(255,255,255,.12)","--innerBorder":"rgba(255,255,255,.085)",
-        "--cardA":"rgba(255,255,255,.046)","--cardB":"rgba(255,255,255,.020)",
-        "--vignetteEdge":"rgba(0,0,0,.80)",
-        "--auraOpacity":".58","--auraBlur":"13px","--auraSpin":"6.0s","--auraScale":"1.035",
-        "--p1":".34","--p2":".26","--p3":".14","--p4":".16",
-        "--radius":"10px"
-      }},
-      // 3) Ember Ash
-      { name:"Ember Ash", vars:{
-        "--bg":"#080607","--fg":"#f1eceb",
-        "--accent":"255,160,110","--accent2":"255,220,150",
-        "--border":"rgba(255,255,255,.10)","--innerBorder":"rgba(255,255,255,.070)",
-        "--cardA":"rgba(255,255,255,.036)","--cardB":"rgba(255,255,255,.018)",
-        "--vignetteEdge":"rgba(0,0,0,.84)",
-        "--auraOpacity":".56","--auraBlur":"12px","--auraSpin":"5.6s","--auraScale":"1.03",
-        "--p1":".42","--p2":".18","--p3":".22","--p4":".12",
-        "--radius":"10px"
-      }},
-      // 4) Violet Oracle
-      { name:"Violet Oracle", vars:{
-        "--bg":"#06060a","--fg":"#f0ecff",
-        "--accent":"190,150,255","--accent2":"120,255,240",
-        "--border":"rgba(255,255,255,.11)","--innerBorder":"rgba(255,255,255,.08)",
-        "--cardA":"rgba(255,255,255,.040)","--cardB":"rgba(255,255,255,.018)",
-        "--vignetteEdge":"rgba(0,0,0,.82)",
-        "--auraOpacity":".60","--auraBlur":"14px","--auraSpin":"5.8s","--auraScale":"1.04",
-        "--p1":".40","--p2":".22","--p3":".20","--p4":".18",
-        "--radius":"10px"
-      }},
-      // 5) Acid Bloom
-      { name:"Acid Bloom", vars:{
-        "--bg":"#050607","--fg":"#eaf7ef",
-        "--accent":"180,255,120","--accent2":"255,255,160",
-        "--border":"rgba(255,255,255,.10)","--innerBorder":"rgba(255,255,255,.07)",
-        "--cardA":"rgba(255,255,255,.034)","--cardB":"rgba(255,255,255,.016)",
-        "--vignetteEdge":"rgba(0,0,0,.78)",
-        "--auraOpacity":".62","--auraBlur":"12px","--auraSpin":"5.2s","--auraScale":"1.045",
-        "--p1":".46","--p2":".24","--p3":".26","--p4":".10",
-        "--radius":"10px"
-      }},
-      // 6) Monochrome Blade
-      { name:"Monochrome Blade", vars:{
-        "--bg":"#07070a","--fg":"#f0f0f4",
-        "--accent":"230,230,235","--accent2":"230,230,235",
-        "--border":"rgba(255,255,255,.12)","--innerBorder":"rgba(255,255,255,.095)",
-        "--cardA":"rgba(255,255,255,.030)","--cardB":"rgba(255,255,255,.015)",
-        "--vignetteEdge":"rgba(0,0,0,.86)",
-        "--auraOpacity":".34","--auraBlur":"10px","--auraSpin":"7.2s","--auraScale":"1.02",
-        "--p1":".22","--p2":".18","--p3":".10","--p4":".08",
-        "--radius":"10px"
-      }},
-      // 7) Blood Oath
-      { name:"Blood Oath", vars:{
-        "--bg":"#070506","--fg":"#f4e9ea",
-        "--accent":"255,90,120","--accent2":"255,160,110",
-        "--border":"rgba(255,255,255,.10)","--innerBorder":"rgba(255,255,255,.07)",
-        "--cardA":"rgba(255,255,255,.034)","--cardB":"rgba(255,255,255,.016)",
-        "--vignetteEdge":"rgba(0,0,0,.88)",
-        "--auraOpacity":".58","--auraBlur":"14px","--auraSpin":"5.3s","--auraScale":"1.04",
-        "--p1":".44","--p2":".20","--p3":".24","--p4":".14",
-        "--radius":"10px"
-      }},
-      // 8) Celestial Mint
-      { name:"Celestial Mint", vars:{
-        "--bg":"#06070a","--fg":"#eaf6f4",
-        "--accent":"130,255,220","--accent2":"160,190,255",
-        "--border":"rgba(255,255,255,.11)","--innerBorder":"rgba(255,255,255,.085)",
-        "--cardA":"rgba(255,255,255,.040)","--cardB":"rgba(255,255,255,.018)",
-        "--vignetteEdge":"rgba(0,0,0,.76)",
-        "--auraOpacity":".60","--auraBlur":"13px","--auraSpin":"6.3s","--auraScale":"1.04",
-        "--p1":".34","--p2":".30","--p3":".16","--p4":".18",
-        "--radius":"10px"
-      }},
-      // 9) Royal Gold (still dark, but luxe)
-      { name:"Royal Gold", vars:{
-        "--bg":"#08070a","--fg":"#f4f1ea",
-        "--accent":"255,210,120","--accent2":"255,150,90",
-        "--border":"rgba(255,255,255,.12)","--innerBorder":"rgba(255,255,255,.085)",
-        "--cardA":"rgba(255,255,255,.040)","--cardB":"rgba(255,255,255,.018)",
-        "--vignetteEdge":"rgba(0,0,0,.84)",
-        "--auraOpacity":".50","--auraBlur":"12px","--auraSpin":"6.8s","--auraScale":"1.03",
-        "--p1":".36","--p2":".16","--p3":".22","--p4":".12",
-        "--radius":"10px"
-      }},
-      // 10) Deep Sea
-      { name:"Deep Sea", vars:{
-        "--bg":"#04070a","--fg":"#e9f2f6",
-        "--accent":"100,220,255","--accent2":"100,255,200",
-        "--border":"rgba(255,255,255,.11)","--innerBorder":"rgba(255,255,255,.08)",
-        "--cardA":"rgba(255,255,255,.038)","--cardB":"rgba(255,255,255,.017)",
-        "--vignetteEdge":"rgba(0,0,0,.82)",
-        "--auraOpacity":".60","--auraBlur":"14px","--auraSpin":"5.9s","--auraScale":"1.04",
-        "--p1":".30","--p2":".26","--p3":".16","--p4":".16",
-        "--radius":"10px"
-      }},
-      // 11) Neon Magenta
-      { name:"Neon Magenta", vars:{
-        "--bg":"#07050a","--fg":"#f7eef7",
-        "--accent":"255,120,240","--accent2":"120,255,240",
-        "--border":"rgba(255,255,255,.11)","--innerBorder":"rgba(255,255,255,.08)",
-        "--cardA":"rgba(255,255,255,.040)","--cardB":"rgba(255,255,255,.018)",
-        "--vignetteEdge":"rgba(0,0,0,.86)",
-        "--auraOpacity":".64","--auraBlur":"15px","--auraSpin":"5.0s","--auraScale":"1.05",
-        "--p1":".44","--p2":".22","--p3":".30","--p4":".18",
-        "--radius":"10px"
-      }},
-      // 12) Verdigris Relic
-      { name:"Verdigris Relic", vars:{
-        "--bg":"#060808","--fg":"#e8f4f1",
-        "--accent":"120,240,210","--accent2":"180,255,160",
-        "--border":"rgba(255,255,255,.10)","--innerBorder":"rgba(255,255,255,.075)",
-        "--cardA":"rgba(255,255,255,.034)","--cardB":"rgba(255,255,255,.016)",
-        "--vignetteEdge":"rgba(0,0,0,.80)",
-        "--auraOpacity":".58","--auraBlur":"12px","--auraSpin":"6.2s","--auraScale":"1.035",
-        "--p1":".38","--p2":".26","--p3":".18","--p4":".14",
-        "--radius":"10px"
-      }},
-    ];
-
-    let themeIndex = 0;
-
-    function applyTheme(idx){
-      const t = themes[idx];
-      for (const k in t.vars) root.style.setProperty(k, t.vars[k]);
-      // optional: show nothing. Pure.
-    }
-
-    applyTheme(themeIndex);
-
-    // ===== T key only =====
-    window.addEventListener("keydown", (e) => {
-      const tag = (document.activeElement && document.activeElement.tagName || "").toLowerCase();
-      if (tag === "input" || tag === "textarea") return;
-
-      if (e.key === "t" || e.key === "T"){
-        themeIndex = (themeIndex + 1) % themes.length;
-        applyTheme(themeIndex);
-      }
-    });
-
-    // ===== Static Rune Wallpaper (low-lag, stable tick) =====
-    const canvas = document.getElementById("runes");
-    const ctx = canvas.getContext("2d", { alpha: true });
-
-    const GLYPHS = [
-      "ᚠ","ᚢ","ᚦ","ᚨ","ᚱ","ᚲ","ᚷ","ᚹ","ᚺ","ᚾ","ᛁ","ᛃ","ᛇ","ᛈ","ᛉ","ᛋ","ᛏ","ᛒ","ᛖ","ᛗ","ᛚ","ᛜ","ᛞ","ᛟ",
-      "⟡","⟠","⟟","⟐","⟁","⌁","⋄","⋆","⊕","⊗","⊘"
-    ];
-
-    const cfg = {
-      cell: 26,
-      font: 16,
-      baseAlpha: 0.055,
-      blinkAlpha: 0.22,
-      blinkChance: 0.012,
-      swapsPerTick: 14,
-      tickMs: 110,
-      cleanZoneStrength: 0.92
+    const DEMO = {
+      name: "Demo Adventurer",
+      stats: [
+        ["Attack",82,2360000,120000], ["Defence",80,1980000,130000], ["Strength",85,3300000,99000], ["Hitpoints",84,3100000,100000],
+        ["Ranged",79,1760000,140000], ["Prayer",70,737000,180000], ["Magic",81,2210000,110000], ["Cooking",90,5340000,78000],
+        ["Woodcutting",76,1450000,170000], ["Mining",72,980000,210000], ["Fishing",75,1250000,190000], ["Firemaking",88,4600000,86000]
+      ]
     };
 
-    const tex = document.createElement("canvas");
-    const t = tex.getContext("2d", { alpha: true });
+    const skillsOrder = ["Attack","Defence","Strength","Hitpoints","Ranged","Prayer","Magic","Cooking","Woodcutting","Mining","Fishing","Firemaking"];
 
-    let cols=0, rows=0, n=0;
-    let cells, blink;
+    const statusEl = document.getElementById("status");
+    const playerNameEl = document.getElementById("playerName");
+    const totalLevelEl = document.getElementById("totalLevel");
+    const combatLevelEl = document.getElementById("combatLevel");
+    const skillsBody = document.getElementById("skillsBody");
+    const playerInput = document.getElementById("playerInput");
 
-    const randGlyph = () => (Math.random() * GLYPHS.length) | 0;
-
-    function getAccent(){
-      return getComputedStyle(root).getPropertyValue("--accent").trim() || "120,255,180";
+    function setStatus(msg, type="") {
+      statusEl.className = `status ${type}`.trim();
+      statusEl.textContent = msg;
     }
+
+    function calcCombat(levels){
+      const atk=levels.Attack||1, str=levels.Strength||1, def=levels.Defence||1;
+      const hp=levels.Hitpoints||10, pray=levels.Prayer||1, rng=levels.Ranged||1, mag=levels.Magic||1;
+      const base = 0.25 * (def + hp + Math.floor(pray / 2));
+      const melee = 0.325 * (atk + str);
+      const range = 0.325 * (Math.floor(rng * 1.5));
+      const mage = 0.325 * (Math.floor(mag * 1.5));
+      return Math.floor(base + Math.max(melee, range, mage));
+    }
+
+    function renderProfile(name, stats){
+      const levels = {};
+      let total = 0;
+      skillsBody.innerHTML = "";
+
+      for (const [skill, level, xp, rank] of stats){
+        levels[skill] = level;
+        total += Number(level) || 0;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${skill}</td><td>${level}</td><td>${Number(xp).toLocaleString()}</td><td>${Number(rank).toLocaleString()}</td>`;
+        skillsBody.appendChild(tr);
+      }
+
+      playerNameEl.textContent = name;
+      totalLevelEl.textContent = total;
+      combatLevelEl.textContent = calcCombat(levels);
+    }
+
+    async function fetchHiscores(player){
+      const url = `https://secure.runescape.com/m=hiscore_oldschool/index_lite.ws?player=${encodeURIComponent(player)}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const text = await res.text();
+      const rows = text.trim().split("\n");
+      if (!rows.length) throw new Error("No rows returned");
+
+      const parsed = [];
+      for (let i = 0; i < skillsOrder.length; i++){
+        const [rank, level, xp] = rows[i].split(",").map(Number);
+        parsed.push([skillsOrder[i], level, xp, rank]);
+      }
+      return parsed;
+    }
+
+    async function handleLookup(player){
+      setStatus("Looking up player...", "");
+      try{
+        const stats = await fetchHiscores(player);
+        renderProfile(player, stats);
+        setStatus("Live hiscores loaded.", "ok");
+      }catch(err){
+        renderProfile(DEMO.name, DEMO.stats);
+        setStatus(`Live lookup failed (${err.message}). Showing demo profile.`, "error");
+      }
+    }
+
+    document.getElementById("lookupForm").addEventListener("submit", (e)=>{
+      e.preventDefault();
+      handleLookup(playerInput.value.trim());
+    });
+
+    document.getElementById("demoBtn").addEventListener("click", ()=>{
+      renderProfile(DEMO.name, DEMO.stats);
+      setStatus("Demo profile loaded.", "ok");
+    });
+
+    // rune ambience
+    const canvas = document.getElementById("runes");
+    const ctx = canvas.getContext("2d");
+    const glyphs = ["ᚠ","ᚢ","ᚦ","ᚨ","ᚱ","ᚲ","ᚷ","ᛃ","ᛟ","⋆","⟡","⌁"];
+    let cols=0, rows=0;
 
     function resize(){
-      const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-      canvas.width = Math.floor(window.innerWidth * dpr);
-      canvas.height = Math.floor(window.innerHeight * dpr);
-      canvas.style.width = window.innerWidth + "px";
-      canvas.style.height = window.innerHeight + "px";
-      ctx.setTransform(dpr,0,0,dpr,0,0);
-
-      const texW = Math.max(cfg.cell*24, Math.ceil(window.innerWidth/cfg.cell)*cfg.cell);
-      const texH = Math.max(cfg.cell*18, Math.ceil(window.innerHeight/cfg.cell)*cfg.cell);
-
-      tex.width = Math.floor(texW * dpr);
-      tex.height = Math.floor(texH * dpr);
-      t.setTransform(dpr,0,0,dpr,0,0);
-
-      cols = Math.ceil(texW / cfg.cell);
-      rows = Math.ceil(texH / cfg.cell);
-      n = cols*rows;
-
-      cells = new Uint16Array(n);
-      blink = new Float32Array(n);
-      for (let i=0;i<n;i++){ cells[i]=randGlyph(); blink[i]=0; }
-
-      rebuild();
-      draw();
-    }
-
-    function rebuild(){
-      const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-      const texW = tex.width / dpr;
-      const texH = tex.height / dpr;
-
-      t.clearRect(0,0,texW,texH);
-      t.textBaseline="top";
-      t.font = `${cfg.font}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace`;
-
-      const accent = getAccent();
-
-      let idx=0;
-      for (let y=0;y<rows;y++){
-        for (let x=0;x<cols;x++){
-          const gx=x*cfg.cell+6, gy=y*cfg.cell+4;
-          const ch=GLYPHS[cells[idx]];
-
-          t.fillStyle=`rgba(230,230,235,${cfg.baseAlpha})`;
-          t.fillText(ch,gx,gy);
-
-          const b=blink[idx];
-          if (b>0){
-            const a=b*cfg.blinkAlpha;
-            t.fillStyle=`rgba(${accent},${a})`;
-            t.fillText(ch,gx,gy);
-            t.fillStyle=`rgba(${accent},${a*0.55})`;
-            t.fillText(ch,gx+1,gy+1);
-          }
-          idx++;
-        }
-      }
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      cols = Math.ceil(canvas.width / 26);
+      rows = Math.ceil(canvas.height / 26);
     }
 
     function draw(){
-      const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-      const w = canvas.width / dpr, h = canvas.height / dpr;
-      const iw = tex.width / dpr, ih = tex.height / dpr;
-
-      ctx.clearRect(0,0,w,h);
-
-      for (let y=0;y<h;y+=ih){
-        for (let x=0;x<w;x+=iw){
-          ctx.drawImage(tex,x,y,iw,ih);
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = "rgba(230,230,238,.06)";
+      ctx.font = "15px monospace";
+      for (let y=0; y<rows; y++){
+        for (let x=0; x<cols; x++){
+          if (Math.random() < 0.3){
+            const g = glyphs[(Math.random()*glyphs.length)|0];
+            ctx.fillText(g, x*26+6, y*26+18);
+          }
         }
       }
-
-      // clean zone behind center
-      const cx=w/2, cy=h/2;
-      const grad = ctx.createRadialGradient(cx,cy,180,cx,cy,520);
-      grad.addColorStop(0, `rgba(7,7,10,${0.78 * cfg.cleanZoneStrength})`);
-      grad.addColorStop(1, `rgba(7,7,10,0)`);
-      ctx.fillStyle = grad;
-      ctx.fillRect(0,0,w,h);
-    }
-
-    function tick(){
-      for (let k=0;k<cfg.swapsPerTick;k++){
-        const a=(Math.random()*n)|0;
-        const b=(Math.random()*n)|0;
-        const tmp=cells[a]; cells[a]=cells[b]; cells[b]=tmp;
-      }
-
-      for (let i=0;i<n;i++){
-        if (blink[i] <= 0 && Math.random() < cfg.blinkChance) blink[i]=1;
-      }
-
-      for (let i=0;i<n;i++){
-        if (blink[i] > 0){
-          blink[i] -= 0.10;
-          if (blink[i] < 0) blink[i]=0;
-        }
-      }
-
-      rebuild();
-      draw();
     }
 
     resize();
+    draw();
+    setInterval(draw, 220);
     window.addEventListener("resize", resize);
-    setInterval(tick, cfg.tickMs);
-
   })();
   </script>
 </body>

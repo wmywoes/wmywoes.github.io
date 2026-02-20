@@ -1,62 +1,27 @@
-A single-file static webpage for the \*\*Woes\*\* title screen: dark backdrop, animated rune field, and theme-cycling visual styles.
+A lightweight static prototype for an **OSRS Armory-style** player lookup site.
 
+## Current scope (v0)
 
+- Single-page UI in `index.html`.
+- Rune-themed dark visual style.
+- Player search form for OSRS names.
+- Attempts live hiscores fetch from the OSRS endpoint.
+- Graceful fallback to demo profile data if browser/API restrictions block live requests.
 
-\## Repo layout
+## Why demo fallback exists
 
+OSRS hiscores access from client-side JavaScript can fail in some browsers/environments due to CORS/network policies. This repo keeps a demo profile fallback so UX and layout work can continue while API strategy is finalized.
 
-
-\- `index.html` — full site implementation (HTML, CSS, and JavaScript in one file).
-
-\- `README.md` — project notes and local run instructions.
-
-
-
-\## Features
-
-
-
-\- Centered glass-style card with the `Woes` heading.
-
-\- Animated aura and glow treatment around the card.
-
-\- Full-screen rune canvas background with subtle motion/twinkling.
-
-\- Grain + vignette overlays for texture.
-
-\- Keyboard theme cycling with `T` / `t` across 12 palettes.
-
-
-
-\## Local development
-
-
-
-\### Option 1: open directly
-
-Open `index.html` in your browser.
-
-
-
-\### Option 2: run a tiny local server
-
-
+## Local development
 
 ```bash
-
 python3 -m http.server 8080
-
 ```
 
+Then open <http://localhost:8080>.
 
+## Next milestones
 
-Then browse to <http://localhost:8080>.
-
-
-
-\## Notes about GitHub display
-
-
-
-If GitHub still shows an old README, it usually means the change is on a branch or PR that has not been merged into the default branch yet.
-
+1. Add backend proxy endpoint for reliable live hiscores.
+2. Expand skills/boss stats coverage.
+3. Add shareable profile URLs and recent searches.
