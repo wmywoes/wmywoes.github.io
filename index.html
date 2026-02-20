@@ -6,125 +6,237 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root{
-      --bg:#07070a;
-      --fg:#e8e8ef;
-      --accent:#78ffb4;
-      --card:rgba(255,255,255,.06);
-      --border:rgba(255,255,255,.14);
-      --muted:rgba(232,232,239,.72);
+      --bg:#0b0b08;
+      --fg:#2a1e0f;
+      --muted:#5a4630;
+
+      /* OSRS-ish palette */
+      --panel1:#ead7b3;
+      --panel2:#d7bf92;
+      --edge:#6b4b24;
+      --edge2:#3f2a12;
+      --gold:#caa44a;
+
+      --danger:#8a1f1f;
+      --ok:#1f6a2a;
     }
 
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
       margin:0;
-      background:var(--bg);
       color:var(--fg);
-      font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;
+      font-family: Georgia, "Times New Roman", serif;
       overflow:hidden;
+
+      /* dark room + parchment glow */
+      background:
+        radial-gradient(900px 600px at 50% 35%, rgba(255,235,180,.14), rgba(0,0,0,.88) 70%),
+        radial-gradient(1200px 900px at 50% 60%, rgba(0,0,0,.35), rgba(0,0,0,.95) 80%),
+        var(--bg);
     }
 
-    #runes{position:fixed;inset:0;z-index:0;pointer-events:none}
-    .grain,.vignette{position:fixed;inset:0;pointer-events:none}
-    .grain{z-index:1;opacity:.06;background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,.28) 1px,transparent 0);background-size:3px 3px}
-    .vignette{z-index:2;background:radial-gradient(1200px 900px at 50% 40%,rgba(0,0,0,0) 52%,rgba(0,0,0,.82) 100%)}
+    /* subtle texture */
+    .grain{
+      position:fixed; inset:0; pointer-events:none; z-index:1;
+      opacity:.10;
+      background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,.25) 1px, transparent 0);
+      background-size:3px 3px;
+      mix-blend-mode: overlay;
+    }
 
     main{
       position:relative;
-      z-index:3;
+      z-index:2;
       min-height:100%;
       display:grid;
       place-items:center;
-      padding:24px;
+      padding:18px;
+    }
+
+    .frame{
+      width:min(980px,100%);
+      padding:14px;
+      border-radius:10px;
+      background: linear-gradient(180deg, rgba(202,164,74,.18), rgba(0,0,0,.15));
+      box-shadow: 0 30px 120px rgba(0,0,0,.75);
     }
 
     .card{
-      width:min(920px,100%);
-      border:1px solid var(--border);
-      border-radius:14px;
-      background:linear-gradient(180deg,var(--card),rgba(255,255,255,.025));
-      backdrop-filter:blur(8px);
-      box-shadow:0 20px 80px rgba(0,0,0,.6);
-      padding:22px;
+      border-radius:8px;
+      padding:18px;
+      background:
+        radial-gradient(1200px 600px at 40% 20%, rgba(255,255,255,.20), rgba(255,255,255,0) 65%),
+        linear-gradient(180deg, var(--panel1), var(--panel2));
+      border: 2px solid var(--edge);
+      box-shadow:
+        inset 0 0 0 2px rgba(0,0,0,.12),
+        inset 0 0 0 4px rgba(255,255,255,.10);
     }
 
-    h1{margin:0 0 8px;font-size:clamp(1.7rem,4vw,2.4rem);letter-spacing:.06em;text-transform:uppercase}
-    p{margin:0;color:var(--muted)}
+    .titlebar{
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap:12px;
+      border-bottom: 2px solid rgba(63,42,18,.22);
+      padding-bottom:10px;
+      margin-bottom:14px;
+    }
 
-    form{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 8px}
+    h1{
+      margin:0;
+      font-size: clamp(1.6rem, 3.6vw, 2.2rem);
+      letter-spacing:.03em;
+      text-transform: uppercase;
+      color:#2a1b0c;
+      text-shadow: 0 1px 0 rgba(255,255,255,.35);
+    }
+
+    .subtitle{
+      margin:0;
+      color:var(--muted);
+      font-size:.98rem;
+    }
+
+    form{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 10px}
     input,button{
-      border-radius:10px;
-      border:1px solid var(--border);
-      background:rgba(0,0,0,.28);
-      color:var(--fg);
-      padding:11px 13px;
+      border-radius:6px;
+      border: 2px solid rgba(63,42,18,.30);
+      padding:10px 12px;
       font-size:1rem;
     }
-    input{flex:1;min-width:220px}
-    button{cursor:pointer}
-    button:hover{border-color:rgba(120,255,180,.55)}
 
-    .status{min-height:22px;margin:10px 0 16px;color:var(--muted)}
-    .status.error{color:#ff9fa2}
-    .status.ok{color:#b8ffd9}
+    input{
+      flex:1; min-width:240px;
+      background: rgba(255,255,255,.55);
+      color:#2a1e0f;
+      outline:none;
+    }
+    input:focus{border-color: rgba(202,164,74,.9); box-shadow: 0 0 0 3px rgba(202,164,74,.22);}
 
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:14px}
-    .panel{border:1px solid var(--border);border-radius:10px;padding:12px;background:rgba(0,0,0,.18)}
-    .k{font-size:.82rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
-    .v{font-size:1.28rem;font-weight:600;margin-top:4px}
+    button{
+      cursor:pointer;
+      background: linear-gradient(180deg, rgba(202,164,74,.95), rgba(168,122,40,.95));
+      color:#1e1408;
+      font-weight:700;
+      text-shadow: 0 1px 0 rgba(255,255,255,.35);
+    }
+    button:hover{filter:brightness(1.03)}
+    button:disabled{opacity:.6;cursor:not-allowed}
 
-    table{width:100%;border-collapse:collapse;font-size:.95rem}
-    th,td{padding:8px 6px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left}
-    th{color:var(--muted);font-weight:600}
+    .status{
+      min-height:22px;
+      margin:8px 0 14px;
+      color:var(--muted);
+      font-size:.98rem;
+    }
+    .status.error{color:var(--danger); font-weight:700}
+    .status.ok{color:var(--ok); font-weight:700}
 
-    .hint{margin-top:12px;font-size:.9rem;color:var(--muted)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:12px}
+    .panel{
+      border: 2px solid rgba(63,42,18,.22);
+      border-radius:6px;
+      padding:10px 12px;
+      background: rgba(255,255,255,.30);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.35);
+    }
+    .k{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+    .v{font-size:1.25rem;font-weight:800;margin-top:4px}
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:.98rem;
+      background: rgba(255,255,255,.20);
+      border:2px solid rgba(63,42,18,.22);
+      border-radius:6px;
+      overflow:hidden;
+    }
+    th,td{
+      padding:9px 8px;
+      border-bottom:1px solid rgba(63,42,18,.14);
+      text-align:left;
+    }
+    th{
+      color:var(--muted);
+      font-weight:800;
+      background: rgba(255,255,255,.22);
+    }
+    tr:last-child td{border-bottom:none}
+
+    .hint{
+      margin-top:12px;
+      font-size:.92rem;
+      color:var(--muted);
+      line-height:1.35;
+    }
+    a{color:#2c5aa0}
   </style>
 </head>
 <body>
-  <canvas id="runes"></canvas>
   <div class="grain"></div>
-  <div class="vignette"></div>
 
   <main>
-    <section class="card">
-      <h1>OSRS Armory Prototype</h1>
-      <p>First step: search a player and view core skill stats. Demo data is available if API access fails.</p>
+    <section class="frame">
+      <div class="card">
+        <div class="titlebar">
+          <div>
+            <h1>OSRS Armory</h1>
+            <p class="subtitle">Lookup a player on the Old School Hiscores (demo fallback if blocked).</p>
+          </div>
+        </div>
 
-      <form id="lookupForm">
-        <input id="playerInput" name="player" placeholder="Enter RSN (e.g. Zezima)" autocomplete="off" required />
-        <button type="submit">Lookup</button>
-        <button type="button" id="demoBtn">Load Demo</button>
-      </form>
+        <form id="lookupForm">
+          <input id="playerInput" name="player" placeholder="Enter RSN (e.g. Zezima)" autocomplete="off" required />
+          <button type="submit" id="lookupBtn">Lookup</button>
+          <button type="button" id="demoBtn">Load Demo</button>
+        </form>
 
-      <div class="status" id="status"></div>
+        <div class="status" id="status"></div>
 
-      <div class="grid">
-        <div class="panel"><div class="k">Player</div><div class="v" id="playerName">-</div></div>
-        <div class="panel"><div class="k">Total Level</div><div class="v" id="totalLevel">-</div></div>
-        <div class="panel"><div class="k">Combat Level</div><div class="v" id="combatLevel">-</div></div>
+        <div class="grid">
+          <div class="panel"><div class="k">Player</div><div class="v" id="playerName">-</div></div>
+          <div class="panel"><div class="k">Total Level</div><div class="v" id="totalLevel">-</div></div>
+          <div class="panel"><div class="k">Combat Level</div><div class="v" id="combatLevel">-</div></div>
+        </div>
+
+        <table>
+          <thead><tr><th>Skill</th><th>Level</th><th>XP</th><th>Rank</th></tr></thead>
+          <tbody id="skillsBody"><tr><td colspan="4">No data yet.</td></tr></tbody>
+        </table>
+
+        <p class="hint">
+          If Lookup always shows demo: it’s CORS. Fix = use a proxy (Cloudflare Worker). This is normal for browser-only apps. :contentReference[oaicite:2]{index=2}
+        </p>
       </div>
-
-      <table>
-        <thead><tr><th>Skill</th><th>Level</th><th>XP</th><th>Rank</th></tr></thead>
-        <tbody id="skillsBody"><tr><td colspan="4">No data yet.</td></tr></tbody>
-      </table>
-
-      <p class="hint">Note: browser-to-OSRS API calls may fail due to CORS depending on endpoint policies. This prototype includes a demo fallback so UI work can continue.</p>
     </section>
   </main>
 
   <script>
   (function(){
+    // 1) PUT YOUR WORKER DOMAIN HERE after you deploy it:
+    // Example: "https://woes-hiscores-proxy.yourname.workers.dev"
+    const PROXY_BASE = "https://cx.noahcastner.workers.dev";
+
+    // Demo fallback
     const DEMO = {
       name: "Demo Adventurer",
       stats: [
         ["Attack",82,2360000,120000], ["Defence",80,1980000,130000], ["Strength",85,3300000,99000], ["Hitpoints",84,3100000,100000],
         ["Ranged",79,1760000,140000], ["Prayer",70,737000,180000], ["Magic",81,2210000,110000], ["Cooking",90,5340000,78000],
-        ["Woodcutting",76,1450000,170000], ["Mining",72,980000,210000], ["Fishing",75,1250000,190000], ["Firemaking",88,4600000,86000]
+        ["Woodcutting",76,1450000,170000], ["Fletching",77,1550000,195000], ["Fishing",75,1250000,190000], ["Firemaking",88,4600000,86000],
+        ["Crafting",74,1200000,210000], ["Smithing",69,720000,250000], ["Mining",72,980000,210000], ["Herblore",60,270000,280000],
+        ["Agility",68,650000,200000], ["Thieving",73,1050000,220000], ["Slayer",71,910000,240000], ["Farming",64,360000,260000],
+        ["Runecraft",55,170000,320000], ["Hunter",58,240000,300000], ["Construction",62,320000,290000]
       ]
     };
 
-    const skillsOrder = ["Attack","Defence","Strength","Hitpoints","Ranged","Prayer","Magic","Cooking","Woodcutting","Mining","Fishing","Firemaking"];
+    const HISCORES_SKILLS = [
+      "Attack","Defence","Strength","Hitpoints","Ranged","Prayer","Magic","Cooking","Woodcutting","Fletching","Fishing","Firemaking",
+      "Crafting","Smithing","Mining","Herblore","Agility","Thieving","Slayer","Farming","Runecraft","Hunter","Construction"
+    ];
 
     const statusEl = document.getElementById("status");
     const playerNameEl = document.getElementById("playerName");
@@ -132,6 +244,12 @@
     const combatLevelEl = document.getElementById("combatLevel");
     const skillsBody = document.getElementById("skillsBody");
     const playerInput = document.getElementById("playerInput");
+    const lookupBtn = document.getElementById("lookupBtn");
+    const demoBtn = document.getElementById("demoBtn");
+
+    const last = localStorage.getItem("woes_armory_last_player");
+    if (last) playerInput.value = last;
+    playerInput.focus();
 
     function setStatus(msg, type="") {
       statusEl.className = `status ${type}`.trim();
@@ -144,16 +262,19 @@
       const base = 0.25 * (def + hp + Math.floor(pray / 2));
       const melee = 0.325 * (atk + str);
       const range = 0.325 * (Math.floor(rng * 1.5));
-      const mage = 0.325 * (Math.floor(mag * 1.5));
+      const mage  = 0.325 * (Math.floor(mag * 1.5));
       return Math.floor(base + Math.max(melee, range, mage));
     }
 
-    function renderProfile(name, stats){
+    function renderProfile(name, stats, totalLevelOverride=null){
       const levels = {};
       let total = 0;
       skillsBody.innerHTML = "";
 
-      for (const [skill, level, xp, rank] of stats){
+      const idx = Object.fromEntries(HISCORES_SKILLS.map((s,i)=>[s,i]));
+      const sorted = stats.slice().sort((a,b)=> (idx[a[0]] ?? 9999) - (idx[b[0]] ?? 9999));
+
+      for (const [skill, level, xp, rank] of sorted){
         levels[skill] = level;
         total += Number(level) || 0;
         const tr = document.createElement("tr");
@@ -162,79 +283,80 @@
       }
 
       playerNameEl.textContent = name;
-      totalLevelEl.textContent = total;
+      totalLevelEl.textContent = (Number.isFinite(totalLevelOverride) && totalLevelOverride > 0) ? totalLevelOverride : total;
       combatLevelEl.textContent = calcCombat(levels);
     }
 
+    function fetchWithTimeout(url, ms=9000){
+      const controller = new AbortController();
+      const t = setTimeout(()=>controller.abort(), ms);
+      return fetch(url, { signal: controller.signal }).finally(()=>clearTimeout(t));
+    }
+
     async function fetchHiscores(player){
-      const url = `https://secure.runescape.com/m=hiscore_oldschool/index_lite.ws?player=${encodeURIComponent(player)}`;
-      const res = await fetch(url);
+      if (PROXY_BASE.includes("cx.noahcastner.workers.dev")) {
+        throw new Error("Proxy not configured (set PROXY_BASE)");
+      }
+
+      const url = `${PROXY_BASE.replace(/\/$/,"")}/hiscores?player=${encodeURIComponent(player)}`;
+      const res = await fetchWithTimeout(url, 9000);
+
+      // 404/500/etc should still show a readable message
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
       const text = await res.text();
       const rows = text.trim().split("\n");
       if (!rows.length) throw new Error("No rows returned");
 
-      const parsed = [];
-      for (let i = 0; i < skillsOrder.length; i++){
-        const [rank, level, xp] = rows[i].split(",").map(Number);
-        parsed.push([skillsOrder[i], level, xp, rank]);
+      // Row 0: Overall => rank,totalLevel,totalXP
+      const overall = rows[0]?.split(",").map(Number);
+      const totalLevel = overall && overall.length >= 3 ? overall[1] : null;
+
+      const skills = [];
+      for (let i = 0; i < HISCORES_SKILLS.length; i++){
+        const line = rows[i+1];
+        if (!line) continue;
+        const [rank, level, xp] = line.split(",").map(Number);
+        skills.push([HISCORES_SKILLS[i], level, xp, rank]);
       }
-      return parsed;
+
+      if (!skills.length) throw new Error("Could not parse skills");
+      return { name: player, skills, totalLevel };
     }
 
     async function handleLookup(player){
+      const p = (player || "").trim();
+      if (!p) return;
+
+      localStorage.setItem("woes_armory_last_player", p);
+
       setStatus("Looking up player...", "");
+      lookupBtn.disabled = true;
+      demoBtn.disabled = true;
+
       try{
-        const stats = await fetchHiscores(player);
-        renderProfile(player, stats);
+        const data = await fetchHiscores(p);
+        renderProfile(data.name, data.skills, data.totalLevel);
         setStatus("Live hiscores loaded.", "ok");
       }catch(err){
-        renderProfile(DEMO.name, DEMO.stats);
-        setStatus(`Live lookup failed (${err.message}). Showing demo profile.`, "error");
+        const msg = (err && err.name === "AbortError") ? "Request timed out" : (err?.message || "Unknown error");
+        renderProfile(DEMO.name, DEMO.stats, null);
+        setStatus(`Live lookup failed (${msg}). Showing demo profile.`, "error");
+      }finally{
+        lookupBtn.disabled = false;
+        demoBtn.disabled = false;
       }
     }
 
     document.getElementById("lookupForm").addEventListener("submit", (e)=>{
       e.preventDefault();
-      handleLookup(playerInput.value.trim());
+      handleLookup(playerInput.value);
     });
 
     document.getElementById("demoBtn").addEventListener("click", ()=>{
-      renderProfile(DEMO.name, DEMO.stats);
+      renderProfile(DEMO.name, DEMO.stats, null);
       setStatus("Demo profile loaded.", "ok");
     });
-
-    // rune ambience
-    const canvas = document.getElementById("runes");
-    const ctx = canvas.getContext("2d");
-    const glyphs = ["ᚠ","ᚢ","ᚦ","ᚨ","ᚱ","ᚲ","ᚷ","ᛃ","ᛟ","⋆","⟡","⌁"];
-    let cols=0, rows=0;
-
-    function resize(){
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      cols = Math.ceil(canvas.width / 26);
-      rows = Math.ceil(canvas.height / 26);
-    }
-
-    function draw(){
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      ctx.fillStyle = "rgba(230,230,238,.06)";
-      ctx.font = "15px monospace";
-      for (let y=0; y<rows; y++){
-        for (let x=0; x<cols; x++){
-          if (Math.random() < 0.3){
-            const g = glyphs[(Math.random()*glyphs.length)|0];
-            ctx.fillText(g, x*26+6, y*26+18);
-          }
-        }
-      }
-    }
-
-    resize();
-    draw();
-    setInterval(draw, 220);
-    window.addEventListener("resize", resize);
   })();
   </script>
 </body>
