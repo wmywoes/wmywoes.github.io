@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Woes Armory</title>
+  <title>OSRS Armory</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root{
@@ -27,6 +27,15 @@
       --barFill2: rgba(202,164,74,.85);
 
       --cardShadow: 0 30px 120px rgba(0,0,0,.75);
+
+      /* OSRS button vibe */
+      --btnTop: rgba(240, 210, 130, .95);
+      --btnBot: rgba(176, 122, 44, .95);
+      --btnEdge: rgba(63,42,18,.55);
+      --btnInset: rgba(255,255,255,.25);
+      --btnText: #1e1408;
+      --btnIdle: rgba(255,255,255,.10);
+      --btnActiveGlow: rgba(202,164,74,.30);
     }
 
     html[data-theme="dark"]{
@@ -48,6 +57,14 @@
       --barFill2: rgba(120,255,180,.45);
 
       --cardShadow: 0 30px 120px rgba(0,0,0,.85);
+
+      --btnTop: rgba(120,255,180,.45);
+      --btnBot: rgba(0,0,0,.25);
+      --btnEdge: rgba(255,255,255,.18);
+      --btnInset: rgba(255,255,255,.08);
+      --btnText: var(--fg);
+      --btnIdle: rgba(0,0,0,.12);
+      --btnActiveGlow: rgba(120,255,180,.18);
     }
 
     *{box-sizing:border-box}
@@ -89,7 +106,7 @@
     }
 
     .frame{
-      width:min(1020px,100%);
+      width:min(1080px,100%);
       padding:14px;
       border-radius:10px;
       background: linear-gradient(180deg, rgba(202,164,74,.18), rgba(0,0,0,.15));
@@ -181,9 +198,9 @@
     }
     .switch[data-on="1"] .knob{ transform: translateX(26px); }
 
-    form{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 10px}
+    form{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 10px}
     input,button{
-      border-radius:8px;
+      border-radius:10px;
       border: 2px solid rgba(63,42,18,.30);
       padding:10px 12px;
       font-size:1rem;
@@ -207,24 +224,30 @@
       box-shadow: 0 0 0 3px rgba(120,255,180,.16);
     }
 
-    button{
+    /* OSRS-ish buttons */
+    .osrs-btn{
       cursor:pointer;
-      background: linear-gradient(180deg, rgba(202,164,74,.95), rgba(168,122,40,.95));
-      color:#1e1408;
-      font-weight:700;
-      text-shadow: 0 1px 0 rgba(255,255,255,.35);
+      background: linear-gradient(180deg, var(--btnTop), var(--btnBot));
+      color: var(--btnText);
+      font-weight:900;
+      letter-spacing:.03em;
+      text-transform:uppercase;
+      text-shadow: 0 1px 0 rgba(255,255,255,.25);
+      border: 2px solid var(--btnEdge);
+      box-shadow:
+        inset 0 1px 0 var(--btnInset),
+        0 2px 0 rgba(0,0,0,.20);
     }
-    html[data-theme="dark"] button{
-      background: linear-gradient(180deg, rgba(120,255,180,.50), rgba(0,0,0,.20));
-      color: var(--fg);
-      text-shadow:none;
+    .osrs-btn:hover{filter:brightness(1.03)}
+    .osrs-btn:active{
+      transform: translateY(1px);
+      box-shadow: inset 0 1px 0 var(--btnInset);
     }
-    button:hover{filter:brightness(1.03)}
-    button:disabled{opacity:.6;cursor:not-allowed}
+    .osrs-btn:disabled{opacity:.6;cursor:not-allowed}
 
     .status{
       min-height:22px;
-      margin:8px 0 14px;
+      margin:8px 0 12px;
       color:var(--muted);
       font-size:.98rem;
     }
@@ -235,7 +258,7 @@
       display:grid;
       grid-template-columns:repeat(4, minmax(0, 1fr));
       gap:10px;
-      margin-bottom:12px
+      margin:10px 0 12px;
     }
     @media (max-width: 920px){ .grid{grid-template-columns:repeat(2, minmax(0, 1fr));} }
     @media (max-width: 520px){ .grid{grid-template-columns:1fr;} }
@@ -253,8 +276,44 @@
       box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
     }
     .k{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
-    .v{font-size:1.25rem;font-weight:800;margin-top:4px}
+    .v{font-size:1.25rem;font-weight:900;margin-top:4px}
 
+    /* Tabs */
+    .tabs{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      margin: 6px 0 12px;
+    }
+    .tab{
+      padding:10px 14px;
+      border-radius:12px;
+      background: var(--btnIdle);
+      border:2px solid rgba(63,42,18,.22);
+      color: var(--muted);
+      font-weight:900;
+      letter-spacing:.03em;
+      text-transform:uppercase;
+      cursor:pointer;
+      user-select:none;
+    }
+    html[data-theme="dark"] .tab{
+      border-color: rgba(255,255,255,.12);
+    }
+    .tab.active{
+      background: linear-gradient(180deg, var(--btnTop), var(--btnBot));
+      color: var(--btnText);
+      border-color: var(--btnEdge);
+      box-shadow:
+        inset 0 1px 0 var(--btnInset),
+        0 0 0 4px var(--btnActiveGlow);
+    }
+
+    .view{display:none}
+    .view.active{display:block}
+
+    /* Skills list */
     .skills-wrap{
       border:2px solid rgba(63,42,18,.22);
       border-radius:10px;
@@ -280,7 +339,7 @@
     html[data-theme="dark"] .skills-header{border-bottom-color: rgba(255,255,255,.10);}
 
     .skills-title{
-      font-weight:800;
+      font-weight:900;
       letter-spacing:.04em;
       text-transform:uppercase;
       color: var(--fg);
@@ -383,12 +442,54 @@
       border-color: rgba(255,255,255,.14);
       box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
     }
-
     .fill{
       height:100%;
       width:0%;
       background: linear-gradient(90deg, var(--barFill), var(--barFill2));
     }
+
+    /* Activities view */
+    .acts{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:10px;
+    }
+    @media (max-width: 820px){ .acts{grid-template-columns:1fr;} }
+
+    .act{
+      border:2px solid rgba(63,42,18,.22);
+      border-radius:10px;
+      background: rgba(255,255,255,.18);
+      padding:12px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.30);
+    }
+    html[data-theme="dark"] .act{
+      border-color: rgba(255,255,255,.14);
+      background: rgba(0,0,0,.18);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+    }
+    .act h3{
+      margin:0 0 8px;
+      font-size:1.02rem;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+    }
+    .act p{margin:0;color:var(--muted);line-height:1.35}
+    .list{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+    .row{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      padding:8px 10px;
+      border-radius:10px;
+      border:2px solid var(--slotEdge);
+      background: linear-gradient(180deg, var(--slot), var(--slot2));
+    }
+    html[data-theme="dark"] .row{
+      background: linear-gradient(180deg, var(--slot), var(--slot2));
+    }
+    .row b{font-weight:900}
+    .mini{color:var(--muted);font-size:.92rem}
   </style>
 </head>
 <body>
@@ -400,7 +501,7 @@
         <div class="titlebar">
           <div>
             <h1>OSRS Armory</h1>
-            <p class="subtitle">Lookup a player on the Old School Hiscores.</p>
+            <p class="subtitle">Skills + quick stats. Shareable URLs supported.</p>
           </div>
 
           <div class="toggle" title="Toggle theme">
@@ -412,8 +513,8 @@
         </div>
 
         <form id="lookupForm">
-          <input id="playerInput" name="player" placeholder="Enter RSN (e.g. Zezima)" autocomplete="off" required />
-          <button type="submit" id="lookupBtn">Lookup</button>
+          <input id="playerInput" name="player" placeholder="Enter RSN (e.g. Tely)" autocomplete="off" required />
+          <button type="submit" class="osrs-btn" id="lookupBtn">Lookup</button>
         </form>
 
         <div class="status" id="status"></div>
@@ -425,14 +526,49 @@
           <div class="panel"><div class="k">Combat Level</div><div class="v" id="combatLevel">-</div></div>
         </div>
 
-        <div class="skills-wrap">
-          <div class="skills-header">
-            <div class="skills-title">Skills</div>
-            <div class="chip" id="skillsMeta">No data loaded.</div>
-          </div>
-
-          <div class="skills-grid" id="skillsGrid"></div>
+        <div class="tabs" aria-label="tabs">
+          <div class="tab active" data-tab="skills">Skills</div>
+          <div class="tab" data-tab="activities">Activities</div>
         </div>
+
+        <div class="view active" id="view-skills">
+          <div class="skills-wrap">
+            <div class="skills-header">
+              <div class="skills-title">Skills</div>
+              <div class="chip" id="skillsMeta">No data loaded.</div>
+            </div>
+            <div class="skills-grid" id="skillsGrid"></div>
+          </div>
+        </div>
+
+        <div class="view" id="view-activities">
+          <div class="acts">
+            <div class="act">
+              <h3>Top skills (by XP)</h3>
+              <p class="mini">Where most of your grind lives.</p>
+              <div class="list" id="topSkills"></div>
+            </div>
+
+            <div class="act">
+              <h3>Next levels</h3>
+              <p class="mini">Closest to leveling up next.</p>
+              <div class="list" id="nextLevels"></div>
+            </div>
+
+            <div class="act">
+              <h3>Combat focus</h3>
+              <p class="mini">Melee / Ranged / Magic leaning (rough read).</p>
+              <div class="list" id="combatFocus"></div>
+            </div>
+
+            <div class="act">
+              <h3>Milestones</h3>
+              <p class="mini">Total XP vibe check.</p>
+              <div class="list" id="milestones"></div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </section>
   </main>
@@ -442,9 +578,7 @@
     // Cloudflare Worker base URL
     const PROXY_BASE = "https://cx.noahcastner.workers.dev";
 
-    // NOTE: Sailing exists now and is supported by OSRS (released as a new skill). :contentReference[oaicite:1]{index=1}
-    // Hiscores-lite ordering: row 0 = Overall, rows 1..N = skills in a fixed order.
-    // We include Sailing at the end; if Jagex adds more later, we’ll show them as “Unknown #”.
+    // Skills order (includes Sailing)
     const HISCORES_SKILLS = [
       "Attack","Defence","Strength","Hitpoints","Ranged","Prayer","Magic","Cooking","Woodcutting","Fletching","Fishing","Firemaking",
       "Crafting","Smithing","Mining","Herblore","Agility","Thieving","Slayer","Farming","Runecraft","Hunter","Construction",
@@ -461,17 +595,28 @@
     const playerInput = document.getElementById("playerInput");
     const lookupBtn = document.getElementById("lookupBtn");
 
+    // Activities UI
+    const topSkillsEl = document.getElementById("topSkills");
+    const nextLevelsEl = document.getElementById("nextLevels");
+    const combatFocusEl = document.getElementById("combatFocus");
+    const milestonesEl = document.getElementById("milestones");
+
     // Theme toggle
     const themeSwitch = document.getElementById("themeSwitch");
     const themeLabel = document.getElementById("themeLabel");
+
+    // Tabs
+    const tabs = Array.from(document.querySelectorAll(".tab"));
+    const viewSkills = document.getElementById("view-skills");
+    const viewActivities = document.getElementById("view-activities");
+
+    let lastLoaded = null; // {name, skills, overall}
 
     function setTheme(theme){
       const t = (theme === "dark") ? "dark" : "light";
       document.documentElement.setAttribute("data-theme", t);
       localStorage.setItem("woes_armory_theme", t);
-
-      const on = (t === "dark") ? "1" : "0";
-      themeSwitch.dataset.on = on;
+      themeSwitch.dataset.on = (t === "dark") ? "1" : "0";
       themeSwitch.setAttribute("aria-checked", t === "dark" ? "true" : "false");
       themeLabel.textContent = t === "dark" ? "Dark" : "Light";
     }
@@ -488,10 +633,14 @@
     });
     setTheme(localStorage.getItem("woes_armory_theme") || "light");
 
-    // Restore last player
-    const last = localStorage.getItem("woes_armory_last_player");
-    if (last) playerInput.value = last;
-    playerInput.focus();
+    function setTab(which){
+      for (const t of tabs) t.classList.toggle("active", t.dataset.tab === which);
+      viewSkills.classList.toggle("active", which === "skills");
+      viewActivities.classList.toggle("active", which === "activities");
+      // If Activities is opened and we have data, ensure it’s rendered.
+      if (which === "activities" && lastLoaded) renderActivities(lastLoaded);
+    }
+    tabs.forEach(t => t.addEventListener("click", () => setTab(t.dataset.tab)));
 
     function setStatus(msg, type="") {
       statusEl.className = `status ${type}`.trim();
@@ -520,36 +669,23 @@
       return Math.floor(points / 4);
     }
 
-    // Simple original SVG icons (not OSRS assets)
+    // Simple inline icons (same set you liked)
     function svgIcon(kind){
       const common = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
       switch(kind){
-        case "sword":
-          return `<svg viewBox="0 0 24 24" ${common}><path d="M14 3l7 7-9 9-7 2 2-7 9-9Z"/><path d="M10 7l7 7"/><path d="M6 18l-1 3 3-1"/></svg>`;
-        case "shield":
-          return `<svg viewBox="0 0 24 24" ${common}><path d="M12 2l8 4v6c0 6-4 9-8 10-4-1-8-4-8-10V6l8-4Z"/><path d="M12 6v12"/></svg>`;
-        case "heart":
-          return `<svg viewBox="0 0 24 24" ${common}><path d="M12 21s-7-4.5-9-9a5 5 0 0 1 9-3 5 5 0 0 1 9 3c-2 4.5-9 9-9 9Z"/></svg>`;
-        case "bow":
-          return `<svg viewBox="0 0 24 24" ${common}><path d="M4 12c4-8 12-10 16-10-1 6-1 14 0 20-4 0-12-2-16-10Z"/><path d="M4 12h16"/><path d="M12 6l4 6-4 6"/></svg>`;
-        case "spark":
-          return `<svg viewBox="0 0 24 24" ${common}><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6Z"/><path d="M19 14l1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3Z"/></svg>`;
-        case "leaf":
-          return `<svg viewBox="0 0 24 24" ${common}><path d="M20 4c-8 1-14 7-14 15 7 0 14-6 15-14-1-1-1-1-1-1Z"/><path d="M6 18c2-4 6-7 12-10"/></svg>`;
-        case "pick":
-          return `<svg viewBox="0 0 24 24" ${common}><path d="M3 7c6-5 12-5 18 0"/><path d="M12 7v14"/><path d="M9 21h6"/></svg>`;
-        case "axe":
-          return `<svg viewBox="0 0 24 24" ${common}><path d="M14 4c3 0 6 2 7 5-4 2-7 1-10-1"/><path d="M9 3l6 6"/><path d="M7 5l12 12"/><path d="M5 7l12 12"/></svg>`;
-        case "fish":
-          return `<svg viewBox="0 0 24 24" ${common}><path d="M3 12s4-6 10-6 8 6 8 6-2 6-8 6-10-6-10-6Z"/><path d="M21 12l2-2v4l-2-2Z"/><path d="M9 10h.01"/></svg>`;
-        case "fire":
-          return `<svg viewBox="0 0 24 24" ${common}><path d="M12 2s4 4 4 8a4 4 0 0 1-8 0c0-3 2-5 4-8Z"/><path d="M8 14c-2 2-2 8 4 8s6-6 4-8"/></svg>`;
-        case "hammer":
-          return `<svg viewBox="0 0 24 24" ${common}><path d="M14 3l7 7-4 1-1 4-7-7 5-5Z"/><path d="M2 22l10-10"/></svg>`;
-        case "boat":
-          return `<svg viewBox="0 0 24 24" ${common}><path d="M3 17h18"/><path d="M5 17l3 4h8l3-4"/><path d="M7 12l5-7 5 7"/><path d="M12 5v7"/></svg>`;
-        default:
-          return `<svg viewBox="0 0 24 24" ${common}><path d="M12 2v20"/><path d="M2 12h20"/></svg>`;
+        case "sword": return `<svg viewBox="0 0 24 24" ${common}><path d="M14 3l7 7-9 9-7 2 2-7 9-9Z"/><path d="M10 7l7 7"/><path d="M6 18l-1 3 3-1"/></svg>`;
+        case "shield": return `<svg viewBox="0 0 24 24" ${common}><path d="M12 2l8 4v6c0 6-4 9-8 10-4-1-8-4-8-10V6l8-4Z"/><path d="M12 6v12"/></svg>`;
+        case "heart": return `<svg viewBox="0 0 24 24" ${common}><path d="M12 21s-7-4.5-9-9a5 5 0 0 1 9-3 5 5 0 0 1 9 3c-2 4.5-9 9-9 9Z"/></svg>`;
+        case "bow": return `<svg viewBox="0 0 24 24" ${common}><path d="M4 12c4-8 12-10 16-10-1 6-1 14 0 20-4 0-12-2-16-10Z"/><path d="M4 12h16"/><path d="M12 6l4 6-4 6"/></svg>`;
+        case "spark": return `<svg viewBox="0 0 24 24" ${common}><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6Z"/><path d="M19 14l1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3Z"/></svg>`;
+        case "leaf": return `<svg viewBox="0 0 24 24" ${common}><path d="M20 4c-8 1-14 7-14 15 7 0 14-6 15-14-1-1-1-1-1-1Z"/><path d="M6 18c2-4 6-7 12-10"/></svg>`;
+        case "pick": return `<svg viewBox="0 0 24 24" ${common}><path d="M3 7c6-5 12-5 18 0"/><path d="M12 7v14"/><path d="M9 21h6"/></svg>`;
+        case "axe": return `<svg viewBox="0 0 24 24" ${common}><path d="M14 4c3 0 6 2 7 5-4 2-7 1-10-1"/><path d="M9 3l6 6"/><path d="M7 5l12 12"/><path d="M5 7l12 12"/></svg>`;
+        case "fish": return `<svg viewBox="0 0 24 24" ${common}><path d="M3 12s4-6 10-6 8 6 8 6-2 6-8 6-10-6-10-6Z"/><path d="M21 12l2-2v4l-2-2Z"/><path d="M9 10h.01"/></svg>`;
+        case "fire": return `<svg viewBox="0 0 24 24" ${common}><path d="M12 2s4 4 4 8a4 4 0 0 1-8 0c0-3 2-5 4-8Z"/><path d="M8 14c-2 2-2 8 4 8s6-6 4-8"/></svg>`;
+        case "hammer": return `<svg viewBox="0 0 24 24" ${common}><path d="M14 3l7 7-4 1-1 4-7-7 5-5Z"/><path d="M2 22l10-10"/></svg>`;
+        case "boat": return `<svg viewBox="0 0 24 24" ${common}><path d="M3 17h18"/><path d="M5 17l3 4h8l3-4"/><path d="M7 12l5-7 5 7"/><path d="M12 5v7"/></svg>`;
+        default: return `<svg viewBox="0 0 24 24" ${common}><path d="M12 2v20"/><path d="M2 12h20"/></svg>`;
       }
     }
 
@@ -627,19 +763,117 @@
       skillsGrid.appendChild(frag);
     }
 
-    function renderProfile(name, stats, overall){
+    function renderRow(parent, left, right, smallRight=false){
+      const el = document.createElement("div");
+      el.className = "row";
+      el.innerHTML = `
+        <div><b>${left}</b></div>
+        <div class="${smallRight ? "mini" : ""}">${right}</div>
+      `;
+      parent.appendChild(el);
+    }
+
+    function nearestMilestone(totalXp){
+      const ms = [1e6, 10e6, 25e6, 50e6, 75e6, 100e6, 150e6, 200e6, 300e6, 400e6, 500e6, 750e6, 1e9];
+      let last = 0;
+      for (const m of ms){
+        if (totalXp >= m) last = m;
+        else break;
+      }
+      const next = ms.find(m => m > totalXp) || null;
+      return { last, next };
+    }
+
+    function renderActivities(data){
+      const stats = data.skills;
+      const map = Object.fromEntries(stats.map(([s,l,x,r]) => [s, {level:+l||1, xp:+x||0, rank:+r||0}]));
+      const totalXp = data.overall?.totalXp ?? null;
+
+      // Top skills by XP (exclude Overall)
+      const top = stats.slice()
+        .sort((a,b)=> (b[2]-a[2]))
+        .slice(0, 5);
+
+      topSkillsEl.innerHTML = "";
+      for (const [skill, level, xp] of top){
+        renderRow(topSkillsEl, `${skill} (${level})`, `${Number(xp).toLocaleString()} xp`, true);
+      }
+
+      // Closest next levels (smallest xp-to-next)
+      const nexts = stats
+        .map(([skill, level, xp])=>{
+          const lvl = +level||1;
+          const curXp = +xp||0;
+          if (lvl >= 99) return null;
+          const need = Math.max(0, xpForLevel(lvl+1) - curXp);
+          return { skill, lvl, need, next: lvl+1 };
+        })
+        .filter(Boolean)
+        .sort((a,b)=> a.need - b.need)
+        .slice(0, 5);
+
+      nextLevelsEl.innerHTML = "";
+      if (!nexts.length){
+        renderRow(nextLevelsEl, "All 99s", "Absolute gamer", true);
+      } else {
+        for (const n of nexts){
+          renderRow(nextLevelsEl, `${n.skill} → ${n.next}`, `${n.need.toLocaleString()} xp to go`, true);
+        }
+      }
+
+      // Combat focus
+      const atk = map.Attack?.level || 1;
+      const str = map.Strength?.level || 1;
+      const def = map.Defence?.level || 1;
+      const rng = map.Ranged?.level || 1;
+      const mag = map.Magic?.level || 1;
+      const meleeScore = atk + str + def;
+      const rangeScore = rng + def;
+      const mageScore  = mag + def;
+
+      const focus = [
+        {name:"Melee", score: meleeScore},
+        {name:"Ranged", score: rangeScore},
+        {name:"Magic", score: mageScore}
+      ].sort((a,b)=> b.score - a.score);
+
+      combatFocusEl.innerHTML = "";
+      renderRow(combatFocusEl, "Leaning", focus[0].name, true);
+      renderRow(combatFocusEl, "Melee (A+S+D)", meleeScore.toString(), true);
+      renderRow(combatFocusEl, "Ranged (R+D)", rangeScore.toString(), true);
+      renderRow(combatFocusEl, "Magic (M+D)", mageScore.toString(), true);
+
+      // Milestones
+      milestonesEl.innerHTML = "";
+      if (totalXp == null){
+        renderRow(milestonesEl, "Total XP", "—", true);
+      } else {
+        const { last, next } = nearestMilestone(totalXp);
+        renderRow(milestonesEl, "Current", `${Number(totalXp).toLocaleString()} xp`, true);
+        renderRow(milestonesEl, "Last milestone", last ? `${Number(last).toLocaleString()} xp` : "None", true);
+        renderRow(milestonesEl, "Next milestone", next ? `${Number(next).toLocaleString()} xp` : "Max? (lol)", true);
+      }
+    }
+
+    function renderProfile(name, skills, overall){
       const levels = {};
-      for (const [skill, level] of stats) levels[skill] = Number(level) || 1;
+      for (const [skill, level] of skills) levels[skill] = Number(level) || 1;
 
       playerNameEl.textContent = name;
       totalLevelEl.textContent = (overall?.totalLevel != null) ? Number(overall.totalLevel).toLocaleString() : "-";
       totalXpEl.textContent = (overall?.totalXp != null) ? Number(overall.totalXp).toLocaleString() : "-";
       combatLevelEl.textContent = calcCombat(levels);
 
-      renderSkills(stats);
+      renderSkills(skills);
 
       const ts = new Date();
-      skillsMeta.textContent = `Loaded ${stats.length} skills • ${ts.toLocaleTimeString()}`;
+      skillsMeta.textContent = `Loaded ${skills.length} skills • ${ts.toLocaleTimeString()}`;
+
+      lastLoaded = { name, skills, overall };
+
+      // If user is currently on Activities tab, refresh it.
+      const activeTab = tabs.find(t => t.classList.contains("active"))?.dataset.tab || "skills";
+      if (activeTab === "activities") renderActivities(lastLoaded);
     }
 
     function fetchWithTimeout(url, ms=9000){
@@ -657,7 +891,6 @@
       const rows = text.trim().split("\n");
       if (!rows.length) throw new Error("No rows returned");
 
-      // Overall: rank,totalLevel,totalXP
       const overallRow = rows[0]?.split(",").map(Number);
       const overall = (overallRow && overallRow.length >= 3) ? {
         rank: overallRow[0],
@@ -665,24 +898,18 @@
         totalXp: overallRow[2]
       } : null;
 
-      // Skills start at row 1. We parse as many as exist.
-      // If there are more than our known list, we name them "Unknown #".
       const skillRows = rows.slice(1);
       const skills = [];
-
       for (let i = 0; i < skillRows.length; i++){
         const line = skillRows[i];
         if (!line) continue;
         const [rank, level, xp] = line.split(",").map(Number);
-
-        // Stop if row format is bad
         if (![rank, level, xp].every(n => Number.isFinite(n))) continue;
-
         const name = HISCORES_SKILLS[i] || `Unknown ${i+1}`;
         skills.push([name, level, xp, rank]);
       }
 
-      // Ensure consistent ordering (our defined order first, then unknowns)
+      // Order known skills first
       const idx = Object.fromEntries(HISCORES_SKILLS.map((s,i)=>[s,i]));
       skills.sort((a,b)=> (idx[a[0]] ?? 9999) - (idx[b[0]] ?? 9999));
 
@@ -690,11 +917,24 @@
       return { name: player, skills, overall };
     }
 
-    async function handleLookup(player){
+    function setUrlPlayer(player){
+      const url = new URL(window.location.href);
+      url.searchParams.set("p", player);
+      history.replaceState({}, "", url);
+    }
+
+    function getUrlPlayer(){
+      const url = new URL(window.location.href);
+      const p = url.searchParams.get("p");
+      return p ? p.trim() : "";
+    }
+
+    async function handleLookup(player, { updateUrl=true } = {}){
       const p = (player || "").trim();
       if (!p) return;
 
       localStorage.setItem("woes_armory_last_player", p);
+      if (updateUrl) setUrlPlayer(p);
 
       setStatus("Looking up player...", "");
       lookupBtn.disabled = true;
@@ -713,16 +953,28 @@
 
     document.getElementById("lookupForm").addEventListener("submit", (e)=>{
       e.preventDefault();
-      handleLookup(playerInput.value);
+      handleLookup(playerInput.value, { updateUrl:true });
     });
 
-    // initial UI state
+    // Initial UI
     skillsGrid.innerHTML = `<div class="skill" style="grid-column:1/-1; justify-content:center;">
       <div class="skill-main" style="text-align:center;">
         Enter an RSN and click <b>Lookup</b>.
-        <div class="skill-sub" style="justify-content:center; margin-top:6px;">(Theme toggle is top-right.)</div>
+        <div class="skill-sub" style="justify-content:center; margin-top:6px;">Pro tip: share this page with <b>?p=Name</b>.</div>
       </div>
     </div>`;
+
+    // Auto-load from URL (?p=)
+    const urlPlayer = getUrlPlayer();
+    if (urlPlayer){
+      playerInput.value = urlPlayer;
+      handleLookup(urlPlayer, { updateUrl:false });
+    } else {
+      // Otherwise just prefill last used
+      const last = localStorage.getItem("woes_armory_last_player");
+      if (last) playerInput.value = last;
+      playerInput.focus();
+    }
   })();
   </script>
 </body>
