@@ -6,16 +6,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root{
+      /* LIGHT (OSRS parchment) */
       --bg:#0b0b08;
       --fg:#2a1e0f;
       --muted:#5a4630;
 
-      /* OSRS-ish palette */
       --panel1:#ead7b3;
       --panel2:#d7bf92;
       --edge:#6b4b24;
-      --edge2:#3f2a12;
-      --gold:#caa44a;
 
       --danger:#8a1f1f;
       --ok:#1f6a2a;
@@ -23,9 +21,33 @@
       --slot:#f2e7cf;
       --slot2:#e6d2a8;
       --slotEdge: rgba(63,42,18,.24);
+
       --barBg: rgba(0,0,0,.14);
       --barFill: rgba(31,106,42,.85);
       --barFill2: rgba(202,164,74,.85);
+
+      --cardShadow: 0 30px 120px rgba(0,0,0,.75);
+    }
+
+    html[data-theme="dark"]{
+      /* DARK (OSRS wiki-ish night mode) */
+      --bg:#07070a;
+      --fg:#e8e8ef;
+      --muted:rgba(232,232,239,.70);
+
+      --panel1:rgba(255,255,255,.06);
+      --panel2:rgba(255,255,255,.03);
+      --edge:rgba(255,255,255,.16);
+
+      --slot:rgba(0,0,0,.28);
+      --slot2:rgba(0,0,0,.18);
+      --slotEdge: rgba(255,255,255,.16);
+
+      --barBg: rgba(255,255,255,.12);
+      --barFill: rgba(120,255,180,.75);
+      --barFill2: rgba(120,255,180,.45);
+
+      --cardShadow: 0 30px 120px rgba(0,0,0,.85);
     }
 
     *{box-sizing:border-box}
@@ -41,6 +63,12 @@
         radial-gradient(1200px 900px at 50% 60%, rgba(0,0,0,.35), rgba(0,0,0,.95) 80%),
         var(--bg);
     }
+    html[data-theme="dark"] body{
+      background:
+        radial-gradient(900px 600px at 50% 35%, rgba(120,255,180,.10), rgba(0,0,0,.90) 70%),
+        radial-gradient(1200px 900px at 50% 60%, rgba(0,0,0,.35), rgba(0,0,0,.97) 80%),
+        var(--bg);
+    }
 
     .grain{
       position:fixed; inset:0; pointer-events:none; z-index:1;
@@ -49,6 +77,7 @@
       background-size:3px 3px;
       mix-blend-mode: overlay;
     }
+    html[data-theme="dark"] .grain{opacity:.07}
 
     main{
       position:relative;
@@ -64,11 +93,14 @@
       padding:14px;
       border-radius:10px;
       background: linear-gradient(180deg, rgba(202,164,74,.18), rgba(0,0,0,.15));
-      box-shadow: 0 30px 120px rgba(0,0,0,.75);
+      box-shadow: var(--cardShadow);
+    }
+    html[data-theme="dark"] .frame{
+      background: linear-gradient(180deg, rgba(120,255,180,.12), rgba(0,0,0,.18));
     }
 
     .card{
-      border-radius:8px;
+      border-radius:10px;
       padding:18px;
       background:
         radial-gradient(1200px 600px at 40% 20%, rgba(255,255,255,.20), rgba(255,255,255,0) 65%),
@@ -77,6 +109,11 @@
       box-shadow:
         inset 0 0 0 2px rgba(0,0,0,.12),
         inset 0 0 0 4px rgba(255,255,255,.10);
+    }
+    html[data-theme="dark"] .card{
+      box-shadow:
+        inset 0 0 0 2px rgba(0,0,0,.35),
+        inset 0 0 0 4px rgba(255,255,255,.06);
     }
 
     .titlebar{
@@ -88,28 +125,73 @@
       padding-bottom:10px;
       margin-bottom:14px;
     }
+    html[data-theme="dark"] .titlebar{
+      border-bottom-color: rgba(255,255,255,.12);
+    }
 
     h1{
       margin:0;
       font-size: clamp(1.6rem, 3.6vw, 2.2rem);
       letter-spacing:.03em;
       text-transform: uppercase;
-      color:#2a1b0c;
-      text-shadow: 0 1px 0 rgba(255,255,255,.35);
+      color: var(--fg);
+      text-shadow: 0 1px 0 rgba(255,255,255,.20);
     }
+    html[data-theme="dark"] h1{ text-shadow:none; }
 
     .subtitle{
-      margin:0;
+      margin:6px 0 0;
       color:var(--muted);
       font-size:.98rem;
     }
 
+    /* Toggle (OSRS wiki-ish) */
+    .toggle{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      user-select:none;
+      color: var(--muted);
+      font-size:.95rem;
+      white-space:nowrap;
+    }
+    .switch{
+      position:relative;
+      width:54px;
+      height:28px;
+      border-radius:999px;
+      border:2px solid rgba(63,42,18,.30);
+      background: rgba(255,255,255,.35);
+      cursor:pointer;
+      flex: 0 0 auto;
+    }
+    html[data-theme="dark"] .switch{
+      border-color: rgba(255,255,255,.18);
+      background: rgba(0,0,0,.25);
+    }
+    .knob{
+      position:absolute;
+      top:3px; left:3px;
+      width:20px; height:20px;
+      border-radius:999px;
+      background: linear-gradient(180deg, rgba(202,164,74,.95), rgba(168,122,40,.95));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.30);
+      transition: transform .18s ease;
+    }
+    html[data-theme="dark"] .knob{
+      background: linear-gradient(180deg, rgba(120,255,180,.85), rgba(120,255,180,.45));
+    }
+    .switch[data-on="1"] .knob{ transform: translateX(26px); }
+
     form{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 10px}
     input,button{
-      border-radius:6px;
+      border-radius:8px;
       border: 2px solid rgba(63,42,18,.30);
       padding:10px 12px;
       font-size:1rem;
+    }
+    html[data-theme="dark"] input, html[data-theme="dark"] button{
+      border-color: rgba(255,255,255,.18);
     }
 
     input{
@@ -118,7 +200,19 @@
       color:#2a1e0f;
       outline:none;
     }
-    input:focus{border-color: rgba(202,164,74,.9); box-shadow: 0 0 0 3px rgba(202,164,74,.22);}
+    html[data-theme="dark"] input{
+      background: rgba(0,0,0,.26);
+      color: var(--fg);
+    }
+
+    input:focus{
+      border-color: rgba(202,164,74,.9);
+      box-shadow: 0 0 0 3px rgba(202,164,74,.22);
+    }
+    html[data-theme="dark"] input:focus{
+      border-color: rgba(120,255,180,.55);
+      box-shadow: 0 0 0 3px rgba(120,255,180,.16);
+    }
 
     button{
       cursor:pointer;
@@ -126,6 +220,11 @@
       color:#1e1408;
       font-weight:700;
       text-shadow: 0 1px 0 rgba(255,255,255,.35);
+    }
+    html[data-theme="dark"] button{
+      background: linear-gradient(180deg, rgba(120,255,180,.50), rgba(0,0,0,.20));
+      color: var(--fg);
+      text-shadow:none;
     }
     button:hover{filter:brightness(1.03)}
     button:disabled{opacity:.6;cursor:not-allowed}
@@ -150,21 +249,31 @@
 
     .panel{
       border: 2px solid rgba(63,42,18,.22);
-      border-radius:6px;
+      border-radius:8px;
       padding:10px 12px;
       background: rgba(255,255,255,.30);
       box-shadow: inset 0 1px 0 rgba(255,255,255,.35);
     }
+    html[data-theme="dark"] .panel{
+      border-color: rgba(255,255,255,.14);
+      background: rgba(0,0,0,.20);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+    }
+
     .k{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
     .v{font-size:1.25rem;font-weight:800;margin-top:4px}
 
-    /* Skills tab area */
     .skills-wrap{
       border:2px solid rgba(63,42,18,.22);
-      border-radius:8px;
+      border-radius:10px;
       background: rgba(255,255,255,.18);
       padding:10px;
       box-shadow: inset 0 1px 0 rgba(255,255,255,.30);
+    }
+    html[data-theme="dark"] .skills-wrap{
+      border-color: rgba(255,255,255,.14);
+      background: rgba(0,0,0,.18);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
     }
 
     .skills-header{
@@ -176,19 +285,15 @@
       border-bottom:1px solid rgba(63,42,18,.18);
       margin-bottom:10px;
     }
+    html[data-theme="dark"] .skills-header{
+      border-bottom-color: rgba(255,255,255,.10);
+    }
 
     .skills-title{
       font-weight:800;
       letter-spacing:.04em;
       text-transform:uppercase;
-      color:#2a1b0c;
-    }
-
-    .skills-tools{
-      display:flex;
-      gap:8px;
-      align-items:center;
-      flex-wrap:wrap;
+      color: var(--fg);
     }
 
     .chip{
@@ -199,6 +304,10 @@
       font-size:.92rem;
       color: var(--muted);
       user-select:none;
+    }
+    html[data-theme="dark"] .chip{
+      border-color: rgba(255,255,255,.14);
+      background: rgba(0,0,0,.22);
     }
 
     .skills-grid{
@@ -214,15 +323,18 @@
       gap:10px;
       align-items:center;
       padding:10px;
-      border-radius:8px;
+      border-radius:10px;
       border:2px solid var(--slotEdge);
       background: linear-gradient(180deg, var(--slot), var(--slot2));
       box-shadow: inset 0 1px 0 rgba(255,255,255,.35);
     }
+    html[data-theme="dark"] .skill{
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+    }
 
     .icon{
       width:44px;height:44px;
-      border-radius:10px;
+      border-radius:12px;
       border:2px solid rgba(63,42,18,.26);
       background:
         radial-gradient(18px 18px at 30% 28%, rgba(255,255,255,.55), rgba(255,255,255,0) 60%),
@@ -234,9 +346,18 @@
       place-items:center;
       font-weight:900;
       letter-spacing:.06em;
-      color:#2a1b0c;
+      color: var(--fg);
       text-transform:uppercase;
       font-size:.95rem;
+    }
+    html[data-theme="dark"] .icon{
+      border-color: rgba(255,255,255,.16);
+      background:
+        radial-gradient(18px 18px at 30% 28%, rgba(255,255,255,.12), rgba(255,255,255,0) 60%),
+        linear-gradient(180deg, rgba(120,255,180,.18), rgba(0,0,0,.20));
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.08),
+        inset 0 0 0 2px rgba(0,0,0,.20);
     }
 
     .skill-main{min-width:0}
@@ -261,7 +382,7 @@
       font-size:1.1rem;
       min-width:44px;
       text-align:right;
-      color:#2a1b0c;
+      color: var(--fg);
     }
 
     .bar{
@@ -273,6 +394,11 @@
       margin-top:8px;
       box-shadow: inset 0 1px 0 rgba(255,255,255,.25);
     }
+    html[data-theme="dark"] .bar{
+      border-color: rgba(255,255,255,.14);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+    }
+
     .fill{
       height:100%;
       width:0%;
@@ -296,14 +422,20 @@
         <div class="titlebar">
           <div>
             <h1>OSRS Armory</h1>
-            <p class="subtitle">Lookup a player on the Old School Hiscores (demo fallback if blocked).</p>
+            <p class="subtitle">Lookup a player on the Old School Hiscores.</p>
+          </div>
+
+          <div class="toggle" title="Toggle theme">
+            <span id="themeLabel">Light</span>
+            <div class="switch" id="themeSwitch" data-on="0" role="switch" aria-checked="false" tabindex="0">
+              <div class="knob"></div>
+            </div>
           </div>
         </div>
 
         <form id="lookupForm">
           <input id="playerInput" name="player" placeholder="Enter RSN (e.g. Zezima)" autocomplete="off" required />
           <button type="submit" id="lookupBtn">Lookup</button>
-          <button type="button" id="demoBtn">Load Demo</button>
         </form>
 
         <div class="status" id="status"></div>
@@ -318,18 +450,14 @@
         <div class="skills-wrap">
           <div class="skills-header">
             <div class="skills-title">Skills</div>
-            <div class="skills-tools">
-              <div class="chip" id="skillsMeta">No data loaded.</div>
-            </div>
+            <div class="chip" id="skillsMeta">No data loaded.</div>
           </div>
 
-          <div class="skills-grid" id="skillsGrid">
-            <!-- skills render here -->
-          </div>
+          <div class="skills-grid" id="skillsGrid"></div>
         </div>
 
         <p class="hint">
-          Tip: If you ever see demo again, it’s almost always the Worker/proxy URL or a temporary hiscores error.
+          Created using intellectual property belonging to Jagex Limited under the terms of Jagex's Fan Content Policy. This content is not endorsed by or affiliated with Jagex.
         </p>
       </div>
     </section>
@@ -337,21 +465,8 @@
 
   <script>
   (function(){
-    // Your Cloudflare Worker base URL
+    // Cloudflare Worker base URL
     const PROXY_BASE = "https://cx.noahcastner.workers.dev";
-
-    const DEMO = {
-      name: "Demo Adventurer",
-      overall: { rank: 123456, totalLevel: 1875, totalXp: 125000000 },
-      stats: [
-        ["Attack",82,2360000,120000], ["Defence",80,1980000,130000], ["Strength",85,3300000,99000], ["Hitpoints",84,3100000,100000],
-        ["Ranged",79,1760000,140000], ["Prayer",70,737000,180000], ["Magic",81,2210000,110000], ["Cooking",90,5340000,78000],
-        ["Woodcutting",76,1450000,170000], ["Fletching",77,1550000,195000], ["Fishing",75,1250000,190000], ["Firemaking",88,4600000,86000],
-        ["Crafting",74,1200000,210000], ["Smithing",69,720000,250000], ["Mining",72,980000,210000], ["Herblore",60,270000,280000],
-        ["Agility",68,650000,200000], ["Thieving",73,1050000,220000], ["Slayer",71,910000,240000], ["Farming",64,360000,260000],
-        ["Runecraft",55,170000,320000], ["Hunter",58,240000,300000], ["Construction",62,320000,290000]
-      ]
-    };
 
     // Hiscores-lite ordering: row 0 = Overall, rows 1..23 = skills in this exact order:
     const HISCORES_SKILLS = [
@@ -359,7 +474,7 @@
       "Crafting","Smithing","Mining","Herblore","Agility","Thieving","Slayer","Farming","Runecraft","Hunter","Construction"
     ];
 
-    // Short icon labels to feel like UI glyphs (no external images needed)
+    // OSRS-ish icon labels (no external images)
     const ICON_LABEL = {
       Attack:"ATK", Defence:"DEF", Strength:"STR", Hitpoints:"HP",
       Ranged:"RNG", Prayer:"PRY", Magic:"MAG", Cooking:"COOK",
@@ -378,8 +493,38 @@
     const skillsMeta = document.getElementById("skillsMeta");
     const playerInput = document.getElementById("playerInput");
     const lookupBtn = document.getElementById("lookupBtn");
-    const demoBtn = document.getElementById("demoBtn");
 
+    // Theme toggle
+    const themeSwitch = document.getElementById("themeSwitch");
+    const themeLabel = document.getElementById("themeLabel");
+
+    function setTheme(theme){
+      const t = (theme === "dark") ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", t);
+      localStorage.setItem("woes_armory_theme", t);
+
+      const on = (t === "dark") ? "1" : "0";
+      themeSwitch.dataset.on = on;
+      themeSwitch.setAttribute("aria-checked", t === "dark" ? "true" : "false");
+      themeLabel.textContent = t === "dark" ? "Dark" : "Light";
+    }
+
+    function toggleTheme(){
+      const cur = document.documentElement.getAttribute("data-theme") || "light";
+      setTheme(cur === "dark" ? "light" : "dark");
+    }
+
+    themeSwitch.addEventListener("click", toggleTheme);
+    themeSwitch.addEventListener("keydown", (e)=>{
+      if (e.key === "Enter" || e.key === " "){
+        e.preventDefault();
+        toggleTheme();
+      }
+    });
+
+    setTheme(localStorage.getItem("woes_armory_theme") || "light");
+
+    // Restore last player for convenience
     const last = localStorage.getItem("woes_armory_last_player");
     if (last) playerInput.value = last;
     playerInput.focus();
@@ -401,8 +546,6 @@
 
     // OSRS XP curve
     function xpForLevel(level){
-      // returns XP required to reach "level"
-      // level 1 => 0 XP
       if (level <= 1) return 0;
       let points = 0;
       for (let lvl = 1; lvl < level; lvl++){
@@ -518,7 +661,6 @@
 
       setStatus("Looking up player...", "");
       lookupBtn.disabled = true;
-      demoBtn.disabled = true;
 
       try{
         const data = await fetchHiscores(p);
@@ -526,11 +668,10 @@
         setStatus("Live hiscores loaded.", "ok");
       }catch(err){
         const msg = (err && err.name === "AbortError") ? "Request timed out" : (err?.message || "Unknown error");
-        renderProfile(DEMO.name, DEMO.stats, DEMO.overall);
-        setStatus(`Live lookup failed (${msg}). Showing demo profile.`, "error");
+        // IMPORTANT: no demo fallback; keep UI as-is
+        setStatus(`Lookup failed (${msg}).`, "error");
       }finally{
         lookupBtn.disabled = false;
-        demoBtn.disabled = false;
       }
     }
 
@@ -539,16 +680,11 @@
       handleLookup(playerInput.value);
     });
 
-    document.getElementById("demoBtn").addEventListener("click", ()=>{
-      renderProfile(DEMO.name, DEMO.stats, DEMO.overall);
-      setStatus("Demo profile loaded.", "ok");
-    });
-
     // initial UI state
     skillsGrid.innerHTML = `<div class="skill" style="grid-column:1/-1; justify-content:center;">
       <div class="skill-main" style="text-align:center;">
         Enter an RSN and click <b>Lookup</b>.
-        <div class="skill-sub" style="justify-content:center; margin-top:6px;">(Or click <b>Load Demo</b>.)</div>
+        <div class="skill-sub" style="justify-content:center; margin-top:6px;">(Theme toggle is top-right.)</div>
       </div>
     </div>`;
   })();
