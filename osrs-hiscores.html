@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Woes Armory Prototype</title>
+  <title>Woes Armory</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root{
-      /* LIGHT (OSRS parchment) */
+      /* LIGHT */
       --bg:#0b0b08;
       --fg:#2a1e0f;
       --muted:#5a4630;
@@ -30,7 +30,7 @@
     }
 
     html[data-theme="dark"]{
-      /* DARK (OSRS wiki-ish night mode) */
+      /* DARK */
       --bg:#07070a;
       --fg:#e8e8ef;
       --muted:rgba(232,232,239,.70);
@@ -125,9 +125,7 @@
       padding-bottom:10px;
       margin-bottom:14px;
     }
-    html[data-theme="dark"] .titlebar{
-      border-bottom-color: rgba(255,255,255,.12);
-    }
+    html[data-theme="dark"] .titlebar{border-bottom-color: rgba(255,255,255,.12);}
 
     h1{
       margin:0;
@@ -145,7 +143,7 @@
       font-size:.98rem;
     }
 
-    /* Toggle (OSRS wiki-ish) */
+    /* Theme toggle */
     .toggle{
       display:flex;
       align-items:center;
@@ -190,9 +188,7 @@
       padding:10px 12px;
       font-size:1rem;
     }
-    html[data-theme="dark"] input, html[data-theme="dark"] button{
-      border-color: rgba(255,255,255,.18);
-    }
+    html[data-theme="dark"] input, html[data-theme="dark"] button{border-color: rgba(255,255,255,.18);}
 
     input{
       flex:1; min-width:240px;
@@ -200,10 +196,7 @@
       color:#2a1e0f;
       outline:none;
     }
-    html[data-theme="dark"] input{
-      background: rgba(0,0,0,.26);
-      color: var(--fg);
-    }
+    html[data-theme="dark"] input{background: rgba(0,0,0,.26); color: var(--fg);}
 
     input:focus{
       border-color: rgba(202,164,74,.9);
@@ -249,7 +242,7 @@
 
     .panel{
       border: 2px solid rgba(63,42,18,.22);
-      border-radius:8px;
+      border-radius:10px;
       padding:10px 12px;
       background: rgba(255,255,255,.30);
       box-shadow: inset 0 1px 0 rgba(255,255,255,.35);
@@ -259,7 +252,6 @@
       background: rgba(0,0,0,.20);
       box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
     }
-
     .k{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
     .v{font-size:1.25rem;font-weight:800;margin-top:4px}
 
@@ -285,9 +277,7 @@
       border-bottom:1px solid rgba(63,42,18,.18);
       margin-bottom:10px;
     }
-    html[data-theme="dark"] .skills-header{
-      border-bottom-color: rgba(255,255,255,.10);
-    }
+    html[data-theme="dark"] .skills-header{border-bottom-color: rgba(255,255,255,.10);}
 
     .skills-title{
       font-weight:800;
@@ -328,37 +318,32 @@
       background: linear-gradient(180deg, var(--slot), var(--slot2));
       box-shadow: inset 0 1px 0 rgba(255,255,255,.35);
     }
-    html[data-theme="dark"] .skill{
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
-    }
+    html[data-theme="dark"] .skill{box-shadow: inset 0 1px 0 rgba(255,255,255,.06);}
 
     .icon{
       width:44px;height:44px;
       border-radius:12px;
       border:2px solid rgba(63,42,18,.26);
-      background:
-        radial-gradient(18px 18px at 30% 28%, rgba(255,255,255,.55), rgba(255,255,255,0) 60%),
-        linear-gradient(180deg, rgba(202,164,74,.55), rgba(0,0,0,.08));
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.35),
-        inset 0 0 0 2px rgba(0,0,0,.06);
       display:grid;
       place-items:center;
-      font-weight:900;
-      letter-spacing:.06em;
       color: var(--fg);
-      text-transform:uppercase;
-      font-size:.95rem;
+      background:
+        radial-gradient(18px 18px at 30% 28%, rgba(255,255,255,.45), rgba(255,255,255,0) 60%),
+        linear-gradient(180deg, rgba(202,164,74,.40), rgba(0,0,0,.08));
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.30),
+        inset 0 0 0 2px rgba(0,0,0,.06);
     }
     html[data-theme="dark"] .icon{
       border-color: rgba(255,255,255,.16);
       background:
-        radial-gradient(18px 18px at 30% 28%, rgba(255,255,255,.12), rgba(255,255,255,0) 60%),
-        linear-gradient(180deg, rgba(120,255,180,.18), rgba(0,0,0,.20));
+        radial-gradient(18px 18px at 30% 28%, rgba(255,255,255,.10), rgba(255,255,255,0) 60%),
+        linear-gradient(180deg, rgba(120,255,180,.16), rgba(0,0,0,.20));
       box-shadow:
         inset 0 1px 0 rgba(255,255,255,.08),
         inset 0 0 0 2px rgba(0,0,0,.20);
     }
+    .icon svg{width:24px;height:24px;display:block}
 
     .skill-main{min-width:0}
     .skill-name{
@@ -404,13 +389,6 @@
       width:0%;
       background: linear-gradient(90deg, var(--barFill), var(--barFill2));
     }
-
-    .hint{
-      margin-top:12px;
-      font-size:.92rem;
-      color:var(--muted);
-      line-height:1.35;
-    }
   </style>
 </head>
 <body>
@@ -455,7 +433,6 @@
 
           <div class="skills-grid" id="skillsGrid"></div>
         </div>
-
       </div>
     </section>
   </main>
@@ -465,21 +442,14 @@
     // Cloudflare Worker base URL
     const PROXY_BASE = "https://cx.noahcastner.workers.dev";
 
-    // Hiscores-lite ordering: row 0 = Overall, rows 1..23 = skills in this exact order:
+    // NOTE: Sailing exists now and is supported by OSRS (released as a new skill). :contentReference[oaicite:1]{index=1}
+    // Hiscores-lite ordering: row 0 = Overall, rows 1..N = skills in a fixed order.
+    // We include Sailing at the end; if Jagex adds more later, we’ll show them as “Unknown #”.
     const HISCORES_SKILLS = [
       "Attack","Defence","Strength","Hitpoints","Ranged","Prayer","Magic","Cooking","Woodcutting","Fletching","Fishing","Firemaking",
-      "Crafting","Smithing","Mining","Herblore","Agility","Thieving","Slayer","Farming","Runecraft","Hunter","Construction"
+      "Crafting","Smithing","Mining","Herblore","Agility","Thieving","Slayer","Farming","Runecraft","Hunter","Construction",
+      "Sailing"
     ];
-
-    // OSRS-ish icon labels (no external images)
-    const ICON_LABEL = {
-      Attack:"ATK", Defence:"DEF", Strength:"STR", Hitpoints:"HP",
-      Ranged:"RNG", Prayer:"PRY", Magic:"MAG", Cooking:"COOK",
-      Woodcutting:"WC", Fletching:"FLET", Fishing:"FISH", Firemaking:"FM",
-      Crafting:"CRFT", Smithing:"SMTH", Mining:"MINE", Herblore:"HERB",
-      Agility:"AGI", Thieving:"THV", Slayer:"SLAY", Farming:"FARM",
-      Runecraft:"RC", Hunter:"HUNT", Construction:"CONS"
-    };
 
     const statusEl = document.getElementById("status");
     const playerNameEl = document.getElementById("playerName");
@@ -505,12 +475,10 @@
       themeSwitch.setAttribute("aria-checked", t === "dark" ? "true" : "false");
       themeLabel.textContent = t === "dark" ? "Dark" : "Light";
     }
-
     function toggleTheme(){
       const cur = document.documentElement.getAttribute("data-theme") || "light";
       setTheme(cur === "dark" ? "light" : "dark");
     }
-
     themeSwitch.addEventListener("click", toggleTheme);
     themeSwitch.addEventListener("keydown", (e)=>{
       if (e.key === "Enter" || e.key === " "){
@@ -518,10 +486,9 @@
         toggleTheme();
       }
     });
-
     setTheme(localStorage.getItem("woes_armory_theme") || "light");
 
-    // Restore last player for convenience
+    // Restore last player
     const last = localStorage.getItem("woes_armory_last_player");
     if (last) playerInput.value = last;
     playerInput.focus();
@@ -530,6 +497,8 @@
       statusEl.className = `status ${type}`.trim();
       statusEl.textContent = msg;
     }
+
+    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
 
     function calcCombat(levels){
       const atk=levels.Attack||1, str=levels.Strength||1, def=levels.Defence||1;
@@ -551,16 +520,74 @@
       return Math.floor(points / 4);
     }
 
-    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+    // Simple original SVG icons (not OSRS assets)
+    function svgIcon(kind){
+      const common = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
+      switch(kind){
+        case "sword":
+          return `<svg viewBox="0 0 24 24" ${common}><path d="M14 3l7 7-9 9-7 2 2-7 9-9Z"/><path d="M10 7l7 7"/><path d="M6 18l-1 3 3-1"/></svg>`;
+        case "shield":
+          return `<svg viewBox="0 0 24 24" ${common}><path d="M12 2l8 4v6c0 6-4 9-8 10-4-1-8-4-8-10V6l8-4Z"/><path d="M12 6v12"/></svg>`;
+        case "heart":
+          return `<svg viewBox="0 0 24 24" ${common}><path d="M12 21s-7-4.5-9-9a5 5 0 0 1 9-3 5 5 0 0 1 9 3c-2 4.5-9 9-9 9Z"/></svg>`;
+        case "bow":
+          return `<svg viewBox="0 0 24 24" ${common}><path d="M4 12c4-8 12-10 16-10-1 6-1 14 0 20-4 0-12-2-16-10Z"/><path d="M4 12h16"/><path d="M12 6l4 6-4 6"/></svg>`;
+        case "spark":
+          return `<svg viewBox="0 0 24 24" ${common}><path d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6Z"/><path d="M19 14l1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3Z"/></svg>`;
+        case "leaf":
+          return `<svg viewBox="0 0 24 24" ${common}><path d="M20 4c-8 1-14 7-14 15 7 0 14-6 15-14-1-1-1-1-1-1Z"/><path d="M6 18c2-4 6-7 12-10"/></svg>`;
+        case "pick":
+          return `<svg viewBox="0 0 24 24" ${common}><path d="M3 7c6-5 12-5 18 0"/><path d="M12 7v14"/><path d="M9 21h6"/></svg>`;
+        case "axe":
+          return `<svg viewBox="0 0 24 24" ${common}><path d="M14 4c3 0 6 2 7 5-4 2-7 1-10-1"/><path d="M9 3l6 6"/><path d="M7 5l12 12"/><path d="M5 7l12 12"/></svg>`;
+        case "fish":
+          return `<svg viewBox="0 0 24 24" ${common}><path d="M3 12s4-6 10-6 8 6 8 6-2 6-8 6-10-6-10-6Z"/><path d="M21 12l2-2v4l-2-2Z"/><path d="M9 10h.01"/></svg>`;
+        case "fire":
+          return `<svg viewBox="0 0 24 24" ${common}><path d="M12 2s4 4 4 8a4 4 0 0 1-8 0c0-3 2-5 4-8Z"/><path d="M8 14c-2 2-2 8 4 8s6-6 4-8"/></svg>`;
+        case "hammer":
+          return `<svg viewBox="0 0 24 24" ${common}><path d="M14 3l7 7-4 1-1 4-7-7 5-5Z"/><path d="M2 22l10-10"/></svg>`;
+        case "boat":
+          return `<svg viewBox="0 0 24 24" ${common}><path d="M3 17h18"/><path d="M5 17l3 4h8l3-4"/><path d="M7 12l5-7 5 7"/><path d="M12 5v7"/></svg>`;
+        default:
+          return `<svg viewBox="0 0 24 24" ${common}><path d="M12 2v20"/><path d="M2 12h20"/></svg>`;
+      }
+    }
+
+    function iconKindForSkill(skill){
+      switch(skill){
+        case "Attack": return "sword";
+        case "Defence": return "shield";
+        case "Strength": return "sword";
+        case "Hitpoints": return "heart";
+        case "Ranged": return "bow";
+        case "Prayer": return "spark";
+        case "Magic": return "spark";
+        case "Cooking": return "fire";
+        case "Woodcutting": return "axe";
+        case "Fletching": return "bow";
+        case "Fishing": return "fish";
+        case "Firemaking": return "fire";
+        case "Crafting": return "hammer";
+        case "Smithing": return "hammer";
+        case "Mining": return "pick";
+        case "Herblore": return "leaf";
+        case "Agility": return "spark";
+        case "Thieving": return "spark";
+        case "Slayer": return "sword";
+        case "Farming": return "leaf";
+        case "Runecraft": return "spark";
+        case "Hunter": return "bow";
+        case "Construction": return "hammer";
+        case "Sailing": return "boat";
+        default: return "spark";
+      }
+    }
 
     function renderSkills(stats){
-      const idx = Object.fromEntries(HISCORES_SKILLS.map((s,i)=>[s,i]));
-      const sorted = stats.slice().sort((a,b)=> (idx[a[0]] ?? 9999) - (idx[b[0]] ?? 9999));
-
       skillsGrid.innerHTML = "";
       const frag = document.createDocumentFragment();
 
-      for (const [skill, level, xp, rank] of sorted){
+      for (const [skill, level, xp, rank] of stats){
         const lvl = Number(level) || 1;
         const curXp = Number(xp) || 0;
 
@@ -580,7 +607,7 @@
         const el = document.createElement("div");
         el.className = "skill";
         el.innerHTML = `
-          <div class="icon" title="${skill}">${(ICON_LABEL[skill] || skill.slice(0,3)).toUpperCase()}</div>
+          <div class="icon" title="${skill}">${svgIcon(iconKindForSkill(skill))}</div>
           <div class="skill-main">
             <div class="skill-name">${skill}</div>
             <div class="skill-sub">
@@ -612,7 +639,7 @@
       renderSkills(stats);
 
       const ts = new Date();
-      skillsMeta.textContent = `Loaded ${HISCORES_SKILLS.length} skills • ${ts.toLocaleTimeString()}`;
+      skillsMeta.textContent = `Loaded ${stats.length} skills • ${ts.toLocaleTimeString()}`;
     }
 
     function fetchWithTimeout(url, ms=9000){
@@ -638,13 +665,26 @@
         totalXp: overallRow[2]
       } : null;
 
+      // Skills start at row 1. We parse as many as exist.
+      // If there are more than our known list, we name them "Unknown #".
+      const skillRows = rows.slice(1);
       const skills = [];
-      for (let i = 0; i < HISCORES_SKILLS.length; i++){
-        const line = rows[i+1];
+
+      for (let i = 0; i < skillRows.length; i++){
+        const line = skillRows[i];
         if (!line) continue;
         const [rank, level, xp] = line.split(",").map(Number);
-        skills.push([HISCORES_SKILLS[i], level, xp, rank]);
+
+        // Stop if row format is bad
+        if (![rank, level, xp].every(n => Number.isFinite(n))) continue;
+
+        const name = HISCORES_SKILLS[i] || `Unknown ${i+1}`;
+        skills.push([name, level, xp, rank]);
       }
+
+      // Ensure consistent ordering (our defined order first, then unknowns)
+      const idx = Object.fromEntries(HISCORES_SKILLS.map((s,i)=>[s,i]));
+      skills.sort((a,b)=> (idx[a[0]] ?? 9999) - (idx[b[0]] ?? 9999));
 
       if (!skills.length) throw new Error("Could not parse skills");
       return { name: player, skills, overall };
@@ -665,7 +705,6 @@
         setStatus("Live hiscores loaded.", "ok");
       }catch(err){
         const msg = (err && err.name === "AbortError") ? "Request timed out" : (err?.message || "Unknown error");
-        // IMPORTANT: no demo fallback; keep UI as-is
         setStatus(`Lookup failed (${msg}).`, "error");
       }finally{
         lookupBtn.disabled = false;
