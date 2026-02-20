@@ -19,6 +19,13 @@
 
       --danger:#8a1f1f;
       --ok:#1f6a2a;
+
+      --slot:#f2e7cf;
+      --slot2:#e6d2a8;
+      --slotEdge: rgba(63,42,18,.24);
+      --barBg: rgba(0,0,0,.14);
+      --barFill: rgba(31,106,42,.85);
+      --barFill2: rgba(202,164,74,.85);
     }
 
     *{box-sizing:border-box}
@@ -29,14 +36,12 @@
       font-family: Georgia, "Times New Roman", serif;
       overflow:hidden;
 
-      /* dark room + parchment glow */
       background:
         radial-gradient(900px 600px at 50% 35%, rgba(255,235,180,.14), rgba(0,0,0,.88) 70%),
         radial-gradient(1200px 900px at 50% 60%, rgba(0,0,0,.35), rgba(0,0,0,.95) 80%),
         var(--bg);
     }
 
-    /* subtle texture */
     .grain{
       position:fixed; inset:0; pointer-events:none; z-index:1;
       opacity:.10;
@@ -55,7 +60,7 @@
     }
 
     .frame{
-      width:min(980px,100%);
+      width:min(1020px,100%);
       padding:14px;
       border-radius:10px;
       background: linear-gradient(180deg, rgba(202,164,74,.18), rgba(0,0,0,.15));
@@ -76,7 +81,7 @@
 
     .titlebar{
       display:flex;
-      align-items:baseline;
+      align-items:flex-end;
       justify-content:space-between;
       gap:12px;
       border-bottom: 2px solid rgba(63,42,18,.22);
@@ -134,7 +139,15 @@
     .status.error{color:var(--danger); font-weight:700}
     .status.ok{color:var(--ok); font-weight:700}
 
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:12px}
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0, 1fr));
+      gap:10px;
+      margin-bottom:12px
+    }
+    @media (max-width: 920px){ .grid{grid-template-columns:repeat(2, minmax(0, 1fr));} }
+    @media (max-width: 520px){ .grid{grid-template-columns:1fr;} }
+
     .panel{
       border: 2px solid rgba(63,42,18,.22);
       border-radius:6px;
@@ -145,26 +158,126 @@
     .k{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
     .v{font-size:1.25rem;font-weight:800;margin-top:4px}
 
-    table{
-      width:100%;
-      border-collapse:collapse;
-      font-size:.98rem;
-      background: rgba(255,255,255,.20);
+    /* Skills tab area */
+    .skills-wrap{
       border:2px solid rgba(63,42,18,.22);
-      border-radius:6px;
-      overflow:hidden;
+      border-radius:8px;
+      background: rgba(255,255,255,.18);
+      padding:10px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.30);
     }
-    th,td{
-      padding:9px 8px;
-      border-bottom:1px solid rgba(63,42,18,.14);
-      text-align:left;
+
+    .skills-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:8px 8px 10px;
+      border-bottom:1px solid rgba(63,42,18,.18);
+      margin-bottom:10px;
     }
-    th{
-      color:var(--muted);
+
+    .skills-title{
       font-weight:800;
-      background: rgba(255,255,255,.22);
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      color:#2a1b0c;
     }
-    tr:last-child td{border-bottom:none}
+
+    .skills-tools{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+
+    .chip{
+      border:2px solid rgba(63,42,18,.22);
+      background: rgba(255,255,255,.35);
+      border-radius:999px;
+      padding:6px 10px;
+      font-size:.92rem;
+      color: var(--muted);
+      user-select:none;
+    }
+
+    .skills-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:10px;
+    }
+    @media (max-width: 820px){ .skills-grid{grid-template-columns:1fr;} }
+
+    .skill{
+      display:grid;
+      grid-template-columns: 44px 1fr auto;
+      gap:10px;
+      align-items:center;
+      padding:10px;
+      border-radius:8px;
+      border:2px solid var(--slotEdge);
+      background: linear-gradient(180deg, var(--slot), var(--slot2));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.35);
+    }
+
+    .icon{
+      width:44px;height:44px;
+      border-radius:10px;
+      border:2px solid rgba(63,42,18,.26);
+      background:
+        radial-gradient(18px 18px at 30% 28%, rgba(255,255,255,.55), rgba(255,255,255,0) 60%),
+        linear-gradient(180deg, rgba(202,164,74,.55), rgba(0,0,0,.08));
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.35),
+        inset 0 0 0 2px rgba(0,0,0,.06);
+      display:grid;
+      place-items:center;
+      font-weight:900;
+      letter-spacing:.06em;
+      color:#2a1b0c;
+      text-transform:uppercase;
+      font-size:.95rem;
+    }
+
+    .skill-main{min-width:0}
+    .skill-name{
+      font-weight:900;
+      letter-spacing:.02em;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .skill-sub{
+      margin-top:4px;
+      color: var(--muted);
+      font-size:.90rem;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .lvl{
+      font-weight:900;
+      font-size:1.1rem;
+      min-width:44px;
+      text-align:right;
+      color:#2a1b0c;
+    }
+
+    .bar{
+      height:8px;
+      border-radius:999px;
+      background: var(--barBg);
+      border:1px solid rgba(63,42,18,.20);
+      overflow:hidden;
+      margin-top:8px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.25);
+    }
+    .fill{
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg, var(--barFill), var(--barFill2));
+    }
 
     .hint{
       margin-top:12px;
@@ -172,7 +285,6 @@
       color:var(--muted);
       line-height:1.35;
     }
-    a{color:#2c5aa0}
   </style>
 </head>
 <body>
@@ -199,16 +311,25 @@
         <div class="grid">
           <div class="panel"><div class="k">Player</div><div class="v" id="playerName">-</div></div>
           <div class="panel"><div class="k">Total Level</div><div class="v" id="totalLevel">-</div></div>
+          <div class="panel"><div class="k">Total XP</div><div class="v" id="totalXp">-</div></div>
           <div class="panel"><div class="k">Combat Level</div><div class="v" id="combatLevel">-</div></div>
         </div>
 
-        <table>
-          <thead><tr><th>Skill</th><th>Level</th><th>XP</th><th>Rank</th></tr></thead>
-          <tbody id="skillsBody"><tr><td colspan="4">No data yet.</td></tr></tbody>
-        </table>
+        <div class="skills-wrap">
+          <div class="skills-header">
+            <div class="skills-title">Skills</div>
+            <div class="skills-tools">
+              <div class="chip" id="skillsMeta">No data loaded.</div>
+            </div>
+          </div>
+
+          <div class="skills-grid" id="skillsGrid">
+            <!-- skills render here -->
+          </div>
+        </div>
 
         <p class="hint">
-          If Lookup always shows demo: check DevTools Console. If the proxy works, you should see “Live hiscores loaded.”
+          Tip: If you ever see demo again, it’s almost always the Worker/proxy URL or a temporary hiscores error.
         </p>
       </div>
     </section>
@@ -216,12 +337,12 @@
 
   <script>
   (function(){
-    // Your Cloudflare Worker base URL (no trailing slash needed)
+    // Your Cloudflare Worker base URL
     const PROXY_BASE = "https://cx.noahcastner.workers.dev";
 
-    // Demo fallback
     const DEMO = {
       name: "Demo Adventurer",
+      overall: { rank: 123456, totalLevel: 1875, totalXp: 125000000 },
       stats: [
         ["Attack",82,2360000,120000], ["Defence",80,1980000,130000], ["Strength",85,3300000,99000], ["Hitpoints",84,3100000,100000],
         ["Ranged",79,1760000,140000], ["Prayer",70,737000,180000], ["Magic",81,2210000,110000], ["Cooking",90,5340000,78000],
@@ -232,16 +353,29 @@
       ]
     };
 
+    // Hiscores-lite ordering: row 0 = Overall, rows 1..23 = skills in this exact order:
     const HISCORES_SKILLS = [
       "Attack","Defence","Strength","Hitpoints","Ranged","Prayer","Magic","Cooking","Woodcutting","Fletching","Fishing","Firemaking",
       "Crafting","Smithing","Mining","Herblore","Agility","Thieving","Slayer","Farming","Runecraft","Hunter","Construction"
     ];
 
+    // Short icon labels to feel like UI glyphs (no external images needed)
+    const ICON_LABEL = {
+      Attack:"ATK", Defence:"DEF", Strength:"STR", Hitpoints:"HP",
+      Ranged:"RNG", Prayer:"PRY", Magic:"MAG", Cooking:"COOK",
+      Woodcutting:"WC", Fletching:"FLET", Fishing:"FISH", Firemaking:"FM",
+      Crafting:"CRFT", Smithing:"SMTH", Mining:"MINE", Herblore:"HERB",
+      Agility:"AGI", Thieving:"THV", Slayer:"SLAY", Farming:"FARM",
+      Runecraft:"RC", Hunter:"HUNT", Construction:"CONS"
+    };
+
     const statusEl = document.getElementById("status");
     const playerNameEl = document.getElementById("playerName");
     const totalLevelEl = document.getElementById("totalLevel");
+    const totalXpEl = document.getElementById("totalXp");
     const combatLevelEl = document.getElementById("combatLevel");
-    const skillsBody = document.getElementById("skillsBody");
+    const skillsGrid = document.getElementById("skillsGrid");
+    const skillsMeta = document.getElementById("skillsMeta");
     const playerInput = document.getElementById("playerInput");
     const lookupBtn = document.getElementById("lookupBtn");
     const demoBtn = document.getElementById("demoBtn");
@@ -265,25 +399,80 @@
       return Math.floor(base + Math.max(melee, range, mage));
     }
 
-    function renderProfile(name, stats, totalLevelOverride=null){
-      const levels = {};
-      let total = 0;
-      skillsBody.innerHTML = "";
+    // OSRS XP curve
+    function xpForLevel(level){
+      // returns XP required to reach "level"
+      // level 1 => 0 XP
+      if (level <= 1) return 0;
+      let points = 0;
+      for (let lvl = 1; lvl < level; lvl++){
+        points += Math.floor(lvl + 300 * Math.pow(2, lvl / 7));
+      }
+      return Math.floor(points / 4);
+    }
 
+    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+
+    function renderSkills(stats){
       const idx = Object.fromEntries(HISCORES_SKILLS.map((s,i)=>[s,i]));
       const sorted = stats.slice().sort((a,b)=> (idx[a[0]] ?? 9999) - (idx[b[0]] ?? 9999));
 
+      skillsGrid.innerHTML = "";
+      const frag = document.createDocumentFragment();
+
       for (const [skill, level, xp, rank] of sorted){
-        levels[skill] = level;
-        total += Number(level) || 0;
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${skill}</td><td>${level}</td><td>${Number(xp).toLocaleString()}</td><td>${Number(rank).toLocaleString()}</td>`;
-        skillsBody.appendChild(tr);
+        const lvl = Number(level) || 1;
+        const curXp = Number(xp) || 0;
+
+        const nextLevel = clamp(lvl + 1, 2, 99);
+        const curReq = xpForLevel(lvl);
+        const nextReq = xpForLevel(nextLevel);
+
+        let pct = 100;
+        let progText = "Maxed";
+        if (lvl < 99){
+          const denom = Math.max(1, (nextReq - curReq));
+          pct = clamp(((curXp - curReq) / denom) * 100, 0, 100);
+          const toGo = Math.max(0, nextReq - curXp);
+          progText = `${toGo.toLocaleString()} xp to ${nextLevel}`;
+        }
+
+        const el = document.createElement("div");
+        el.className = "skill";
+        el.innerHTML = `
+          <div class="icon" title="${skill}">${(ICON_LABEL[skill] || skill.slice(0,3)).toUpperCase()}</div>
+          <div class="skill-main">
+            <div class="skill-name">${skill}</div>
+            <div class="skill-sub">
+              <span>XP: <b>${curXp.toLocaleString()}</b></span>
+              <span>Rank: <b>${Number(rank).toLocaleString()}</b></span>
+              <span>${progText}</span>
+            </div>
+            <div class="bar" aria-label="${skill} progress">
+              <div class="fill" style="width:${pct.toFixed(1)}%"></div>
+            </div>
+          </div>
+          <div class="lvl" title="Level">${lvl}</div>
+        `;
+        frag.appendChild(el);
       }
 
+      skillsGrid.appendChild(frag);
+    }
+
+    function renderProfile(name, stats, overall){
+      const levels = {};
+      for (const [skill, level] of stats) levels[skill] = Number(level) || 1;
+
       playerNameEl.textContent = name;
-      totalLevelEl.textContent = (Number.isFinite(totalLevelOverride) && totalLevelOverride > 0) ? totalLevelOverride : total;
+      totalLevelEl.textContent = (overall?.totalLevel != null) ? Number(overall.totalLevel).toLocaleString() : "-";
+      totalXpEl.textContent = (overall?.totalXp != null) ? Number(overall.totalXp).toLocaleString() : "-";
       combatLevelEl.textContent = calcCombat(levels);
+
+      renderSkills(stats);
+
+      const ts = new Date();
+      skillsMeta.textContent = `Loaded ${HISCORES_SKILLS.length} skills • ${ts.toLocaleTimeString()}`;
     }
 
     function fetchWithTimeout(url, ms=9000){
@@ -301,8 +490,13 @@
       const rows = text.trim().split("\n");
       if (!rows.length) throw new Error("No rows returned");
 
-      const overall = rows[0]?.split(",").map(Number);
-      const totalLevel = overall && overall.length >= 3 ? overall[1] : null;
+      // Overall: rank,totalLevel,totalXP
+      const overallRow = rows[0]?.split(",").map(Number);
+      const overall = (overallRow && overallRow.length >= 3) ? {
+        rank: overallRow[0],
+        totalLevel: overallRow[1],
+        totalXp: overallRow[2]
+      } : null;
 
       const skills = [];
       for (let i = 0; i < HISCORES_SKILLS.length; i++){
@@ -313,7 +507,7 @@
       }
 
       if (!skills.length) throw new Error("Could not parse skills");
-      return { name: player, skills, totalLevel };
+      return { name: player, skills, overall };
     }
 
     async function handleLookup(player){
@@ -328,11 +522,11 @@
 
       try{
         const data = await fetchHiscores(p);
-        renderProfile(data.name, data.skills, data.totalLevel);
+        renderProfile(data.name, data.skills, data.overall);
         setStatus("Live hiscores loaded.", "ok");
       }catch(err){
         const msg = (err && err.name === "AbortError") ? "Request timed out" : (err?.message || "Unknown error");
-        renderProfile(DEMO.name, DEMO.stats, null);
+        renderProfile(DEMO.name, DEMO.stats, DEMO.overall);
         setStatus(`Live lookup failed (${msg}). Showing demo profile.`, "error");
       }finally{
         lookupBtn.disabled = false;
@@ -346,9 +540,17 @@
     });
 
     document.getElementById("demoBtn").addEventListener("click", ()=>{
-      renderProfile(DEMO.name, DEMO.stats, null);
+      renderProfile(DEMO.name, DEMO.stats, DEMO.overall);
       setStatus("Demo profile loaded.", "ok");
     });
+
+    // initial UI state
+    skillsGrid.innerHTML = `<div class="skill" style="grid-column:1/-1; justify-content:center;">
+      <div class="skill-main" style="text-align:center;">
+        Enter an RSN and click <b>Lookup</b>.
+        <div class="skill-sub" style="justify-content:center; margin-top:6px;">(Or click <b>Load Demo</b>.)</div>
+      </div>
+    </div>`;
   })();
   </script>
 </body>
