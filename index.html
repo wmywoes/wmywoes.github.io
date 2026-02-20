@@ -208,7 +208,7 @@
         </table>
 
         <p class="hint">
-          If Lookup always shows demo: it’s CORS. Fix = use a proxy (Cloudflare Worker). This is normal for browser-only apps. :contentReference[oaicite:2]{index=2}
+          If Lookup always shows demo: check DevTools Console. If the proxy works, you should see “Live hiscores loaded.”
         </p>
       </div>
     </section>
@@ -216,8 +216,7 @@
 
   <script>
   (function(){
-    // 1) PUT YOUR WORKER DOMAIN HERE after you deploy it:
-    // Example: "https://woes-hiscores-proxy.yourname.workers.dev"
+    // Your Cloudflare Worker base URL (no trailing slash needed)
     const PROXY_BASE = "https://cx.noahcastner.workers.dev";
 
     // Demo fallback
@@ -294,21 +293,14 @@
     }
 
     async function fetchHiscores(player){
-      if (PROXY_BASE.includes("cx.noahcastner.workers.dev")) {
-        throw new Error("Proxy not configured (set PROXY_BASE)");
-      }
-
       const url = `${PROXY_BASE.replace(/\/$/,"")}/hiscores?player=${encodeURIComponent(player)}`;
       const res = await fetchWithTimeout(url, 9000);
-
-      // 404/500/etc should still show a readable message
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
       const text = await res.text();
       const rows = text.trim().split("\n");
       if (!rows.length) throw new Error("No rows returned");
 
-      // Row 0: Overall => rank,totalLevel,totalXP
       const overall = rows[0]?.split(",").map(Number);
       const totalLevel = overall && overall.length >= 3 ? overall[1] : null;
 
