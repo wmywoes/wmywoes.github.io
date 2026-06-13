@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Noah's Room Planner</title>
+  <style>
+    html, body { margin:0; height:100%; overflow:hidden; font-family: system-ui, Segoe UI, Arial, sans-serif; background:#111; color:#eee; }
+    #app { position:fixed; inset:0; }
+    #panel {
+      position: fixed; left: 14px; top: 14px; width: 310px; z-index: 10;
+      background: rgba(20,20,20,.88); border: 1px solid rgba(255,255,255,.18);
+      border-radius: 12px; padding: 12px 14px; box-shadow: 0 8px 35px rgba(0,0,0,.35);
+      backdrop-filter: blur(6px);
+    }
+    #panel h1 { font-size: 17px; margin: 0 0 8px; }
+    #panel p { font-size: 13px; line-height: 1.35; margin: 7px 0; color:#ddd; }
+    #panel button, #panel select, #panel input {
+      background:#222; color:#eee; border:1px solid #555; border-radius:8px; padding:7px 9px; margin:3px 2px;
+    }
+    #panel button:hover { background:#333; cursor:pointer; }
+    #panel .row { display:flex; flex-wrap:wrap; gap:4px; align-items:center; margin:5px 0; }
+    #panel label { font-size:12px; color:#bbb; margin-right:3px; }
+    #selectedName { font-weight:700; color:#7dffad; }
+    #hint {
+      position: fixed; right: 14px; bottom: 14px; background: rgba(20,20,20,.75);
+      border:1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 9px 11px;
+      font-size: 12px; color:#ddd; max-width: 380px;
+    }
+  </style>
+</head>
+<body>
+<div id="app"></div>
+<div id="panel">
+  <h1>Interactive room layout</h1>
+  <p>Click a green object, drag it around the floor, then rotate it with <b>Q / E</b> or the buttons.</p>
+  <p>Selected: <span id="selectedName">nothing</span></p>
+  <div class="row">
+    <button id="rotateLeft">Rotate -15°</button>
+    <button id="rotateRight">Rotate +15°</button>
+    <button id="reset">Reset</button>
+  </div>
+  <div class="row">
+    <label>View:</label>
+    <button id="topView">Top</button>
+    <button id="cornerView">3D</button>
+  </div>
+  <div class="row">
+    <label><input id="wallsToggle" type="checkbox" checked> walls</label>
+    <label><input id="labelsToggle" type="checkbox" checked> labels</label>
+  </div>
+  <p style="font-size:12px;color:#aaa">
+    Approximate from your sketch: room 10.5 ft × 12.5 ft, ceiling heights marked 9 ft / 7 ft, bed 6'3" × 4'3",
+    PC desk 4'8" × 4'8", TV stand 4'3" × 1'9".
+  </p>
+</div>
+<div id="hint">Mouse: orbit / zoom / pan. Drag furniture only after clicking it. This is a starter model, so the closet/door/window are approximate.</div>
+
+<script type="module">
+import * as THREE from "https://unpkg.com/three@0.161.0/build/three.module.js";
+import { OrbitControls } from "https://unpkg.com/three@0.161.0/examples/jsm/controls/OrbitControls.js";
+
+const FT = 1;
+const roomW = 10.5, roomD = 12.5;
+const wallH = 8.0, wallT = 0.12;
+
+const app = document.getElementById("app");
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x111111);
+
+const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.05, 200);
+camera.position.set(8.2, 8.5, 10.8);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+app.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(roomW/2, 0, roomD/2);
+controls.enableDamping = true;
+controls.maxPolarAngle = Math.PI * 0.49;
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0x202020, 1.1));
+const sun = new THREE.DirectionalLight(0xffffff, 1.1);
+sun.position.set(4, 10, 3);
+sun.castShadow = true;
+scene.add(sun);
+
+// Materials
+const floorMat = new THREE.MeshStandardMaterial({ color: 0x303030, roughness: 0.75 });
+const wallMat = new THREE.MeshStandardMaterial({ color: 0xf1f1f1, roughness: 0.7 });
+const lowWallMat = new THREE.MeshStandardMaterial({ color: 0xd8d8d8, roughness: 0.75 });
+const greenMat = new THREE.MeshStandardMaterial({ color: 0x12b34f, roughness: 0.55 });
+const selectedMat = new THREE.MeshStandardMaterial({ color: 0x52ff8b, emissive: 0x113d20, roughness: 0.5 });
+const darkMat = new THREE.MeshStandardMaterial({ color: 0x191919, roughness: 0.8 });
+const glassMat = new THREE.MeshStandardMaterial({ color: 0x7fc7ff, transparent: true, opacity: 0.45, roughness: 0.1 });
+
+const floor = new THREE.Mesh(new THREE.BoxGeometry(roomW, 0.05, roomD), floorMat);
+floor.position.set(roomW/2, -0.03, roomD/2);
+floor.receiveShadow = true;
+scene.add(floor);
+
+const grid = new THREE.GridHelper(14, 28, 0x777777, 0x333333);
+grid.position.set(roomW/2, 0.01, roomD/2);
+scene.add(grid);
+
+const wallGroup = new THREE.Group();
+scene.add(wallGroup);
+
+function addWall(name, x, z, w, d, h=wallH, mat=wallMat) {
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+  mesh.name = name;
+  mesh.position.set(x + w/2, h/2, z + d/2);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  wallGroup.add(mesh);
+  return mesh;
+}
+
+// Outer walls, with gaps approximating the door and window
+addWall("Top wall left section", 0, 0, 8.0, wallT);
+addWall("Top wall right door-side section", 10.15, 0, 0.35, wallT);
+addWall("Right wall upper section", 10.38, 0, wallT, 5.75);
+addWall("Right wall lower section", 10.38, 5.75, wallT, 6.75);
+addWall("Bottom wall", 0, 12.38, roomW, wallT, 7.0, lowWallMat);
+addWall("Left wall top", 0, 0, wallT, 4.1);
+addWall("Left wall below window", 0, 7.0, wallT, 5.5);
+
+// Closet / blocked area approximation
+addWall("Closet front wall", 7.45, 7.25, 0.12, 5.2, 7.0, lowWallMat);
+addWall("Closet top wall", 7.45, 7.25, 3.05, 0.12, 7.0, lowWallMat);
+
+// Window, door slab, and door swing arc
+const windowMesh = new THREE.Mesh(new THREE.BoxGeometry(0.08, 4.5, 2.5), glassMat);
+windowMesh.position.set(-0.03, 2.25, 5.55);
+windowMesh.rotation.y = 0;
+scene.add(windowMesh);
+
+const door = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.08, 2.25), new THREE.MeshStandardMaterial({color:0x8a5b35, roughness:0.6}));
+door.position.set(9.25, 0.08, 0.85);
+door.rotation.y = Math.PI/2;
+scene.add(door);
+
+const arcPts = [];
+for (let i=0; i<=32; i++) {
+  const a = THREE.MathUtils.degToRad(0 + i*90/32);
+  arcPts.push(new THREE.Vector3(8.0 + Math.cos(a)*2.05, 0.04, 2.05 - Math.sin(a)*2.05));
+}
+const arcGeom = new THREE.BufferGeometry().setFromPoints(arcPts);
+const arc = new THREE.Line(arcGeom, new THREE.LineBasicMaterial({color:0xffffff}));
+scene.add(arc);
+
+// Labels via canvas sprites
+const labelGroup = new THREE.Group();
+scene.add(labelGroup);
+
+function makeLabel(text, x, z, y=0.08) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 512; canvas.height = 128;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "rgba(0,0,0,0.0)";
+  ctx.fillRect(0,0,512,128);
+  ctx.font = "bold 42px system-ui, Segoe UI, Arial";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.lineWidth = 8;
+  ctx.strokeStyle = "rgba(0,0,0,0.9)";
+  ctx.strokeText(text, 256, 64);
+  ctx.fillStyle = "#70ff9d";
+  ctx.fillText(text, 256, 64);
+  const tex = new THREE.CanvasTexture(canvas);
+  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
+  const sprite = new THREE.Sprite(mat);
+  sprite.scale.set(2.2, 0.55, 1);
+  sprite.position.set(x, y, z);
+  labelGroup.add(sprite);
+  return sprite;
+}
+
+makeLabel("Window", 0.55, 5.55, 1.25);
+makeLabel("Door", 9.35, 1.55, 1.0);
+makeLabel("Closet", 8.9, 9.9, 1.0);
+
+const furniture = [];
+const initial = [];
+
+function makeFurniture(name, w, d, h, x, z) {
+  const group = new THREE.Group();
+  group.name = name;
+  group.userData = { draggable: true, w, d, h };
+
+  const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), greenMat.clone());
+  body.position.y = h/2;
+  body.castShadow = true;
+  body.receiveShadow = true;
+  group.add(body);
+
+  const outline = new THREE.LineSegments(
+    new THREE.EdgesGeometry(new THREE.BoxGeometry(w, h, d)),
+    new THREE.LineBasicMaterial({ color: 0xffffff })
+  );
+  outline.position.y = h/2 + 0.002;
+  group.add(outline);
+
+  const label = makeLabel(name, x, z, h + 0.2);
+  group.userData.label = label;
+
+  group.position.set(x, 0.04, z);
+  scene.add(group);
+  furniture.push(group);
+  initial.push({ group, x, z, rot: group.rotation.y });
+  return group;
+}
+
+// Coordinates are center points in feet, based on the sketch's separate furniture dimensions.
+makeFurniture("Bed 6'3 × 4'3", 6.25, 4.25, 1.1, 6.6, 2.8);
+makeFurniture("PC desk 4'8 × 4'8", 4.67, 4.67, 0.9, 3.2, 8.3);
+makeFurniture("TV stand 4'3 × 1'9", 4.25, 1.75, 0.85, 7.5, 10.7);
+
+// Make L-desk visual by adding a cutout-colored cube on top of PC desk
+const desk = furniture.find(o => o.name.startsWith("PC"));
+const cutout = new THREE.Mesh(new THREE.BoxGeometry(2.55, 1.0, 2.55), floorMat);
+cutout.position.set(1.1, 0.55, 1.05);
+desk.add(cutout);
+
+// Selection and dragging
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+const plane = new THREE.Plane(new THREE.Vector3(0,1,0), 0);
+const intersection = new THREE.Vector3();
+let selected = null, dragging = false, dragOffset = new THREE.Vector3();
+
+function setSelected(obj) {
+  if (selected) selected.children[0].material = greenMat.clone();
+  selected = obj;
+  if (selected) {
+    selected.children[0].material = selectedMat.clone();
+    document.getElementById("selectedName").textContent = selected.name;
+  } else {
+    document.getElementById("selectedName").textContent = "nothing";
+  }
+}
+
+function updatePointer(event) {
+  const rect = renderer.domElement.getBoundingClientRect();
+  pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+}
+
+function labelFollow() {
+  for (const obj of furniture) {
+    const label = obj.userData.label;
+    label.position.set(obj.position.x, obj.userData.h + 0.25, obj.position.z);
+  }
+}
+
+renderer.domElement.addEventListener("pointerdown", (event) => {
+  updatePointer(event);
+  raycaster.setFromCamera(pointer, camera);
+  const hits = raycaster.intersectObjects(furniture, true);
+  const hitGroup = hits.length ? hits[0].object.parent : null;
+  if (hitGroup && hitGroup.userData.draggable) {
+    setSelected(hitGroup);
+    dragging = true;
+    controls.enabled = false;
+    raycaster.ray.intersectPlane(plane, intersection);
+    dragOffset.copy(hitGroup.position).sub(intersection);
+  } else {
+    setSelected(null);
+  }
+});
+
+renderer.domElement.addEventListener("pointermove", (event) => {
+  if (!dragging || !selected) return;
+  updatePointer(event);
+  raycaster.setFromCamera(pointer, camera);
+  if (raycaster.ray.intersectPlane(plane, intersection)) {
+    selected.position.x = THREE.MathUtils.clamp(intersection.x + dragOffset.x, 0.35, roomW - 0.35);
+    selected.position.z = THREE.MathUtils.clamp(intersection.z + dragOffset.z, 0.35, roomD - 0.35);
+    labelFollow();
+  }
+});
+
+window.addEventListener("pointerup", () => {
+  dragging = false;
+  controls.enabled = true;
+});
+
+function rotateSelected(deg) {
+  if (!selected) return;
+  selected.rotation.y += THREE.MathUtils.degToRad(deg);
+}
+
+document.getElementById("rotateLeft").onclick = () => rotateSelected(-15);
+document.getElementById("rotateRight").onclick = () => rotateSelected(15);
+document.getElementById("reset").onclick = () => {
+  for (const item of initial) {
+    item.group.position.set(item.x, 0.04, item.z);
+    item.group.rotation.y = item.rot;
+  }
+  labelFollow();
+};
+document.getElementById("topView").onclick = () => {
+  camera.position.set(roomW/2, 17, roomD/2 + 0.01);
+  controls.target.set(roomW/2, 0, roomD/2);
+  controls.update();
+};
+document.getElementById("cornerView").onclick = () => {
+  camera.position.set(8.2, 8.5, 10.8);
+  controls.target.set(roomW/2, 0, roomD/2);
+  controls.update();
+};
+document.getElementById("wallsToggle").onchange = (e) => wallGroup.visible = e.target.checked;
+document.getElementById("labelsToggle").onchange = (e) => labelGroup.visible = e.target.checked;
+
+window.addEventListener("keydown", (e) => {
+  if (e.key.toLowerCase() === "q") rotateSelected(-15);
+  if (e.key.toLowerCase() === "e") rotateSelected(15);
+});
+
+addEventListener("resize", () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+</body>
+</html>
