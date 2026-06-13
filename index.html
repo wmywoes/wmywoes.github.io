@@ -260,11 +260,11 @@ body.objects-panel-collapsed #controlsTooltip {
 }
 </style>
 </head>
-<body class="">
+<body class="objects-panel-collapsed">
 <div id="app"></div>
 <div id="mobileControls" aria-hidden="true">
-  <div id="mobileHint" class="mobile-hidden">Drag the stick to move • one finger rotates • pinch zooms</div>
-  <div id="mobileJoystick"><div id="mobileStick" style="transform: translate(-50%, -50%);"></div></div>
+  <div id="mobileHint">Drag the stick to move • one finger rotates • pinch zooms</div>
+  <div id="mobileJoystick"><div id="mobileStick"></div></div>
 </div>
 <button id="sidebarToggle" type="button" title="Toggle controls">✕ Hide</button>
 
@@ -431,7 +431,7 @@ body.objects-panel-collapsed #controlsTooltip {
 </div>
 
 
-<button id="objectsPanelToggle" type="button" title="Toggle placed objects">✕ Hide Objects</button>
+<button id="objectsPanelToggle" type="button" title="Toggle placed objects">Placed Objects</button>
 
 <div id="objectsPanel">
   <div style="height:38px"></div>
@@ -466,7 +466,7 @@ body.objects-panel-collapsed #controlsTooltip {
   <button id="centerView" type="button" title="Snap camera back to room center">Center View</button>
 </div>
 
-<div id="contextMenu" style="display: none;">
+<div id="contextMenu">
   <button data-action="rot45">Rotate +45°</button>
   <button data-action="rot-45">Rotate -45°</button>
   <button data-action="dup">Duplicate</button>
@@ -903,14 +903,14 @@ try {
   "nextId": 40,
   "camera": {
     "position": {
-      "x": 38.89570332921248,
-      "y": 40.01559804659728,
-      "z": 137.012419516427
+      "x": 87.3470178341319,
+      "y": 86.022366583689,
+      "z": 141.5253796653452
     },
     "target": {
-      "x": 30.661914134208402,
-      "y": 39.259549708558076,
-      "z": 129.20562097884948
+      "x": 82.7889353064183,
+      "y": 80.90148105727621,
+      "z": 135.59198327142042
     },
     "zoom": 1,
     "fov": 55,
@@ -918,6 +918,7 @@ try {
     "far": 5000
   }
 };
+  const DEFAULT_ROOM_STATE = JSON.parse(JSON.stringify(EMBEDDED_EXPORT_STATE));
   const WALL_T = 1; // 1 inch wall thickness
   const GREEN = "#22c55e";
   const RED = "#ef4444";
@@ -991,7 +992,7 @@ try {
     trim: new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.55 }),
     window: new THREE.MeshStandardMaterial({ color: 0x67c7ff, transparent: true, opacity: 0.4 }),
     wallObject: new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.55 }),
-    ceiling: new THREE.MeshStandardMaterial({ color: 0xf1f5f9, transparent: true, opacity: 0.35, side: THREE.DoubleSide }),
+    ceiling: new THREE.MeshStandardMaterial({ color: 0xe8ebef, roughness: 0.68, side: THREE.DoubleSide }),
     lineBlue: new THREE.LineBasicMaterial({ color: 0x5ac8ff }),
     lineWhite: new THREE.LineBasicMaterial({ color: 0xffffff })
   };
@@ -1000,6 +1001,7 @@ try {
   function updateStructureMaterials() {
     if (!state?.colors) return;
     mats.wall.color.set(state.colors.wall || "#e8ebef");
+    mats.ceiling.color.set(state.colors.wall || "#e8ebef");
     mats.doorClosed.color.set(state.colors.door || "#8a5b35");
     mats.closet.color.set(state.colors.closet || "#353a42");
   }
@@ -1505,8 +1507,8 @@ try {
       group.add(edge);
     }
 
-    const label = makeLabel(o.name, o.color || GREEN, 9);
-    label.position.set(0, o.h / 2 + 7, 0);
+    const label = makeLabel(o.name, o.color || GREEN, 8);
+    label.position.set(0, o.h / 2 + 3, 0);
     group.add(label);
 
     const p = wallObjectPosition(o);
@@ -2306,8 +2308,9 @@ try {
       group.add(edge);
     }
 
-    const label = makeLabel(o.name, color, 11);
-    label.position.set(0, o.h + 8, 0);
+    const label = makeLabel(o.name, color, 9);
+    const labelY = Math.max(1.2, o.h + Math.min(3.2, Math.max(1.2, o.h * 0.08)));
+    label.position.set(0, labelY, 0);
     group.add(label);
 
     groups.objects.add(group);
@@ -3341,8 +3344,10 @@ try {
   });
 
   try {
+    // This file is self-contained: the embedded room is the default/current layout.
+    // Browser Save still works, but opening this file starts from the baked-in state.
     if (EMBEDDED_EXPORT_STATE) {
-      if (!loadData(EMBEDDED_EXPORT_STATE)) resetDefaults();
+      if (!loadData(JSON.parse(JSON.stringify(EMBEDDED_EXPORT_STATE)))) resetDefaults();
     } else {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
