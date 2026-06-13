@@ -229,6 +229,13 @@ body.objects-panel-collapsed #controlsTooltip {
   font-size:12px;
   backdrop-filter:blur(8px);
   pointer-events:none;
+  opacity:1;
+  transform:translateY(0);
+  transition:opacity .45s ease, transform .45s ease;
+}
+#mobileHint.mobile-hidden {
+  opacity:0;
+  transform:translateY(8px);
 }
 
 @media (max-width: 820px), (pointer: coarse) {
@@ -950,9 +957,12 @@ try {
   controls.minDistance = 4;
   controls.maxDistance = 240;
   controls.rotateSpeed = 0.72;
-  controls.zoomSpeed = 1.15;
+  controls.zoomSpeed = isMobileView() ? 3.0 : 1.15;
   controls.touches.ONE = THREE.TOUCH.ROTATE;
   controls.touches.TWO = THREE.TOUCH.DOLLY_PAN;
+  window.addEventListener("resize", () => {
+    controls.zoomSpeed = isMobileView() ? 3.0 : 1.15;
+  });
 
   scene.add(new THREE.HemisphereLight(0xffffff, 0x1b1e24, 1.15));
   const sun = new THREE.DirectionalLight(0xffffff, 1.08);
@@ -1036,6 +1046,12 @@ try {
   function isMobileView() {
     return window.matchMedia("(max-width: 820px), (pointer: coarse)").matches;
   }
+
+  function hideMobileHint() {
+    const hint = $("mobileHint");
+    if (hint) hint.classList.add("mobile-hidden");
+  }
+  setTimeout(hideMobileHint, 5200);
 
   function $(id) { return document.getElementById(id); }
   function n(id, fallback = 0) {
@@ -3373,6 +3389,7 @@ try {
 
     base.addEventListener("pointerdown", event => {
       if (!isMobileView()) return;
+      hideMobileHint();
       event.preventDefault();
       event.stopPropagation();
       mobileControls.stickActive = true;
@@ -3397,6 +3414,12 @@ try {
 
     base.addEventListener("pointercancel", resetStick);
     window.addEventListener("blur", resetStick);
+    renderer.domElement.addEventListener("pointerdown", () => {
+      if (isMobileView()) hideMobileHint();
+    }, { passive:true });
+    renderer.domElement.addEventListener("touchstart", () => {
+      if (isMobileView()) hideMobileHint();
+    }, { passive:true });
   }
   setupMobileJoystick();
 
