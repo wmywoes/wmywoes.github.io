@@ -260,13 +260,13 @@ body.objects-panel-collapsed #controlsTooltip {
 }
 </style>
 </head>
-<body class="sidebar-collapsed objects-panel-collapsed">
+<body class="">
 <div id="app"></div>
 <div id="mobileControls" aria-hidden="true">
-  <div id="mobileHint">Drag the stick to move • one finger rotates • pinch zooms</div>
-  <div id="mobileJoystick"><div id="mobileStick"></div></div>
+  <div id="mobileHint" class="mobile-hidden">Drag the stick to move • one finger rotates • pinch zooms</div>
+  <div id="mobileJoystick"><div id="mobileStick" style="transform: translate(-50%, -50%);"></div></div>
 </div>
-<button id="sidebarToggle" type="button" title="Toggle controls">☰ Controls</button>
+<button id="sidebarToggle" type="button" title="Toggle controls">✕ Hide</button>
 
 <div id="sidebar">
   <div style="height:38px"></div>
@@ -431,7 +431,7 @@ body.objects-panel-collapsed #controlsTooltip {
 </div>
 
 
-<button id="objectsPanelToggle" type="button" title="Toggle placed objects">Placed Objects</button>
+<button id="objectsPanelToggle" type="button" title="Toggle placed objects">✕ Hide Objects</button>
 
 <div id="objectsPanel">
   <div style="height:38px"></div>
@@ -452,8 +452,8 @@ body.objects-panel-collapsed #controlsTooltip {
 </div>
 
 
-<div id="controlsTooltip">
-  <button id="tooltipToggle" type="button" title="Collapse controls tooltip">Hide tips</button>
+<div id="controlsTooltip" class="tooltip-collapsed">
+  <button id="tooltipToggle" type="button" title="Collapse controls tooltip">Show tips</button>
   <div id="tooltipBody">
     <strong>WASD to move camera, hold Right-Click to pan, Scroll to zoom</strong>
     <br>
@@ -466,7 +466,7 @@ body.objects-panel-collapsed #controlsTooltip {
   <button id="centerView" type="button" title="Snap camera back to room center">Center View</button>
 </div>
 
-<div id="contextMenu">
+<div id="contextMenu" style="display: none;">
   <button data-action="rot45">Rotate +45°</button>
   <button data-action="rot-45">Rotate -45°</button>
   <button data-action="dup">Duplicate</button>
@@ -538,8 +538,8 @@ try {
       "w": 51,
       "d": 20,
       "h": 30,
-      "x": 26.676284950586762,
-      "z": 86.09883608791738,
+      "x": 27.040918842845862,
+      "z": 87.24062582757884,
       "rot": 0,
       "t": 18,
       "color": "#381d1d",
@@ -554,7 +554,7 @@ try {
       "d": 50,
       "h": 30,
       "x": 28,
-      "z": 122,
+      "z": 124,
       "rot": 0,
       "t": 24,
       "color": "#161616",
@@ -595,11 +595,11 @@ try {
       "id": 6,
       "name": "Main Monitor",
       "type": "monitor",
-      "w": 20,
+      "w": 29,
       "d": 7,
-      "h": 18,
-      "x": 13.410000000000002,
-      "z": 110.34,
+      "h": 22,
+      "x": 12.727922061357857,
+      "z": 111.26327879571186,
       "rot": 45,
       "t": 18,
       "color": "#0f172a",
@@ -610,10 +610,10 @@ try {
       "id": 7,
       "name": "Side Monitor",
       "type": "monitor",
-      "w": 16,
+      "w": 24,
       "d": 7,
-      "h": 15,
-      "x": 30.955941546018394,
+      "h": 18,
+      "x": 38.04,
       "z": 103.32481292093186,
       "rot": 0,
       "t": 18,
@@ -629,7 +629,7 @@ try {
       "d": 5,
       "h": 1,
       "x": 15.531320343559646,
-      "z": 114.24943412339061,
+      "z": 116.56657965461096,
       "rot": 45,
       "t": 18,
       "color": "#111827",
@@ -643,8 +643,8 @@ try {
       "w": 3,
       "d": 5,
       "h": 1,
-      "x": 22.74,
-      "z": 106.38534927262538,
+      "x": 23.211572875253808,
+      "z": 108.12964188856319,
       "rot": 45,
       "t": 18,
       "color": "#111827",
@@ -658,8 +658,8 @@ try {
       "w": 2,
       "d": 2,
       "h": 6,
-      "x": 51.04,
-      "z": 102.06,
+      "x": 51.67114116436865,
+      "z": 108.14195845215221,
       "rot": 0,
       "t": 18,
       "color": "#2563eb",
@@ -673,12 +673,12 @@ try {
       "w": 10,
       "d": 18,
       "h": 18,
-      "x": 13.955941546018394,
-      "z": 140.68905043704558,
+      "x": 13.96,
+      "z": 142.34,
       "rot": 90,
       "t": 18,
       "color": "#1f2937",
-      "y": 30,
+      "y": 30.1,
       "placeable": true
     },
     {
@@ -778,8 +778,8 @@ try {
       "w": 1.5,
       "d": 1.5,
       "h": 4,
-      "x": 7.356699141100897,
-      "z": 124.74120085706971,
+      "x": 5.727932574828754,
+      "z": 126.85054827962416,
       "rot": 0,
       "t": 18,
       "color": "#008000",
@@ -903,14 +903,14 @@ try {
   "nextId": 40,
   "camera": {
     "position": {
-      "x": 91.09149850316518,
-      "y": 81.37425385698906,
-      "z": 146.6386699076199
+      "x": 38.89570332921248,
+      "y": 40.01559804659728,
+      "z": 137.012419516427
     },
     "target": {
-      "x": 87.53106882760022,
-      "y": 75.99981616797339,
-      "z": 138.7938397465732
+      "x": 30.661914134208402,
+      "y": 39.259549708558076,
+      "z": 129.20562097884948
     },
     "zoom": 1,
     "fov": 55,
@@ -918,7 +918,6 @@ try {
     "far": 5000
   }
 };
-  const DEFAULT_ROOM_STATE = JSON.parse(JSON.stringify(EMBEDDED_EXPORT_STATE));
   const WALL_T = 1; // 1 inch wall thickness
   const GREEN = "#22c55e";
   const RED = "#ef4444";
@@ -3438,6 +3437,7 @@ try {
   box.textContent = "JavaScript error:\n\n" + String(err?.stack || err) + "\n\nIf you replaced the GitHub Pages file, try Ctrl+F5 for a hard refresh.";
 }
 </script>
+
 
 
 </body></html>
