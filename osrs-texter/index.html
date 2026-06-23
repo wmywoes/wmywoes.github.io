@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OSRS Texter</title>
+<style>
+:root {
+  --bg:#080808;
+  --panel:rgba(18,18,18,.94);
+  --panel2:#151515;
+  --line:rgba(255,255,255,.16);
+  --text:#f3f3f3;
+  --muted:#a8a8a8;
+  --gold:#ffdf00;
+  --accent:#d7a72d;
+}
+* { box-sizing:border-box; }
+html, body { margin:0; min-height:100%; background:#050505; color:var(--text); font-family:system-ui,Segoe UI,Arial,sans-serif; }
+body { display:grid; grid-template-columns:360px 1fr; gap:0; }
+#controls {
+  min-height:100vh; padding:18px; background:linear-gradient(180deg,#111,#080808); border-right:1px solid var(--line);
+  box-shadow:12px 0 42px rgba(0,0,0,.4); z-index:2;
+}
+h1 { margin:0 0 4px; font-size:22px; letter-spacing:.2px; }
+.subtitle { color:var(--muted); font-size:13px; line-height:1.35; margin-bottom:14px; }
+.card { border:1px solid var(--line); border-radius:14px; background:var(--panel); padding:12px; margin-top:12px; }
+label { display:block; color:var(--muted); font-size:12px; margin-bottom:5px; }
+textarea, input, select, button {
+  width:100%; border:1px solid rgba(255,255,255,.15); border-radius:10px; background:#101010; color:var(--text);
+  padding:9px 10px; font:inherit;
+}
+textarea { min-height:110px; resize:vertical; line-height:1.35; }
+input[type=color] { height:42px; padding:4px; }
+input[type=range] { padding:0; accent-color:var(--accent); }
+button { cursor:pointer; font-weight:700; }
+button:hover { background:#1c1c1c; border-color:rgba(255,255,255,.28); }
+.primary { background:#2a2110; border-color:rgba(255,223,0,.44); color:#ffe979; }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.row { display:flex; gap:10px; margin-top:10px; }
+.row > * { flex:1; }
+.small { font-size:12px; color:var(--muted); line-height:1.35; }
+.value { float:right; color:#e6e6e6; }
+#stageWrap {
+  min-height:100vh; display:grid; place-items:center; padding:26px; background:
+    radial-gradient(circle at 50% 28%, rgba(255,223,0,.09), transparent 34%),
+    linear-gradient(180deg,#0a0a0a,#000);
+}
+#previewShell {
+  width:min(100%, 980px); padding:14px; border:1px solid var(--line); border-radius:18px; background:rgba(12,12,12,.76);
+  box-shadow:0 18px 70px rgba(0,0,0,.55);
+}
+#canvas { width:100%; height:auto; display:block; border-radius:10px; background:#000; image-rendering:pixelated; }
+.topline { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; color:var(--muted); font-size:12px; }
+a { color:#ffdf66; text-decoration:none; }
+a:hover { text-decoration:underline; }
+@media (max-width: 860px) {
+  body { display:block; }
+  #controls { min-height:auto; border-right:0; border-bottom:1px solid var(--line); }
+  #stageWrap { min-height:auto; padding:14px; }
+}
+</style>
+</head>
+<body>
+<aside id="controls">
+  <h1>OSRS Texter</h1>
+  <div class="subtitle">Black-screen OSRS-ish yellow text generator. Type your text, tweak it, then export a PNG.</div>
+
+  <div class="card">
+    <label for="text">Text</label>
+    <textarea id="text" spellcheck="false">Congratulations, you just advanced a Woodcutting level.</textarea>
+    <div class="row">
+      <button id="sampleLevel" type="button">Level-up sample</button>
+      <button id="sampleChat" type="button">Chat sample</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="grid2">
+      <div><label>Canvas width <span id="wVal" class="value"></span></label><input id="cw" type="range" min="320" max="1920" step="10" value="960"></div>
+      <div><label>Canvas height <span id="hVal" class="value"></span></label><input id="ch" type="range" min="180" max="1080" step="10" value="540"></div>
+      <div><label>Font size <span id="sizeVal" class="value"></span></label><input id="fontSize" type="range" min="12" max="96" step="1" value="32"></div>
+      <div><label>Line height <span id="lineVal" class="value"></span></label><input id="lineHeight" type="range" min="0.8" max="2" step="0.05" value="1.15"></div>
+      <div><label>X position <span id="xVal" class="value"></span></label><input id="posX" type="range" min="0" max="100" step="1" value="50"></div>
+      <div><label>Y position <span id="yVal" class="value"></span></label><input id="posY" type="range" min="0" max="100" step="1" value="50"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="grid2">
+      <div>
+        <label for="align">Alignment</label>
+        <select id="align"><option value="center">Center</option><option value="left">Left</option><option value="right">Right</option></select>
+      </div>
+      <div>
+        <label for="fontMode">Font style</label>
+        <select id="fontMode"><option value="osrs">OSRS-ish</option><option value="pixel">Pixel fallback</option><option value="serif">Classic serif</option></select>
+      </div>
+      <div><label>Text color</label><input id="textColor" type="color" value="#ffff00"></div>
+      <div><label>Background</label><input id="bgColor" type="color" value="#000000"></div>
+    </div>
+    <div class="row">
+      <button id="toggleShadow" type="button" class="primary">Shadow: on</button>
+      <button id="toggleStroke" type="button" class="primary">Dark edge: on</button>
+    </div>
+    <p class="small">Tip: browser security makes it awkward to ship the real game font, so this uses local RuneScape fonts if your PC has them, then falls back to an OSRS-like stack.</p>
+  </div>
+
+  <div class="card">
+    <button id="download" type="button" class="primary">Download PNG</button>
+    <div class="row">
+      <button id="copy" type="button">Copy image</button>
+      <button id="reset" type="button">Reset</button>
+    </div>
+    <p id="status" class="small" aria-live="polite"></p>
+  </div>
+</aside>
+
+<main id="stageWrap">
+  <section id="previewShell">
+    <div class="topline"><span>Live preview</span><a href="/">← Back home</a></div>
+    <canvas id="canvas" width="960" height="540"></canvas>
+  </section>
+</main>
+
+<script>
+const el = id => document.getElementById(id);
+const canvas = el('canvas');
+const ctx = canvas.getContext('2d');
+const state = { shadow:true, stroke:true };
+const controls = ['text','cw','ch','fontSize','lineHeight','posX','posY','align','fontMode','textColor','bgColor'];
+const samples = {
+  level:'Congratulations, you just advanced a Woodcutting level.',
+  chat:'Woes: buying gf 10k\nSelling lobster 200gp each'
+};
+function fontStack() {
+  const mode = el('fontMode').value;
+  if (mode === 'pixel') return '"Courier New", monospace';
+  if (mode === 'serif') return 'Georgia, "Times New Roman", serif';
+  return '"RuneScape UF", "Runescape UF", RuneScape, runescape, Georgia, "Times New Roman", serif';
+}
+function wrapText(text, maxWidth) {
+  const out = [];
+  for (const rawLine of text.split('\n')) {
+    const words = rawLine.split(/\s+/).filter(Boolean);
+    if (!words.length) { out.push(''); continue; }
+    let line = '';
+    for (const word of words) {
+      const test = line ? line + ' ' + word : word;
+      if (ctx.measureText(test).width > maxWidth && line) { out.push(line); line = word; }
+      else line = test;
+    }
+    out.push(line);
+  }
+  return out;
+}
+function updateValueLabels() {
+  el('wVal').textContent = el('cw').value + 'px';
+  el('hVal').textContent = el('ch').value + 'px';
+  el('sizeVal').textContent = el('fontSize').value + 'px';
+  el('lineVal').textContent = el('lineHeight').value + '×';
+  el('xVal').textContent = el('posX').value + '%';
+  el('yVal').textContent = el('posY').value + '%';
+}
+function draw() {
+  updateValueLabels();
+  const w = Number(el('cw').value), h = Number(el('ch').value);
+  canvas.width = w; canvas.height = h;
+  ctx.fillStyle = el('bgColor').value;
+  ctx.fillRect(0,0,w,h);
+  const size = Number(el('fontSize').value);
+  const lineHeight = size * Number(el('lineHeight').value);
+  ctx.font = `700 ${size}px ${fontStack()}`;
+  ctx.textAlign = el('align').value;
+  ctx.textBaseline = 'middle';
+  ctx.lineJoin = 'round';
+  const pad = Math.max(18, size);
+  const maxWidth = w - pad * 2;
+  const lines = wrapText(el('text').value, maxWidth);
+  let x = w * Number(el('posX').value) / 100;
+  if (ctx.textAlign === 'left') x = Math.max(pad, x);
+  if (ctx.textAlign === 'right') x = Math.min(w - pad, x);
+  const yCenter = h * Number(el('posY').value) / 100;
+  const totalHeight = Math.max(0, (lines.length - 1) * lineHeight);
+  const startY = yCenter - totalHeight / 2;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const y = startY + i * lineHeight;
+    if (state.shadow) {
+      ctx.fillStyle = 'rgba(0,0,0,.92)';
+      ctx.fillText(line, x + Math.max(2, size * .065), y + Math.max(2, size * .065), maxWidth);
+    }
+    if (state.stroke) {
+      ctx.strokeStyle = 'rgba(0,0,0,.98)';
+      ctx.lineWidth = Math.max(2, size * .09);
+      ctx.strokeText(line, x, y, maxWidth);
+    }
+    ctx.fillStyle = el('textColor').value;
+    ctx.fillText(line, x, y, maxWidth);
+    ctx.fillStyle = 'rgba(255,255,255,.16)';
+    ctx.fillText(line, x, y - Math.max(1, size * .035), maxWidth);
+  }
+}
+function reset() {
+  el('text').value = samples.level; el('cw').value = 960; el('ch').value = 540; el('fontSize').value = 32;
+  el('lineHeight').value = 1.15; el('posX').value = 50; el('posY').value = 50; el('align').value = 'center';
+  el('fontMode').value = 'osrs'; el('textColor').value = '#ffff00'; el('bgColor').value = '#000000';
+  state.shadow = true; state.stroke = true; el('toggleShadow').textContent = 'Shadow: on'; el('toggleStroke').textContent = 'Dark edge: on';
+  draw();
+}
+controls.forEach(id => el(id).addEventListener('input', draw));
+el('sampleLevel').addEventListener('click', () => { el('text').value = samples.level; draw(); });
+el('sampleChat').addEventListener('click', () => { el('text').value = samples.chat; el('align').value = 'left'; el('posX').value = 10; el('posY').value = 16; draw(); });
+el('toggleShadow').addEventListener('click', () => { state.shadow = !state.shadow; el('toggleShadow').textContent = 'Shadow: ' + (state.shadow ? 'on' : 'off'); draw(); });
+el('toggleStroke').addEventListener('click', () => { state.stroke = !state.stroke; el('toggleStroke').textContent = 'Dark edge: ' + (state.stroke ? 'on' : 'off'); draw(); });
+el('download').addEventListener('click', () => {
+  const a = document.createElement('a');
+  a.download = 'osrs-text.png';
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+});
+el('copy').addEventListener('click', async () => {
+  const status = el('status');
+  try {
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+    await navigator.clipboard.write([new ClipboardItem({'image/png': blob})]);
+    status.textContent = 'Copied image to clipboard.';
+  } catch (err) {
+    status.textContent = 'Copy did not work in this browser, but download still works.';
+  }
+});
+el('reset').addEventListener('click', reset);
+draw();
+</script>
+</body>
+</html>
