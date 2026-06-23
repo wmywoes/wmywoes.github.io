@@ -5,6 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OSRS Texter</title>
 <style>
+@font-face {
+  font-family: 'RuneLite RuneScape';
+  src: url('https://raw.githubusercontent.com/runelite/runelite/master/runelite-client/src/main/java/net/runelite/client/ui/runescape.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'RuneLite RuneScape Bold';
+  src: url('https://raw.githubusercontent.com/runelite/runelite/master/runelite-client/src/main/java/net/runelite/client/ui/runescape_bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'RuneLite RuneScape Small';
+  src: url('https://raw.githubusercontent.com/runelite/runelite/master/runelite-client/src/main/java/net/runelite/client/ui/runescape_small.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
 :root {
   --bg:#080808;
   --panel:rgba(18,18,18,.94);
@@ -64,7 +85,7 @@ a:hover { text-decoration:underline; }
 <body>
 <aside id="controls">
   <h1>OSRS Texter</h1>
-  <div class="subtitle">Black-screen OSRS-ish yellow text generator. Type your text, tweak it, then export a PNG.</div>
+  <div class="subtitle">Black-screen OSRS text generator. Type your text, tweak it, then export a PNG.</div>
 
   <div class="card">
     <label for="text">Text</label>
@@ -94,7 +115,7 @@ a:hover { text-decoration:underline; }
       </div>
       <div>
         <label for="fontMode">Font style</label>
-        <select id="fontMode"><option value="osrs">OSRS-ish</option><option value="pixel">Pixel fallback</option><option value="serif">Classic serif</option></select>
+        <select id="fontMode"><option value="osrs">RuneScape</option><option value="osrsBold">RuneScape bold</option><option value="osrsSmall">RuneScape small</option><option value="pixel">Pixel fallback</option><option value="serif">Classic serif</option></select>
       </div>
       <div><label>Text color</label><input id="textColor" type="color" value="#ffff00"></div>
       <div><label>Background</label><input id="bgColor" type="color" value="#000000"></div>
@@ -103,7 +124,7 @@ a:hover { text-decoration:underline; }
       <button id="toggleShadow" type="button" class="primary">Shadow: on</button>
       <button id="toggleStroke" type="button" class="primary">Dark edge: on</button>
     </div>
-    <p class="small">Tip: browser security makes it awkward to ship the real game font, so this uses local RuneScape fonts if your PC has them, then falls back to an OSRS-like stack.</p>
+    <p class="small">Uses the RuneScape fonts bundled in RuneLite from their public GitHub repo. If the remote font fails to load, it falls back to local/browser fonts.</p>
   </div>
 
   <div class="card">
@@ -127,7 +148,7 @@ a:hover { text-decoration:underline; }
 const el = id => document.getElementById(id);
 const canvas = el('canvas');
 const ctx = canvas.getContext('2d');
-const state = { shadow:true, stroke:true };
+const state = { shadow:true, stroke:true, fontsReady:false };
 const controls = ['text','cw','ch','fontSize','lineHeight','posX','posY','align','fontMode','textColor','bgColor'];
 const samples = {
   level:'Congratulations, you just advanced a Woodcutting level.',
@@ -137,7 +158,12 @@ function fontStack() {
   const mode = el('fontMode').value;
   if (mode === 'pixel') return '"Courier New", monospace';
   if (mode === 'serif') return 'Georgia, "Times New Roman", serif';
-  return '"RuneScape UF", "Runescape UF", RuneScape, runescape, Georgia, "Times New Roman", serif';
+  if (mode === 'osrsBold') return '"RuneLite RuneScape Bold", "RuneLite RuneScape", "RuneScape UF", Georgia, "Times New Roman", serif';
+  if (mode === 'osrsSmall') return '"RuneLite RuneScape Small", "RuneLite RuneScape", "RuneScape UF", Georgia, "Times New Roman", serif';
+  return '"RuneLite RuneScape", "RuneScape UF", "Runescape UF", RuneScape, runescape, Georgia, "Times New Roman", serif';
+}
+function fontWeight() {
+  return el('fontMode').value === 'osrsBold' ? 700 : 400;
 }
 function wrapText(text, maxWidth) {
   const out = [];
@@ -170,7 +196,7 @@ function draw() {
   ctx.fillRect(0,0,w,h);
   const size = Number(el('fontSize').value);
   const lineHeight = size * Number(el('lineHeight').value);
-  ctx.font = `700 ${size}px ${fontStack()}`;
+  ctx.font = `${fontWeight()} ${size}px ${fontStack()}`;
   ctx.textAlign = el('align').value;
   ctx.textBaseline = 'middle';
   ctx.lineJoin = 'round';
@@ -209,7 +235,7 @@ function reset() {
   draw();
 }
 controls.forEach(id => el(id).addEventListener('input', draw));
-el('sampleLevel').addEventListener('click', () => { el('text').value = samples.level; draw(); });
+el('sampleLevel').addEventListener('click', () => { el('text').value = samples.level; el('align').value = 'center'; el('posX').value = 50; el('posY').value = 50; draw(); });
 el('sampleChat').addEventListener('click', () => { el('text').value = samples.chat; el('align').value = 'left'; el('posX').value = 10; el('posY').value = 16; draw(); });
 el('toggleShadow').addEventListener('click', () => { state.shadow = !state.shadow; el('toggleShadow').textContent = 'Shadow: ' + (state.shadow ? 'on' : 'off'); draw(); });
 el('toggleStroke').addEventListener('click', () => { state.stroke = !state.stroke; el('toggleStroke').textContent = 'Dark edge: ' + (state.stroke ? 'on' : 'off'); draw(); });
@@ -230,6 +256,18 @@ el('copy').addEventListener('click', async () => {
   }
 });
 el('reset').addEventListener('click', reset);
+Promise.allSettled([
+  document.fonts.load('32px "RuneLite RuneScape"'),
+  document.fonts.load('32px "RuneLite RuneScape Bold"'),
+  document.fonts.load('32px "RuneLite RuneScape Small"')
+]).then(() => {
+  state.fontsReady = true;
+  draw();
+  el('status').textContent = 'RuneLite RuneScape font loaded.';
+}).catch(() => {
+  draw();
+  el('status').textContent = 'Remote RuneScape font did not load; using fallback.';
+});
 draw();
 </script>
 </body>
