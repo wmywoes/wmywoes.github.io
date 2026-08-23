@@ -177,7 +177,7 @@
 
   <script>
     const API = 'https://prices.runescape.wiki/api/v1/osrs';
-    const state = { items: [], sort: 'net', direction: -1, loadedAt: 0, page: 1, selectedId: null, contextItemId:null, pinnedIds:loadPins() };
+    const state = { items: [], sort: 'net', direction: -1, loadedAt: 0, page: 1, selectedId: null, contextItemId:null, pinnedIds:loadPins(), priceHistory:loadPriceHistory() };
     const $ = id => document.getElementById(id);
     const els = { rows:$('rows'), search:$('search'), maxPrice:$('maxPrice'), minVolume:$('minVolume'), maxTradeAge:$('maxTradeAge'), minProfit:$('minProfit'), profitable:$('profitable'), recommended:$('recommended'), refresh:$('refresh'), pagination:$('pagination'), watchOverlay:$('watchOverlay') };
 
@@ -205,6 +205,12 @@
     function escapeHtml(s){ return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
     function loadPins(){try{return new Set(JSON.parse(localStorage.getItem('osrs-flipping-pins')||'[]').map(Number))}catch{return new Set()}}
     function savePins(){try{localStorage.setItem('osrs-flipping-pins',JSON.stringify([...state.pinnedIds]))}catch{}}
+    function loadPriceHistory(){
+      try{return new Map(JSON.parse(localStorage.getItem('osrs-flipping-price-history')||'[]').map(x=>[Number(x[0]),{buy:x[1],sell:x[2],previousBuy:x[3]??null,previousSell:x[4]??null}]))}catch{return new Map()}
+    }
+    function savePriceHistory(){
+      try{localStorage.setItem('osrs-flipping-price-history',JSON.stringify(state.items.map(x=>[x.id,x.buy,x.sell,x.previousBuy,x.previousSell])))}catch{}
+    }
 
     async function fetchJson(path){
       const response=await fetch(API+path,{headers:{Accept:'application/json'}});
@@ -221,11 +227,12 @@
           const m=meta.get(id); if(!m||m.name.toLowerCase()==='old school bond'||!p.high||!p.low)return null;
           const buy=p.low, sell=p.high, gross=sell-buy, tax=geTax(sell), net=gross-tax;
           const d=day.data[id]||{}; const volume=(d.highPriceVolume||0)+(d.lowPriceVolume||0);
-          const numericId=Number(id),previous=previousItems.get(numericId);
+          const numericId=Number(id),previous=previousItems.get(numericId)||state.priceHistory.get(numericId);
           const previousBuy=previous?(previous.buy!==buy?previous.buy:previous.previousBuy):null;
           const previousSell=previous?(previous.sell!==sell?previous.sell:previous.previousSell):null;
           return {id:numericId,name:m.name,buy,sell,previousBuy,previousSell,gross,tax,net,roi:buy?net/buy*100:0,volume,buyAge:ageMinutes(p.lowTime),sellAge:ageMinutes(p.highTime),lastTrade:Math.min(ageMinutes(p.highTime),ageMinutes(p.lowTime)),age:Math.max(ageMinutes(p.highTime),ageMinutes(p.lowTime))};
         }).filter(Boolean);
+        state.priceHistory=new Map(state.items.map(x=>[x.id,{buy:x.buy,sell:x.sell,previousBuy:x.previousBuy,previousSell:x.previousSell}]));savePriceHistory();
         state.loadedAt=Date.now(); $('dot').className='dot live'; $('statusText').textContent='Live market data'; $('updated').textContent='Updated '+new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
         render(); renderWatch();
       } catch(error) {
