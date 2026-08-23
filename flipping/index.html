@@ -59,7 +59,10 @@
     tbody tr[data-id]:hover,tbody tr[data-id]:focus { background:#302719; outline:none; }
     tbody tr.recommended { background:linear-gradient(90deg,rgba(194,143,39,.20),rgba(130,91,24,.08) 55%,rgba(215,175,82,.14)); box-shadow:inset 4px 0 #e0b548,inset 0 1px rgba(255,226,154,.16); }
     tbody tr.recommended:hover,tbody tr.recommended:focus { background:linear-gradient(90deg,rgba(224,174,67,.29),rgba(151,106,29,.14) 55%,rgba(224,174,67,.20)); }
+    tbody tr.pinned { background:linear-gradient(90deg,rgba(72,137,169,.21),rgba(35,76,98,.08) 58%,rgba(72,137,169,.12)); box-shadow:inset 4px 0 #75b9d8,inset 0 1px rgba(155,219,247,.14); }
+    tbody tr.pinned:hover,tbody tr.pinned:focus { background:linear-gradient(90deg,rgba(88,158,191,.29),rgba(38,88,112,.14) 58%,rgba(88,158,191,.18)); }
     .recommend-star { margin-left:8px; color:#f1c85e; font-size:15px; text-shadow:0 0 8px rgba(241,200,94,.55); }
+    .pin-mark { margin-left:8px; color:#91d5f1; font-size:14px; text-shadow:0 0 8px rgba(117,185,216,.55); }
     .item-cell { display:flex; align-items:center; gap:14px; text-align:left; }
     .item-cell img { width:52px; height:52px; object-fit:contain; image-rendering:auto; }
     .item-name { max-width:330px; overflow:hidden; text-overflow:ellipsis; font-size:18px; font-weight:700; color:#f2eadb; }
@@ -79,20 +82,19 @@
     .notice b { color:#b7ad9b; }
     .watch-overlay { position:fixed; inset:0; z-index:20; display:none; place-items:center; padding:24px; background:rgba(5,4,3,.76); backdrop-filter:blur(5px); }
     .watch-overlay.open { display:grid; }
-    .watch-card { width:min(760px,calc(100vw - 48px)); border:1px solid #68532b; border-radius:8px; overflow:hidden; background:linear-gradient(145deg,#292116,#15120d 52%); box-shadow:0 28px 90px #000; }
+    .watch-card { width:min(1320px,calc(100vw - 48px)); border:1px solid #68532b; border-radius:8px; overflow:hidden; background:linear-gradient(145deg,#292116,#15120d 52%); box-shadow:0 28px 90px #000; }
     .watch-head { display:flex; align-items:center; gap:16px; padding:20px 22px; border-bottom:1px solid var(--line); background:rgba(44,36,23,.72); }
     .watch-head img { width:68px; height:68px; object-fit:contain; }
     .watch-title { min-width:0; flex:1; }
     .watch-title h2 { margin:0; color:var(--gold2); font:700 25px Georgia,serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .watch-title p { margin:4px 0 0; color:var(--muted); }
+    .watch-pin { width:auto; padding:0 14px; white-space:nowrap; }
+    .watch-pin.active { border-color:#75b9d8; background:linear-gradient(#477f98,#2b566a); color:#e7f8ff; }
     .watch-close { align-self:flex-start; width:38px; min-width:38px; padding:0; font-size:22px; line-height:1; }
-    .watch-grid { display:grid; grid-template-columns:repeat(3,1fr); }
-    .watch-stat { min-height:95px; padding:18px 20px; border-right:1px solid var(--line); border-bottom:1px solid var(--line); }
-    .watch-stat:nth-child(3n) { border-right:0; }
-    .watch-stat:nth-last-child(-n+3) { border-bottom:0; }
-    .watch-stat span { display:block; color:var(--muted); font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
-    .watch-stat strong { display:block; margin-top:8px; color:var(--text); font-size:21px; font-variant-numeric:tabular-nums; }
-    .watch-stat strong.profit { color:var(--green); }
+    .watch-table-wrap { overflow:auto; background:#100e0a; }
+    .watch-table { min-width:1100px; }
+    .watch-table td { height:84px; }
+    .watch-table tbody tr { background:#12100c; }
     @media(max-width:1050px) {
       .controls { flex-wrap:wrap; }
       .search { flex-basis:100%; }
@@ -108,10 +110,6 @@
       .status { max-width:115px; }
       .toggle { flex:1; }
       button { width:auto; }
-      .watch-grid { grid-template-columns:1fr 1fr; }
-      .watch-stat:nth-child(n) { border-right:1px solid var(--line); border-bottom:1px solid var(--line); }
-      .watch-stat:nth-child(even) { border-right:0; }
-      .watch-stat:nth-last-child(-n+2) { border-bottom:0; }
     }
   </style>
 </head>
@@ -154,25 +152,27 @@
       <div class="watch-head">
         <img id="watchImage" alt="">
         <div class="watch-title"><h2 id="watchName">Item</h2><p><span class="dot live"></span>Watching live · refreshes every minute</p></div>
+        <button class="watch-pin" id="watchPin" type="button" aria-pressed="false">Pin item</button>
         <button class="watch-close" id="watchClose" type="button" aria-label="Close watch view">×</button>
       </div>
-      <div class="watch-grid">
-        <div class="watch-stat"><span>Buy at</span><strong id="watchBuy">—</strong><div class="previous-price" id="watchBuyPrevious"></div></div>
-        <div class="watch-stat"><span>Sell at</span><strong id="watchSell">—</strong><div class="previous-price" id="watchSellPrevious"></div></div>
-        <div class="watch-stat"><span>Profit before tax</span><strong id="watchGross">—</strong></div>
-        <div class="watch-stat"><span>Tax</span><strong id="watchTax">—</strong></div>
-        <div class="watch-stat"><span>24-hour volume</span><strong id="watchVolume">—</strong></div>
-        <div class="watch-stat"><span>Profit</span><strong class="profit" id="watchProfit">—</strong></div>
-        <div class="watch-stat"><span>Last buy trade</span><strong id="watchBuyAge">—</strong></div>
-        <div class="watch-stat"><span>Last sell trade</span><strong id="watchSellAge">—</strong></div>
-        <div class="watch-stat"><span>Most recent trade</span><strong id="watchTradeAge">—</strong></div>
+      <div class="watch-table-wrap">
+        <table class="watch-table">
+          <thead><tr><th>Item</th><th>Last trade</th><th>Buy at</th><th>Sell at</th><th>Profit (before tax)</th><th>Tax</th><th>24-hour volume</th><th>Profit</th></tr></thead>
+          <tbody><tr>
+            <td><div class="item-cell"><img id="watchRowImage" alt=""><div class="item-name" id="watchRowName">Item</div></div></td>
+            <td id="watchTradeAge">—</td>
+            <td><div id="watchBuy">—</div><div class="previous-price" id="watchBuyPrevious"></div></td>
+            <td><div id="watchSell">—</div><div class="previous-price" id="watchSellPrevious"></div></td>
+            <td id="watchGross">—</td><td id="watchTax">—</td><td id="watchVolume">—</td><td class="profit" id="watchProfit">—</td>
+          </tr></tbody>
+        </table>
       </div>
     </section>
   </div>
 
   <script>
     const API = 'https://prices.runescape.wiki/api/v1/osrs';
-    const state = { items: [], sort: 'net', direction: -1, loadedAt: 0, page: 1, selectedId: null };
+    const state = { items: [], sort: 'net', direction: -1, loadedAt: 0, page: 1, selectedId: null, pinnedIds:loadPins() };
     const $ = id => document.getElementById(id);
     const els = { rows:$('rows'), search:$('search'), maxPrice:$('maxPrice'), minVolume:$('minVolume'), maxTradeAge:$('maxTradeAge'), minProfit:$('minProfit'), profitable:$('profitable'), recommended:$('recommended'), refresh:$('refresh'), pagination:$('pagination'), watchOverlay:$('watchOverlay') };
 
@@ -198,6 +198,8 @@
       const days=Math.floor(whole/1440),hours=Math.floor((whole%1440)/60);return days+'d'+(hours?' '+hours+' hr':'');
     }
     function escapeHtml(s){ return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+    function loadPins(){try{return new Set(JSON.parse(localStorage.getItem('osrs-flipping-pins')||'[]').map(Number))}catch{return new Set()}}
+    function savePins(){try{localStorage.setItem('osrs-flipping-pins',JSON.stringify([...state.pinnedIds]))}catch{}}
 
     async function fetchJson(path){
       const response=await fetch(API+path,{headers:{Accept:'application/json'}});
@@ -244,6 +246,7 @@
       const key=state.sort;
       const recommendedIds=scoreRecommendations(items);
       items.sort((a,b)=>{
+        const ap=state.pinnedIds.has(a.id),bp=state.pinnedIds.has(b.id);if(ap!==bp)return ap?-1:1;
         if(els.recommended.checked){const ar=recommendedIds.get(a.id),br=recommendedIds.get(b.id);if(ar!==undefined||br!==undefined){if(ar===undefined)return 1;if(br===undefined)return -1;if(ar!==br)return ar-br}}
         const av=key==='rank'?a.net:a[key],bv=key==='rank'?b.net:b[key]; return typeof av==='string'?state.direction*av.localeCompare(bv):state.direction*((av??0)-(bv??0));
       });
@@ -251,8 +254,8 @@
       const pages=Math.max(1,Math.ceil(items.length/10)); state.page=Math.min(state.page,pages);
       if(!items.length){els.rows.innerHTML='<tr><td colspan="8" class="empty">No items match your filters.</td></tr>';els.pagination.innerHTML='';return;}
       const start=(state.page-1)*10;
-      els.rows.innerHTML=items.slice(start,start+10).map(x=>`<tr data-id="${x.id}" class="${els.recommended.checked&&recommendedIds.has(x.id)?'recommended':''}" tabindex="0" aria-label="Watch ${escapeHtml(x.name)}">
-        <td><div class="item-cell"><img loading="lazy" alt="" src="https://secure.runescape.com/m=itemdb_oldschool/obj_sprite.gif?id=${x.id}"><div class="item-name" title="${escapeHtml(x.name)}">${escapeHtml(x.name)}${els.recommended.checked&&recommendedIds.has(x.id)?'<span class="recommend-star" title="Recommended flip">★</span>':''}</div></div></td>
+      els.rows.innerHTML=items.slice(start,start+10).map(x=>`<tr data-id="${x.id}" class="${state.pinnedIds.has(x.id)?'pinned ':''}${els.recommended.checked&&recommendedIds.has(x.id)?'recommended':''}" tabindex="0" aria-label="Watch ${escapeHtml(x.name)}">
+        <td><div class="item-cell"><img loading="lazy" alt="" src="https://secure.runescape.com/m=itemdb_oldschool/obj_sprite.gif?id=${x.id}"><div class="item-name" title="${escapeHtml(x.name)}">${escapeHtml(x.name)}${state.pinnedIds.has(x.id)?'<span class="pin-mark" title="Pinned item">◆</span>':''}${els.recommended.checked&&recommendedIds.has(x.id)?'<span class="recommend-star" title="Recommended flip">★</span>':''}</div></div></td>
         <td class="age ${x.lastTrade<=5?'fresh':x.lastTrade>30?'old':''}" title="Most recent recorded buy or sell">${ageLabel(x.lastTrade)}</td><td title="Price to buy one item"><div>${exact(x.buy)}</div><div class="previous-price ${x.previousBuy!==null?'changed':''}">${x.previousBuy!==null?'Prev. '+exact(x.previousBuy):'&nbsp;'}</div></td><td title="Price to sell one item"><div>${exact(x.sell)}</div><div class="previous-price ${x.previousSell!==null?'changed':''}">${x.previousSell!==null?'Prev. '+exact(x.previousSell):'&nbsp;'}</div></td><td>${x.gross>=0?'+':''}${exact(x.gross)}</td>
         <td title="Grand Exchange tax for selling one item">${exact(x.tax)}</td><td title="Combined instant-buy and instant-sell volume over 24 hours">${exact(x.volume)}</td><td class="${x.net>=0?'profit':'loss'}" title="Profit after tax for one item">${x.net>=0?'+':''}${exact(x.net)}</td>
       </tr>`).join('');
@@ -271,15 +274,17 @@
     }
     function openWatch(id){ state.selectedId=id; history.replaceState(null,'','#item-'+id); renderWatch(); }
     function closeWatch(){ state.selectedId=null; history.replaceState(null,'',location.pathname+location.search); els.watchOverlay.classList.remove('open'); }
+    function togglePin(){if(!state.selectedId)return;if(state.pinnedIds.has(state.selectedId))state.pinnedIds.delete(state.selectedId);else state.pinnedIds.add(state.selectedId);savePins();state.page=1;render();renderWatch()}
     function renderWatch(){
       if(!state.selectedId)return;
       const x=state.items.find(item=>item.id===state.selectedId); if(!x)return;
       $('watchName').textContent=x.name; $('watchImage').src='https://secure.runescape.com/m=itemdb_oldschool/obj_sprite.gif?id='+x.id;
+      $('watchRowName').textContent=x.name; $('watchRowImage').src='https://secure.runescape.com/m=itemdb_oldschool/obj_sprite.gif?id='+x.id;
       $('watchBuy').textContent=exact(x.buy); $('watchSell').textContent=exact(x.sell); $('watchGross').textContent=(x.gross>=0?'+':'')+exact(x.gross);
       $('watchBuyPrevious').textContent=x.previousBuy!==null?'Previous: '+exact(x.previousBuy):'No change recorded yet'; $('watchBuyPrevious').classList.toggle('changed',x.previousBuy!==null);
       $('watchSellPrevious').textContent=x.previousSell!==null?'Previous: '+exact(x.previousSell):'No change recorded yet'; $('watchSellPrevious').classList.toggle('changed',x.previousSell!==null);
       $('watchTax').textContent=exact(x.tax); $('watchVolume').textContent=exact(x.volume); $('watchProfit').textContent=(x.net>=0?'+':'')+exact(x.net);
-      $('watchBuyAge').textContent=ageLabel(x.buyAge); $('watchSellAge').textContent=ageLabel(x.sellAge); $('watchTradeAge').textContent=ageLabel(x.lastTrade);
+      $('watchTradeAge').textContent=ageLabel(x.lastTrade); const pinned=state.pinnedIds.has(x.id);$('watchPin').textContent=pinned?'Unpin item':'Pin item';$('watchPin').classList.toggle('active',pinned);$('watchPin').setAttribute('aria-pressed',String(pinned));
       els.watchOverlay.classList.add('open');
     }
     function renderPagination(pages){
@@ -297,6 +302,7 @@
     els.recommended.addEventListener('change',()=>{state.page=1;render()});
     els.profitable.addEventListener('change',()=>{state.page=1;render()});
     els.refresh.addEventListener('click',loadData);
+    $('watchPin').addEventListener('click',togglePin);
     $('watchClose').addEventListener('click',closeWatch);
     els.watchOverlay.addEventListener('click',e=>{if(e.target===els.watchOverlay)closeWatch()});
     document.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.selectedId)closeWatch()});
