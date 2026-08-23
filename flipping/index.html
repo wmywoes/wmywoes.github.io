@@ -68,6 +68,8 @@
     .loss { color:var(--red); }
     .roi { color:var(--blue); }
     .age.fresh { color:var(--green); } .age.old { color:var(--red); }
+    .previous-price { min-height:15px; margin-top:3px; color:#7f7667; font-size:11px; font-weight:500; }
+    .previous-price.changed { color:#b6a780; }
     .empty { padding:70px 20px; color:var(--muted); text-align:center; }
     .pagination { display:flex; align-items:center; justify-content:center; gap:8px; padding:14px; border:1px solid var(--line); border-top:0; border-radius:0 0 7px 7px; background:#19150e; }
     .pagination button { min-width:38px; height:34px; padding:0 11px; }
@@ -155,8 +157,8 @@
         <button class="watch-close" id="watchClose" type="button" aria-label="Close watch view">×</button>
       </div>
       <div class="watch-grid">
-        <div class="watch-stat"><span>Buy at</span><strong id="watchBuy">—</strong></div>
-        <div class="watch-stat"><span>Sell at</span><strong id="watchSell">—</strong></div>
+        <div class="watch-stat"><span>Buy at</span><strong id="watchBuy">—</strong><div class="previous-price" id="watchBuyPrevious"></div></div>
+        <div class="watch-stat"><span>Sell at</span><strong id="watchSell">—</strong><div class="previous-price" id="watchSellPrevious"></div></div>
         <div class="watch-stat"><span>Profit before tax</span><strong id="watchGross">—</strong></div>
         <div class="watch-stat"><span>Tax</span><strong id="watchTax">—</strong></div>
         <div class="watch-stat"><span>24-hour volume</span><strong id="watchVolume">—</strong></div>
@@ -207,11 +209,15 @@
       try {
         const [mapping,latest,day]=await Promise.all([fetchJson('/mapping'),fetchJson('/latest'),fetchJson('/24h')]);
         const meta=new Map(mapping.map(x=>[String(x.id),x]));
+        const previousItems=new Map(state.items.map(x=>[x.id,x]));
         state.items=Object.entries(latest.data).map(([id,p])=>{
           const m=meta.get(id); if(!m||!p.high||!p.low)return null;
           const buy=p.low, sell=p.high, gross=sell-buy, tax=geTax(sell), net=gross-tax;
           const d=day.data[id]||{}; const volume=(d.highPriceVolume||0)+(d.lowPriceVolume||0);
-          return {id:Number(id),name:m.name,buy,sell,gross,tax,net,roi:buy?net/buy*100:0,volume,buyAge:ageMinutes(p.lowTime),sellAge:ageMinutes(p.highTime),lastTrade:Math.min(ageMinutes(p.highTime),ageMinutes(p.lowTime)),age:Math.max(ageMinutes(p.highTime),ageMinutes(p.lowTime))};
+          const numericId=Number(id),previous=previousItems.get(numericId);
+          const previousBuy=previous?(previous.buy!==buy?previous.buy:previous.previousBuy):null;
+          const previousSell=previous?(previous.sell!==sell?previous.sell:previous.previousSell):null;
+          return {id:numericId,name:m.name,buy,sell,previousBuy,previousSell,gross,tax,net,roi:buy?net/buy*100:0,volume,buyAge:ageMinutes(p.lowTime),sellAge:ageMinutes(p.highTime),lastTrade:Math.min(ageMinutes(p.highTime),ageMinutes(p.lowTime)),age:Math.max(ageMinutes(p.highTime),ageMinutes(p.lowTime))};
         }).filter(Boolean);
         state.loadedAt=Date.now(); $('dot').className='dot live'; $('statusText').textContent='Live market data'; $('updated').textContent='Updated '+new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
         render(); renderWatch();
@@ -246,7 +252,7 @@
       const start=(state.page-1)*10;
       els.rows.innerHTML=items.slice(start,start+10).map(x=>`<tr data-id="${x.id}" class="${els.recommended.checked&&recommendedIds.has(x.id)?'recommended':''}" tabindex="0" aria-label="Watch ${escapeHtml(x.name)}">
         <td><div class="item-cell"><img loading="lazy" alt="" src="https://secure.runescape.com/m=itemdb_oldschool/obj_sprite.gif?id=${x.id}"><div class="item-name" title="${escapeHtml(x.name)}">${escapeHtml(x.name)}${els.recommended.checked&&recommendedIds.has(x.id)?'<span class="recommend-star" title="Recommended flip">★</span>':''}</div></div></td>
-        <td class="age ${x.lastTrade<=5?'fresh':x.lastTrade>30?'old':''}" title="Most recent recorded buy or sell">${ageLabel(x.lastTrade)}</td><td title="Price to buy one item">${exact(x.buy)}</td><td title="Price to sell one item">${exact(x.sell)}</td><td>${x.gross>=0?'+':''}${exact(x.gross)}</td>
+        <td class="age ${x.lastTrade<=5?'fresh':x.lastTrade>30?'old':''}" title="Most recent recorded buy or sell">${ageLabel(x.lastTrade)}</td><td title="Price to buy one item"><div>${exact(x.buy)}</div><div class="previous-price ${x.previousBuy!==null?'changed':''}">${x.previousBuy!==null?'Prev. '+exact(x.previousBuy):'&nbsp;'}</div></td><td title="Price to sell one item"><div>${exact(x.sell)}</div><div class="previous-price ${x.previousSell!==null?'changed':''}">${x.previousSell!==null?'Prev. '+exact(x.previousSell):'&nbsp;'}</div></td><td>${x.gross>=0?'+':''}${exact(x.gross)}</td>
         <td title="Grand Exchange tax for selling one item">${exact(x.tax)}</td><td title="Combined instant-buy and instant-sell volume over 24 hours">${exact(x.volume)}</td><td class="${x.net>=0?'profit':'loss'}" title="Profit after tax for one item">${x.net>=0?'+':''}${exact(x.net)}</td>
       </tr>`).join('');
       els.rows.querySelectorAll('tr[data-id]').forEach(row=>{row.addEventListener('click',()=>openWatch(Number(row.dataset.id)));row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openWatch(Number(row.dataset.id))}})});
@@ -269,6 +275,8 @@
       const x=state.items.find(item=>item.id===state.selectedId); if(!x)return;
       $('watchName').textContent=x.name; $('watchImage').src='https://secure.runescape.com/m=itemdb_oldschool/obj_sprite.gif?id='+x.id;
       $('watchBuy').textContent=exact(x.buy); $('watchSell').textContent=exact(x.sell); $('watchGross').textContent=(x.gross>=0?'+':'')+exact(x.gross);
+      $('watchBuyPrevious').textContent=x.previousBuy!==null?'Previous: '+exact(x.previousBuy):'No change recorded yet'; $('watchBuyPrevious').classList.toggle('changed',x.previousBuy!==null);
+      $('watchSellPrevious').textContent=x.previousSell!==null?'Previous: '+exact(x.previousSell):'No change recorded yet'; $('watchSellPrevious').classList.toggle('changed',x.previousSell!==null);
       $('watchTax').textContent=exact(x.tax); $('watchVolume').textContent=exact(x.volume); $('watchProfit').textContent=(x.net>=0?'+':'')+exact(x.net);
       $('watchBuyAge').textContent=ageLabel(x.buyAge); $('watchSellAge').textContent=ageLabel(x.sellAge); $('watchTradeAge').textContent=ageLabel(x.lastTrade);
       els.watchOverlay.classList.add('open');
