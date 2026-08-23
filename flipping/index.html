@@ -95,6 +95,10 @@
     .watch-table { min-width:1100px; }
     .watch-table td { height:84px; }
     .watch-table tbody tr { background:#12100c; }
+    .context-menu { position:fixed; z-index:40; display:none; width:170px; padding:5px; border:1px solid #735a29; border-radius:5px; background:#211a10; box-shadow:0 12px 35px #000; }
+    .context-menu.open { display:block; }
+    .context-menu button { width:100%; height:36px; text-align:left; padding:0 11px; border-color:transparent; background:transparent; color:var(--text); text-shadow:none; }
+    .context-menu button:hover,.context-menu button:focus { border-color:#80632c; background:#3a2d18; color:var(--gold2); }
     @media(max-width:1050px) {
       .controls { flex-wrap:wrap; }
       .search { flex-basis:100%; }
@@ -169,10 +173,11 @@
       </div>
     </section>
   </div>
+  <div class="context-menu" id="contextMenu" role="menu"><button id="contextPin" type="button" role="menuitem">Pin item</button></div>
 
   <script>
     const API = 'https://prices.runescape.wiki/api/v1/osrs';
-    const state = { items: [], sort: 'net', direction: -1, loadedAt: 0, page: 1, selectedId: null, pinnedIds:loadPins() };
+    const state = { items: [], sort: 'net', direction: -1, loadedAt: 0, page: 1, selectedId: null, contextItemId:null, pinnedIds:loadPins() };
     const $ = id => document.getElementById(id);
     const els = { rows:$('rows'), search:$('search'), maxPrice:$('maxPrice'), minVolume:$('minVolume'), maxTradeAge:$('maxTradeAge'), minProfit:$('minProfit'), profitable:$('profitable'), recommended:$('recommended'), refresh:$('refresh'), pagination:$('pagination'), watchOverlay:$('watchOverlay') };
 
@@ -259,7 +264,7 @@
         <td class="age ${x.lastTrade<=5?'fresh':x.lastTrade>30?'old':''}" title="Most recent recorded buy or sell">${ageLabel(x.lastTrade)}</td><td title="Price to buy one item"><div>${exact(x.buy)}</div><div class="previous-price ${x.previousBuy!==null?'changed':''}">${x.previousBuy!==null?'Prev. '+exact(x.previousBuy):'&nbsp;'}</div></td><td title="Price to sell one item"><div>${exact(x.sell)}</div><div class="previous-price ${x.previousSell!==null?'changed':''}">${x.previousSell!==null?'Prev. '+exact(x.previousSell):'&nbsp;'}</div></td><td>${x.gross>=0?'+':''}${exact(x.gross)}</td>
         <td title="Grand Exchange tax for selling one item">${exact(x.tax)}</td><td title="Combined instant-buy and instant-sell volume over 24 hours">${exact(x.volume)}</td><td class="${x.net>=0?'profit':'loss'}" title="Profit after tax for one item">${x.net>=0?'+':''}${exact(x.net)}</td>
       </tr>`).join('');
-      els.rows.querySelectorAll('tr[data-id]').forEach(row=>{row.addEventListener('click',()=>openWatch(Number(row.dataset.id)));row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openWatch(Number(row.dataset.id))}})});
+      els.rows.querySelectorAll('tr[data-id]').forEach(row=>{row.addEventListener('click',()=>openWatch(Number(row.dataset.id)));row.addEventListener('contextmenu',e=>openContextMenu(e,Number(row.dataset.id)));row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openWatch(Number(row.dataset.id))}})});
       renderPagination(pages);
     }
     function scoreRecommendations(items){
@@ -274,7 +279,13 @@
     }
     function openWatch(id){ state.selectedId=id; history.replaceState(null,'','#item-'+id); renderWatch(); }
     function closeWatch(){ state.selectedId=null; history.replaceState(null,'',location.pathname+location.search); els.watchOverlay.classList.remove('open'); }
-    function togglePin(){if(!state.selectedId)return;if(state.pinnedIds.has(state.selectedId))state.pinnedIds.delete(state.selectedId);else state.pinnedIds.add(state.selectedId);savePins();state.page=1;render();renderWatch()}
+    function togglePinId(id){if(!id)return;if(state.pinnedIds.has(id))state.pinnedIds.delete(id);else state.pinnedIds.add(id);savePins();state.page=1;render();renderWatch()}
+    function togglePin(){togglePinId(state.selectedId)}
+    function openContextMenu(event,id){
+      event.preventDefault();state.contextItemId=id;const menu=$('contextMenu'),button=$('contextPin');button.textContent=state.pinnedIds.has(id)?'Unpin item':'Pin item';
+      menu.classList.add('open');const scale=1.2,maxX=window.innerWidth/scale-180,maxY=window.innerHeight/scale-48;menu.style.left=Math.max(6,Math.min(event.clientX/scale,maxX))+'px';menu.style.top=Math.max(6,Math.min(event.clientY/scale,maxY))+'px';button.focus();
+    }
+    function closeContextMenu(){state.contextItemId=null;$('contextMenu').classList.remove('open')}
     function renderWatch(){
       if(!state.selectedId)return;
       const x=state.items.find(item=>item.id===state.selectedId); if(!x)return;
@@ -303,9 +314,12 @@
     els.profitable.addEventListener('change',()=>{state.page=1;render()});
     els.refresh.addEventListener('click',loadData);
     $('watchPin').addEventListener('click',togglePin);
+    $('contextPin').addEventListener('click',()=>{const id=state.contextItemId;closeContextMenu();togglePinId(id)});
     $('watchClose').addEventListener('click',closeWatch);
     els.watchOverlay.addEventListener('click',e=>{if(e.target===els.watchOverlay)closeWatch()});
-    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.selectedId)closeWatch()});
+    document.addEventListener('click',e=>{if(!e.target.closest('#contextMenu'))closeContextMenu()});
+    window.addEventListener('scroll',closeContextMenu,{passive:true});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeContextMenu();if(state.selectedId)closeWatch()}});
     const hashMatch=location.hash.match(/^#item-(\d+)$/); if(hashMatch)state.selectedId=Number(hashMatch[1]);
     setInterval(()=>{if(!document.hidden)loadData()},60000);
     loadData();
