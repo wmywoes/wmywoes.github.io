@@ -128,7 +128,7 @@
     <section class="controls" aria-label="Flip filters">
       <div class="field search"><label for="search">Item search</label><input id="search" type="search" placeholder="Search items…" autocomplete="off"></div>
       <div class="field price-field"><label for="maxPrice">Max item price (m)</label><input id="maxPrice" type="number" min="0" step="1" value="100" inputmode="decimal"></div>
-      <div class="field volume-field"><label for="minVolume">Min. 24-hour volume</label><input id="minVolume" type="number" min="0" step="1" value="100" inputmode="numeric"></div>
+      <div class="field volume-field"><label for="minVolume">Min. 24-hour volume</label><input id="minVolume" type="number" min="0" step="1" value="1000" inputmode="numeric"></div>
       <div class="field trade-field"><label for="maxTradeAge">Max last trade (min)</label><input id="maxTradeAge" type="number" min="0" step="1" value="10" inputmode="numeric"></div>
       <div class="field profit-field"><label for="minProfit">Min. profit</label><input id="minProfit" type="number" min="0" step="1000" value="50000" inputmode="numeric"></div>
       <label class="toggle"><input id="profitable" type="checkbox" checked> Profitable flips only</label>
@@ -211,7 +211,7 @@
         const meta=new Map(mapping.map(x=>[String(x.id),x]));
         const previousItems=new Map(state.items.map(x=>[x.id,x]));
         state.items=Object.entries(latest.data).map(([id,p])=>{
-          const m=meta.get(id); if(!m||!p.high||!p.low)return null;
+          const m=meta.get(id); if(!m||m.name.toLowerCase()==='old school bond'||!p.high||!p.low)return null;
           const buy=p.low, sell=p.high, gross=sell-buy, tax=geTax(sell), net=gross-tax;
           const d=day.data[id]||{}; const volume=(d.highPriceVolume||0)+(d.lowPriceVolume||0);
           const numericId=Number(id),previous=previousItems.get(numericId);
