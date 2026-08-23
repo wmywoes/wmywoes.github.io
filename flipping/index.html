@@ -228,6 +228,7 @@
     }
     function filteredItems(){
       const query=els.search.value.trim().toLowerCase();
+      if(query)return state.items.filter(item=>item.name.toLowerCase().includes(query));
       const maxPriceMillions=els.maxPrice.value.trim()==='' ? Infinity : Number(els.maxPrice.value);
       const maxPrice=Number.isFinite(maxPriceMillions)&&maxPriceMillions>=0 ? maxPriceMillions*1_000_000 : Infinity;
       const minVolumeValue=els.minVolume.value.trim()==='' ? 0 : Number(els.minVolume.value);
@@ -236,7 +237,7 @@
       const maxTradeAge=Number.isFinite(maxTradeAgeValue)&&maxTradeAgeValue>=0 ? maxTradeAgeValue : Infinity;
       const minProfitValue=els.minProfit.value.trim()==='' ? -Infinity : Number(els.minProfit.value);
       const minProfit=Number.isFinite(minProfitValue)&&minProfitValue>=0 ? minProfitValue : -Infinity;
-      return state.items.filter(item=>(!els.profitable.checked||item.net>0) && item.net>=minProfit && item.sell<=maxPrice && item.volume>=minVolume && item.lastTrade<=maxTradeAge && (!query||item.name.toLowerCase().includes(query)));
+      return state.items.filter(item=>(!els.profitable.checked||item.net>0) && item.net>=minProfit && item.sell<=maxPrice && item.volume>=minVolume && item.lastTrade<=maxTradeAge);
     }
     function render(){
       const items=filteredItems();
