@@ -37,6 +37,7 @@
     .price-field { flex:0 0 145px; }
     .volume-field { flex:0 0 165px; }
     .trade-field { flex:0 0 155px; }
+    .profit-field { flex:0 0 145px; }
     button { align-self:end; width:auto; cursor:pointer; border-color:#80632c; background:linear-gradient(#8e6b2d,#5f451c); color:#fff4cf; font-weight:700; text-shadow:0 1px #000; }
     button:hover { filter:brightness(1.12); }
     button:disabled { cursor:wait; opacity:.65; }
@@ -96,6 +97,7 @@
       .price-field { flex:1; }
       .volume-field { flex:1; }
       .trade-field { flex:1; }
+      .profit-field { flex:1; }
     }
     @media(max-width:640px) {
       .shell { padding:14px 10px; }
@@ -126,6 +128,7 @@
       <div class="field price-field"><label for="maxPrice">Max item price (m)</label><input id="maxPrice" type="number" min="0" step="1" value="100" inputmode="decimal"></div>
       <div class="field volume-field"><label for="minVolume">Min. 24-hour volume</label><input id="minVolume" type="number" min="0" step="1" value="100" inputmode="numeric"></div>
       <div class="field trade-field"><label for="maxTradeAge">Max last trade (min)</label><input id="maxTradeAge" type="number" min="0" step="1" value="10" inputmode="numeric"></div>
+      <div class="field profit-field"><label for="minProfit">Min. profit</label><input id="minProfit" type="number" min="0" step="1000" value="50000" inputmode="numeric"></div>
       <label class="toggle"><input id="profitable" type="checkbox" checked> Profitable flips only</label>
       <label class="toggle" title="Pin five balanced picks using profit, volume, ROI and price freshness"><input id="recommended" type="checkbox" checked> Recommended flips</label>
       <button id="refresh" type="button">Refresh</button>
@@ -169,7 +172,7 @@
     const API = 'https://prices.runescape.wiki/api/v1/osrs';
     const state = { items: [], sort: 'net', direction: -1, loadedAt: 0, page: 1, selectedId: null };
     const $ = id => document.getElementById(id);
-    const els = { rows:$('rows'), search:$('search'), maxPrice:$('maxPrice'), minVolume:$('minVolume'), maxTradeAge:$('maxTradeAge'), profitable:$('profitable'), recommended:$('recommended'), refresh:$('refresh'), pagination:$('pagination'), watchOverlay:$('watchOverlay') };
+    const els = { rows:$('rows'), search:$('search'), maxPrice:$('maxPrice'), minVolume:$('minVolume'), maxTradeAge:$('maxTradeAge'), minProfit:$('minProfit'), profitable:$('profitable'), recommended:$('recommended'), refresh:$('refresh'), pagination:$('pagination'), watchOverlay:$('watchOverlay') };
 
     function parseCoins(value) {
       const cleaned = String(value).trim().toLowerCase().replace(/,/g,'');
@@ -225,7 +228,9 @@
       const minVolume=Number.isFinite(minVolumeValue)&&minVolumeValue>=0 ? minVolumeValue : 0;
       const maxTradeAgeValue=els.maxTradeAge.value.trim()==='' ? Infinity : Number(els.maxTradeAge.value);
       const maxTradeAge=Number.isFinite(maxTradeAgeValue)&&maxTradeAgeValue>=0 ? maxTradeAgeValue : Infinity;
-      return state.items.filter(item=>(!els.profitable.checked||item.net>0) && item.sell<=maxPrice && item.volume>=minVolume && item.lastTrade<=maxTradeAge && (!query||item.name.toLowerCase().includes(query)));
+      const minProfitValue=els.minProfit.value.trim()==='' ? -Infinity : Number(els.minProfit.value);
+      const minProfit=Number.isFinite(minProfitValue)&&minProfitValue>=0 ? minProfitValue : -Infinity;
+      return state.items.filter(item=>(!els.profitable.checked||item.net>0) && item.net>=minProfit && item.sell<=maxPrice && item.volume>=minVolume && item.lastTrade<=maxTradeAge && (!query||item.name.toLowerCase().includes(query)));
     }
     function render(){
       const items=filteredItems();
@@ -279,6 +284,7 @@
     els.maxPrice.addEventListener('input',()=>{state.page=1;render()});
     els.minVolume.addEventListener('input',()=>{state.page=1;render()});
     els.maxTradeAge.addEventListener('input',()=>{state.page=1;render()});
+    els.minProfit.addEventListener('input',()=>{state.page=1;render()});
     els.recommended.addEventListener('change',()=>{state.page=1;render()});
     els.profitable.addEventListener('change',()=>{state.page=1;render()});
     els.refresh.addEventListener('click',loadData);
