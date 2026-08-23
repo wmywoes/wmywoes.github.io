@@ -28,57 +28,53 @@
     .dot { display:inline-block; width:8px; height:8px; margin-right:6px; border-radius:50%; background:var(--gold); box-shadow:0 0 8px var(--gold); }
     .dot.live { background:var(--green); box-shadow:0 0 8px var(--green); }
     .dot.error { background:var(--red); box-shadow:0 0 8px var(--red); }
-    .controls { display:grid; grid-template-columns:minmax(210px,1.5fr) repeat(5,minmax(120px,1fr)) auto; gap:10px; padding:13px; border:1px solid var(--line); background:linear-gradient(180deg,rgba(38,31,20,.98),rgba(25,21,14,.98)); border-radius:7px 7px 0 0; box-shadow:0 10px 30px var(--shadow); }
+    .controls { display:flex; gap:12px; align-items:flex-end; padding:16px; border:1px solid var(--line); background:linear-gradient(180deg,rgba(38,31,20,.98),rgba(25,21,14,.98)); border-radius:7px 7px 0 0; box-shadow:0 10px 30px var(--shadow); }
     .field { min-width:0; }
     label { display:block; margin:0 0 4px; color:var(--muted); font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
     input,select,button { width:100%; height:36px; border:1px solid #4a3d28; border-radius:4px; background:#100e0a; color:var(--text); padding:0 10px; outline:none; }
     input:focus,select:focus { border-color:var(--gold); box-shadow:0 0 0 2px rgba(215,175,82,.14); }
+    .search { flex:1; }
     button { align-self:end; width:auto; cursor:pointer; border-color:#80632c; background:linear-gradient(#8e6b2d,#5f451c); color:#fff4cf; font-weight:700; text-shadow:0 1px #000; }
     button:hover { filter:brightness(1.12); }
     button:disabled { cursor:wait; opacity:.65; }
-    .summary { display:grid; grid-template-columns:repeat(4,1fr); border:1px solid var(--line); border-top:0; background:rgba(21,18,12,.96); }
-    .stat { padding:10px 14px; border-right:1px solid var(--line); }
-    .stat:last-child { border:0; }
-    .stat span { display:block; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.06em; }
-    .stat strong { display:block; margin-top:1px; color:var(--gold2); font-size:16px; }
-    .table-wrap { overflow:auto; min-height:410px; max-height:calc(100vh - 260px); border:1px solid var(--line); border-top:0; border-radius:0 0 7px 7px; background:rgba(17,15,11,.97); box-shadow:0 14px 36px var(--shadow); }
-    table { width:100%; min-width:1160px; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+    .toggle { display:flex; align-items:center; gap:9px; height:36px; padding:0 12px; border:1px solid #4a3d28; border-radius:4px; background:#100e0a; color:#cfc5b4; white-space:nowrap; cursor:pointer; user-select:none; }
+    .toggle input { width:17px; height:17px; margin:0; accent-color:#a97e2f; }
+    .table-wrap { overflow:auto; min-height:600px; border:1px solid var(--line); border-top:0; background:rgba(17,15,11,.97); box-shadow:0 14px 36px var(--shadow); }
+    table { width:100%; min-width:830px; border-collapse:collapse; font-variant-numeric:tabular-nums; }
     thead { position:sticky; top:0; z-index:3; background:#2a2317; box-shadow:0 1px var(--line); }
-    th { height:38px; padding:0 10px; color:#c9bda7; text-align:right; white-space:nowrap; font-size:11px; text-transform:uppercase; letter-spacing:.045em; cursor:pointer; user-select:none; }
-    th:first-child,th:nth-child(2) { text-align:left; }
+    th { height:48px; padding:0 18px; color:#c9bda7; text-align:right; white-space:nowrap; font-size:13px; text-transform:uppercase; letter-spacing:.045em; cursor:pointer; user-select:none; }
+    th:first-child { text-align:left; }
     th:hover,th.active { color:var(--gold2); }
     th .arrow { display:inline-block; width:11px; color:var(--gold); }
-    td { height:52px; padding:5px 10px; border-top:1px solid #292217; text-align:right; white-space:nowrap; }
+    td { height:72px; padding:7px 18px; border-top:1px solid #292217; text-align:right; white-space:nowrap; font-size:17px; }
     tbody tr:nth-child(even) { background:rgba(255,255,255,.012); }
     tbody tr:hover { background:#292216; }
-    .rank { width:42px; color:#746b5b; text-align:center; }
     .item-cell { display:flex; align-items:center; gap:9px; text-align:left; }
-    .item-cell img { width:34px; height:34px; object-fit:contain; image-rendering:auto; }
-    .item-name { max-width:230px; overflow:hidden; text-overflow:ellipsis; font-weight:700; color:#f2eadb; }
+    .item-cell img { width:52px; height:52px; object-fit:contain; image-rendering:auto; }
+    .item-name { max-width:330px; overflow:hidden; text-overflow:ellipsis; font-size:18px; font-weight:700; color:#f2eadb; }
     .members { color:var(--gold); font-size:10px; }
     .profit { color:var(--green); font-weight:750; }
     .loss { color:var(--red); }
     .roi { color:var(--blue); }
     .age.fresh { color:var(--green); } .age.old { color:var(--red); }
     .empty { padding:70px 20px; color:var(--muted); text-align:center; }
+    .pagination { display:flex; align-items:center; justify-content:center; gap:8px; padding:14px; border:1px solid var(--line); border-top:0; border-radius:0 0 7px 7px; background:#19150e; }
+    .pagination button { min-width:38px; height:34px; padding:0 11px; }
+    .pagination button.current { background:var(--gold); color:#2a1d08; border-color:var(--gold2); text-shadow:none; }
+    .pagination span { color:var(--muted); padding:0 7px; }
     .notice { margin:12px 2px 0; color:#8f877a; font-size:11px; text-align:center; }
     .notice b { color:#b7ad9b; }
     @media(max-width:1050px) {
-      .controls { grid-template-columns:repeat(3,1fr); }
-      .controls .search { grid-column:span 2; }
-      .summary { grid-template-columns:repeat(2,1fr); }
-      .stat:nth-child(2) { border-right:0; }
-      .stat:nth-child(-n+2) { border-bottom:1px solid var(--line); }
-      .table-wrap { max-height:none; }
+      .controls { flex-wrap:wrap; }
+      .search { flex-basis:100%; }
     }
     @media(max-width:640px) {
       .shell { padding:14px 10px; }
       header { align-items:flex-start; }
       h1 { font-size:21px; }
       .status { max-width:115px; }
-      .controls { grid-template-columns:1fr 1fr; }
-      .controls .search { grid-column:1/-1; }
-      button { width:100%; }
+      .toggle { flex:1; }
+      button { width:auto; }
     }
   </style>
 </head>
@@ -94,40 +90,28 @@
 
     <section class="controls" aria-label="Flip filters">
       <div class="field search"><label for="search">Item search</label><input id="search" type="search" placeholder="Search items…" autocomplete="off"></div>
-      <div class="field"><label for="cash">Cash stack</label><input id="cash" inputmode="numeric" value="50m" aria-describedby="cashHelp"></div>
-      <div class="field"><label for="minProfit">Minimum profit</label><input id="minProfit" inputmode="numeric" value="1k"></div>
-      <div class="field"><label for="minVolume">Minimum 24h volume</label><input id="minVolume" inputmode="numeric" value="100"></div>
-      <div class="field"><label for="maxAge">Maximum price age</label><select id="maxAge"><option value="5">5 minutes</option><option value="15" selected>15 minutes</option><option value="30">30 minutes</option><option value="60">1 hour</option><option value="360">6 hours</option><option value="0">Any age</option></select></div>
-      <div class="field"><label for="membership">Items</label><select id="membership"><option value="all">All items</option><option value="members">Members</option><option value="free">Free-to-play</option></select></div>
+      <label class="toggle"><input id="profitable" type="checkbox" checked> Profitable flips only</label>
       <button id="refresh" type="button">Refresh</button>
-    </section>
-
-    <section class="summary" aria-live="polite">
-      <div class="stat"><span>Matching items</span><strong id="matchCount">—</strong></div>
-      <div class="stat"><span>Best limit profit</span><strong id="bestProfit">—</strong></div>
-      <div class="stat"><span>Highest ROI</span><strong id="bestRoi">—</strong></div>
-      <div class="stat"><span>Cash available</span><strong id="cashDisplay">50.0m</strong></div>
     </section>
 
     <div class="table-wrap">
       <table>
         <thead><tr>
-          <th data-sort="rank">#</th><th data-sort="name">Item</th><th data-sort="buy">Buy at</th><th data-sort="sell">Sell at</th>
-          <th class="active" data-sort="net">Profit each <span class="arrow">▼</span></th><th data-sort="roi">ROI</th>
-          <th data-sort="volume">24h volume</th><th data-sort="limit">Buy limit</th><th data-sort="qty">Affordable qty</th>
-          <th data-sort="potential">Potential profit</th><th data-sort="age">Price age</th>
+          <th data-sort="name">Item</th><th data-sort="buy">Buy at</th><th data-sort="sell">Sell at</th>
+          <th class="active" data-sort="net">Net gain <span class="arrow">▼</span></th><th data-sort="tax">Tax</th><th data-sort="potential">Potential profit</th>
         </tr></thead>
-        <tbody id="rows"><tr><td colspan="11" class="empty">Fetching current Grand Exchange trades…</td></tr></tbody>
+        <tbody id="rows"><tr><td colspan="6" class="empty">Fetching current Grand Exchange trades…</td></tr></tbody>
       </table>
     </div>
+    <nav class="pagination" id="pagination" aria-label="Results pages"></nav>
     <p class="notice"><b>Independent community tool.</b> Prices are crowdsourced from RuneLite trades through the OSRS Wiki API and may be stale or unusual. Profit estimates include the Grand Exchange tax but do not guarantee that offers will fill. Not affiliated with Jagex.</p>
   </main>
 
   <script>
     const API = 'https://prices.runescape.wiki/api/v1/osrs';
-    const state = { items: [], sort: 'net', direction: -1, loadedAt: 0 };
+    const state = { items: [], sort: 'net', direction: -1, loadedAt: 0, page: 1 };
     const $ = id => document.getElementById(id);
-    const els = { rows:$('rows'), search:$('search'), cash:$('cash'), minProfit:$('minProfit'), minVolume:$('minVolume'), maxAge:$('maxAge'), membership:$('membership'), refresh:$('refresh') };
+    const els = { rows:$('rows'), search:$('search'), profitable:$('profitable'), refresh:$('refresh'), pagination:$('pagination') };
 
     function parseCoins(value) {
       const cleaned = String(value).trim().toLowerCase().replace(/,/g,'');
@@ -167,34 +151,39 @@
         render();
       } catch(error) {
         console.error(error); $('dot').className='dot error'; $('statusText').textContent='Could not load prices'; $('updated').textContent='Try refreshing in a moment';
-        els.rows.innerHTML='<tr><td colspan="11" class="empty">The real-time price service could not be reached.<br><button onclick="loadData()" style="margin-top:14px">Try again</button></td></tr>';
+        els.rows.innerHTML='<tr><td colspan="6" class="empty">The real-time price service could not be reached.<br><button onclick="loadData()" style="margin-top:14px">Try again</button></td></tr>';
       } finally { els.refresh.disabled=false; }
     }
     function filteredItems(){
-      const query=els.search.value.trim().toLowerCase(), cash=parseCoins(els.cash.value), minProfit=parseCoins(els.minProfit.value), minVolume=parseCoins(els.minVolume.value), maxAge=Number(els.maxAge.value), membership=els.membership.value;
+      const query=els.search.value.trim().toLowerCase();
       return state.items.map(item=>{
-        const qty=Math.max(0,Math.min(item.limit||Infinity,Math.floor(cash/item.buy)));
-        return {...item,qty,potential:item.net*qty};
-      }).filter(item=>item.net>=minProfit && item.volume>=minVolume && (!maxAge||item.age<=maxAge) && (!query||item.name.toLowerCase().includes(query)) && (membership==='all'||(membership==='members')===item.members));
+        return {...item,potential:item.limit ? item.net*item.limit : 0};
+      }).filter(item=>(!els.profitable.checked||item.net>0) && (!query||item.name.toLowerCase().includes(query)));
     }
     function render(){
-      const cash=parseCoins(els.cash.value), items=filteredItems();
+      const items=filteredItems();
       const key=state.sort;
       items.sort((a,b)=>{ const av=key==='rank'?a.net:a[key],bv=key==='rank'?b.net:b[key]; return typeof av==='string'?state.direction*av.localeCompare(bv):state.direction*((av??0)-(bv??0)); });
-      $('matchCount').textContent=exact(items.length); $('cashDisplay').textContent=compact(cash);
-      $('bestProfit').textContent=items.length?compact(Math.max(...items.map(x=>x.potential)))+' gp':'—';
-      $('bestRoi').textContent=items.length?Math.max(...items.map(x=>x.roi)).toFixed(2)+'%':'—';
       document.querySelectorAll('th[data-sort]').forEach(th=>{th.classList.toggle('active',th.dataset.sort===state.sort); const span=th.querySelector('.arrow');if(span)span.remove();if(th.dataset.sort===state.sort)th.insertAdjacentHTML('beforeend',' <span class="arrow">'+(state.direction<0?'▼':'▲')+'</span>');});
-      if(!items.length){els.rows.innerHTML='<tr><td colspan="11" class="empty">No items match those filters. Try lowering minimum profit or volume, or allowing older prices.</td></tr>';return;}
-      els.rows.innerHTML=items.slice(0,750).map((x,i)=>`<tr>
-        <td class="rank">${i+1}</td><td><div class="item-cell"><img loading="lazy" alt="" src="https://secure.runescape.com/m=itemdb_oldschool/obj_sprite.gif?id=${x.id}"><div><div class="item-name" title="${escapeHtml(x.name)}">${escapeHtml(x.name)}</div>${x.members?'<span class="members">Members</span>':'<span style="color:#8f8778;font-size:10px">Free-to-play</span>'}</div></div></td>
-        <td title="Instant-sell price">${exact(x.buy)}</td><td title="Instant-buy price">${exact(x.sell)}</td><td class="${x.net>=0?'profit':'loss'}" title="After ${exact(x.tax)} gp tax">${x.net>=0?'+':''}${exact(x.net)}</td>
-        <td class="roi">${x.roi.toFixed(2)}%</td><td>${exact(x.volume)}</td><td>${x.limit?exact(x.limit):'—'}</td><td>${exact(x.qty)}</td><td class="${x.potential>=0?'profit':'loss'}">${x.potential>=0?'+':''}${compact(x.potential)} gp</td><td class="age ${x.age<=5?'fresh':x.age>30?'old':''}">${ageLabel(x.age)}</td>
+      const pages=Math.max(1,Math.ceil(items.length/10)); state.page=Math.min(state.page,pages);
+      if(!items.length){els.rows.innerHTML='<tr><td colspan="6" class="empty">No items match your search.</td></tr>';els.pagination.innerHTML='';return;}
+      const start=(state.page-1)*10;
+      els.rows.innerHTML=items.slice(start,start+10).map(x=>`<tr>
+        <td><div class="item-cell"><img loading="lazy" alt="" src="https://secure.runescape.com/m=itemdb_oldschool/obj_sprite.gif?id=${x.id}"><div><div class="item-name" title="${escapeHtml(x.name)}">${escapeHtml(x.name)}</div>${x.members?'<span class="members">Members</span>':'<span style="color:#8f8778;font-size:10px">Free-to-play</span>'}</div></div></td>
+        <td title="Price to buy this item">${exact(x.buy)}</td><td title="Price to sell this item">${exact(x.sell)}</td><td class="${x.net>=0?'profit':'loss'}">${x.net>=0?'+':''}${exact(x.net)}</td>
+        <td title="Grand Exchange tax per item">${exact(x.tax)}</td><td class="${x.potential>=0?'profit':'loss'}" title="Net gain × ${exact(x.limit)} item buy limit">${x.limit?(x.potential>=0?'+':'')+exact(x.potential):'—'}</td>
       </tr>`).join('');
+      renderPagination(pages);
+    }
+    function renderPagination(pages){
+      const buttons=[]; const add=(label,page,disabled=false,current=false)=>buttons.push(`<button type="button" data-page="${page}" ${disabled?'disabled':''} class="${current?'current':''}">${label}</button>`);
+      add('‹',state.page-1,state.page===1); const candidates=[1,state.page-1,state.page,state.page+1,pages].filter((v,i,a)=>v>=1&&v<=pages&&a.indexOf(v)===i).sort((a,b)=>a-b);
+      let last=0; candidates.forEach(p=>{if(last&&p-last>1)buttons.push('<span>…</span>');add(p,p,false,p===state.page);last=p}); add('›',state.page+1,state.page===pages);
+      els.pagination.innerHTML=buttons.join(''); els.pagination.querySelectorAll('button:not([disabled])').forEach(b=>b.addEventListener('click',()=>{state.page=Number(b.dataset.page);render();document.querySelector('.table-wrap').scrollTop=0}));
     }
     document.querySelectorAll('th[data-sort]').forEach(th=>th.addEventListener('click',()=>{const key=th.dataset.sort;if(state.sort===key)state.direction*=-1;else{state.sort=key;state.direction=key==='name'?1:-1}render()}));
-    [els.search,els.cash,els.minProfit,els.minVolume].forEach(el=>el.addEventListener('input',render));
-    [els.maxAge,els.membership].forEach(el=>el.addEventListener('change',render));
+    els.search.addEventListener('input',()=>{state.page=1;render()});
+    els.profitable.addEventListener('change',()=>{state.page=1;render()});
     els.refresh.addEventListener('click',loadData);
     setInterval(()=>{if(!document.hidden)loadData()},60000);
     loadData();
