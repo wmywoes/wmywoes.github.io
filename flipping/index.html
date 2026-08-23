@@ -35,6 +35,7 @@
     input:focus,select:focus { border-color:var(--gold); box-shadow:0 0 0 2px rgba(215,175,82,.14); }
     .search { flex:1; }
     .price-field { flex:0 0 145px; }
+    .volume-field { flex:0 0 165px; }
     button { align-self:end; width:auto; cursor:pointer; border-color:#80632c; background:linear-gradient(#8e6b2d,#5f451c); color:#fff4cf; font-weight:700; text-shadow:0 1px #000; }
     button:hover { filter:brightness(1.12); }
     button:disabled { cursor:wait; opacity:.65; }
@@ -53,7 +54,7 @@
     td:last-child { text-align:right; }
     tbody tr:nth-child(even) { background:rgba(255,255,255,.012); }
     tbody tr:hover { background:#292216; }
-    .item-cell { display:flex; align-items:center; gap:9px; text-align:left; }
+    .item-cell { display:flex; align-items:center; gap:14px; text-align:left; }
     .item-cell img { width:52px; height:52px; object-fit:contain; image-rendering:auto; }
     .item-name { max-width:330px; overflow:hidden; text-overflow:ellipsis; font-size:18px; font-weight:700; color:#f2eadb; }
     .members { color:var(--gold); font-size:10px; }
@@ -72,6 +73,7 @@
       .controls { flex-wrap:wrap; }
       .search { flex-basis:100%; }
       .price-field { flex:1; }
+      .volume-field { flex:1; }
     }
     @media(max-width:640px) {
       .shell { padding:14px 10px; }
@@ -96,6 +98,7 @@
     <section class="controls" aria-label="Flip filters">
       <div class="field search"><label for="search">Item search</label><input id="search" type="search" placeholder="Search items…" autocomplete="off"></div>
       <div class="field price-field"><label for="maxPrice">Max item price (m)</label><input id="maxPrice" type="number" min="0" step="1" value="100" inputmode="decimal"></div>
+      <div class="field volume-field"><label for="minVolume">Min. 24-hour volume</label><input id="minVolume" type="number" min="0" step="1" value="100" inputmode="numeric"></div>
       <label class="toggle"><input id="profitable" type="checkbox" checked> Profitable flips only</label>
       <button id="refresh" type="button">Refresh</button>
     </section>
@@ -103,10 +106,10 @@
     <div class="table-wrap">
       <table>
         <thead><tr>
-          <th data-sort="name">Item</th><th data-sort="buy">Buy at</th><th data-sort="sell">Sell at</th>
+          <th data-sort="name">Item</th><th data-sort="lastTrade">Last trade</th><th data-sort="buy">Buy at</th><th data-sort="sell">Sell at</th>
           <th data-sort="gross">Profit (before tax)</th><th data-sort="tax">Tax</th><th data-sort="volume">24-hour volume</th><th class="active" data-sort="net">Profit <span class="arrow">▼</span></th>
         </tr></thead>
-        <tbody id="rows"><tr><td colspan="7" class="empty">Fetching current Grand Exchange trades…</td></tr></tbody>
+        <tbody id="rows"><tr><td colspan="8" class="empty">Fetching current Grand Exchange trades…</td></tr></tbody>
       </table>
     </div>
     <nav class="pagination" id="pagination" aria-label="Results pages"></nav>
@@ -117,7 +120,7 @@
     const API = 'https://prices.runescape.wiki/api/v1/osrs';
     const state = { items: [], sort: 'net', direction: -1, loadedAt: 0, page: 1 };
     const $ = id => document.getElementById(id);
-    const els = { rows:$('rows'), search:$('search'), maxPrice:$('maxPrice'), profitable:$('profitable'), refresh:$('refresh'), pagination:$('pagination') };
+    const els = { rows:$('rows'), search:$('search'), maxPrice:$('maxPrice'), minVolume:$('minVolume'), profitable:$('profitable'), refresh:$('refresh'), pagination:$('pagination') };
 
     function parseCoins(value) {
       const cleaned = String(value).trim().toLowerCase().replace(/,/g,'');
@@ -151,20 +154,22 @@
           const m=meta.get(id); if(!m||!p.high||!p.low)return null;
           const buy=p.low, sell=p.high, gross=sell-buy, tax=geTax(sell), net=gross-tax;
           const d=day.data[id]||{}; const volume=(d.highPriceVolume||0)+(d.lowPriceVolume||0);
-          return {id:Number(id),name:m.name,members:m.members,buy,sell,gross,tax,net,roi:buy?net/buy*100:0,volume,age:Math.max(ageMinutes(p.highTime),ageMinutes(p.lowTime))};
+          return {id:Number(id),name:m.name,buy,sell,gross,tax,net,roi:buy?net/buy*100:0,volume,lastTrade:Math.min(ageMinutes(p.highTime),ageMinutes(p.lowTime)),age:Math.max(ageMinutes(p.highTime),ageMinutes(p.lowTime))};
         }).filter(Boolean);
         state.loadedAt=Date.now(); $('dot').className='dot live'; $('statusText').textContent='Live market data'; $('updated').textContent='Updated '+new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
         render();
       } catch(error) {
         console.error(error); $('dot').className='dot error'; $('statusText').textContent='Could not load prices'; $('updated').textContent='Try refreshing in a moment';
-        els.rows.innerHTML='<tr><td colspan="7" class="empty">The real-time price service could not be reached.<br><button onclick="loadData()" style="margin-top:14px">Try again</button></td></tr>';
+        els.rows.innerHTML='<tr><td colspan="8" class="empty">The real-time price service could not be reached.<br><button onclick="loadData()" style="margin-top:14px">Try again</button></td></tr>';
       } finally { els.refresh.disabled=false; }
     }
     function filteredItems(){
       const query=els.search.value.trim().toLowerCase();
       const maxPriceMillions=els.maxPrice.value.trim()==='' ? Infinity : Number(els.maxPrice.value);
       const maxPrice=Number.isFinite(maxPriceMillions)&&maxPriceMillions>=0 ? maxPriceMillions*1_000_000 : Infinity;
-      return state.items.filter(item=>(!els.profitable.checked||item.net>0) && item.sell<=maxPrice && (!query||item.name.toLowerCase().includes(query)));
+      const minVolumeValue=els.minVolume.value.trim()==='' ? 0 : Number(els.minVolume.value);
+      const minVolume=Number.isFinite(minVolumeValue)&&minVolumeValue>=0 ? minVolumeValue : 0;
+      return state.items.filter(item=>(!els.profitable.checked||item.net>0) && item.sell<=maxPrice && item.volume>=minVolume && (!query||item.name.toLowerCase().includes(query)));
     }
     function render(){
       const items=filteredItems();
@@ -172,11 +177,11 @@
       items.sort((a,b)=>{ const av=key==='rank'?a.net:a[key],bv=key==='rank'?b.net:b[key]; return typeof av==='string'?state.direction*av.localeCompare(bv):state.direction*((av??0)-(bv??0)); });
       document.querySelectorAll('th[data-sort]').forEach(th=>{th.classList.toggle('active',th.dataset.sort===state.sort); const span=th.querySelector('.arrow');if(span)span.remove();if(th.dataset.sort===state.sort)th.insertAdjacentHTML('beforeend',' <span class="arrow">'+(state.direction<0?'▼':'▲')+'</span>');});
       const pages=Math.max(1,Math.ceil(items.length/10)); state.page=Math.min(state.page,pages);
-      if(!items.length){els.rows.innerHTML='<tr><td colspan="7" class="empty">No items match your search.</td></tr>';els.pagination.innerHTML='';return;}
+      if(!items.length){els.rows.innerHTML='<tr><td colspan="8" class="empty">No items match your filters.</td></tr>';els.pagination.innerHTML='';return;}
       const start=(state.page-1)*10;
       els.rows.innerHTML=items.slice(start,start+10).map(x=>`<tr>
-        <td><div class="item-cell"><img loading="lazy" alt="" src="https://secure.runescape.com/m=itemdb_oldschool/obj_sprite.gif?id=${x.id}"><div><div class="item-name" title="${escapeHtml(x.name)}">${escapeHtml(x.name)}</div>${x.members?'<span class="members">Members</span>':'<span style="color:#8f8778;font-size:10px">Free-to-play</span>'}</div></div></td>
-        <td title="Price to buy one item">${exact(x.buy)}</td><td title="Price to sell one item">${exact(x.sell)}</td><td>${x.gross>=0?'+':''}${exact(x.gross)}</td>
+        <td><div class="item-cell"><img loading="lazy" alt="" src="https://secure.runescape.com/m=itemdb_oldschool/obj_sprite.gif?id=${x.id}"><div class="item-name" title="${escapeHtml(x.name)}">${escapeHtml(x.name)}</div></div></td>
+        <td class="age ${x.lastTrade<=5?'fresh':x.lastTrade>30?'old':''}" title="Most recent recorded buy or sell">${ageLabel(x.lastTrade)}</td><td title="Price to buy one item">${exact(x.buy)}</td><td title="Price to sell one item">${exact(x.sell)}</td><td>${x.gross>=0?'+':''}${exact(x.gross)}</td>
         <td title="Grand Exchange tax for selling one item">${exact(x.tax)}</td><td title="Combined instant-buy and instant-sell volume over 24 hours">${exact(x.volume)}</td><td class="${x.net>=0?'profit':'loss'}" title="Profit after tax for one item">${x.net>=0?'+':''}${exact(x.net)}</td>
       </tr>`).join('');
       renderPagination(pages);
@@ -190,6 +195,7 @@
     document.querySelectorAll('th[data-sort]').forEach(th=>th.addEventListener('click',()=>{const key=th.dataset.sort;if(state.sort===key)state.direction*=-1;else{state.sort=key;state.direction=key==='name'?1:-1}render()}));
     els.search.addEventListener('input',()=>{state.page=1;render()});
     els.maxPrice.addEventListener('input',()=>{state.page=1;render()});
+    els.minVolume.addEventListener('input',()=>{state.page=1;render()});
     els.profitable.addEventListener('change',()=>{state.page=1;render()});
     els.refresh.addEventListener('click',loadData);
     setInterval(()=>{if(!document.hidden)loadData()},60000);
