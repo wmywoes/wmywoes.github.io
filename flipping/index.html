@@ -239,7 +239,7 @@
       const maxTradeAge=Number.isFinite(maxTradeAgeValue)&&maxTradeAgeValue>=0 ? maxTradeAgeValue : Infinity;
       const minProfitValue=els.minProfit.value.trim()==='' ? -Infinity : Number(els.minProfit.value);
       const minProfit=Number.isFinite(minProfitValue)&&minProfitValue>=0 ? minProfitValue : -Infinity;
-      return state.items.filter(item=>(!els.profitable.checked||item.net>0) && item.net>=minProfit && item.sell<=maxPrice && item.volume>=minVolume && item.lastTrade<=maxTradeAge);
+      return state.items.filter(item=>state.pinnedIds.has(item.id)||((!els.profitable.checked||item.net>0) && item.net>=minProfit && item.sell<=maxPrice && item.volume>=minVolume && item.lastTrade<=maxTradeAge));
     }
     function render(){
       const items=filteredItems();
