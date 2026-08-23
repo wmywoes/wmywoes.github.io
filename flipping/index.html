@@ -41,13 +41,16 @@
     .toggle { display:flex; align-items:center; gap:9px; height:36px; padding:0 12px; border:1px solid #4a3d28; border-radius:4px; background:#100e0a; color:#cfc5b4; white-space:nowrap; cursor:pointer; user-select:none; }
     .toggle input { width:17px; height:17px; margin:0; accent-color:#a97e2f; }
     .table-wrap { overflow:auto; min-height:600px; border:1px solid var(--line); border-top:0; background:rgba(17,15,11,.97); box-shadow:0 14px 36px var(--shadow); }
-    table { width:100%; min-width:830px; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+    table { width:100%; min-width:1020px; border-collapse:collapse; font-variant-numeric:tabular-nums; }
     thead { position:sticky; top:0; z-index:3; background:#2a2317; box-shadow:0 1px var(--line); }
-    th { height:48px; padding:0 18px; color:#c9bda7; text-align:right; white-space:nowrap; font-size:13px; text-transform:uppercase; letter-spacing:.045em; cursor:pointer; user-select:none; }
+    th { height:48px; padding:0 18px; color:#c9bda7; text-align:center; white-space:nowrap; font-size:13px; text-transform:uppercase; letter-spacing:.045em; cursor:pointer; user-select:none; }
     th:first-child { text-align:left; }
+    th:last-child { text-align:right; }
     th:hover,th.active { color:var(--gold2); }
     th .arrow { display:inline-block; width:11px; color:var(--gold); }
-    td { height:72px; padding:7px 18px; border-top:1px solid #292217; text-align:right; white-space:nowrap; font-size:17px; }
+    td { height:72px; padding:7px 18px; border-top:1px solid #292217; text-align:center; white-space:nowrap; font-size:17px; }
+    td:first-child { text-align:left; }
+    td:last-child { text-align:right; }
     tbody tr:nth-child(even) { background:rgba(255,255,255,.012); }
     tbody tr:hover { background:#292216; }
     .item-cell { display:flex; align-items:center; gap:9px; text-align:left; }
@@ -101,9 +104,9 @@
       <table>
         <thead><tr>
           <th data-sort="name">Item</th><th data-sort="buy">Buy at</th><th data-sort="sell">Sell at</th>
-          <th data-sort="gross">Profit (before tax)</th><th data-sort="tax">Tax</th><th class="active" data-sort="net">Profit <span class="arrow">▼</span></th>
+          <th data-sort="gross">Profit (before tax)</th><th data-sort="tax">Tax</th><th data-sort="volume">24-hour volume</th><th class="active" data-sort="net">Profit <span class="arrow">▼</span></th>
         </tr></thead>
-        <tbody id="rows"><tr><td colspan="6" class="empty">Fetching current Grand Exchange trades…</td></tr></tbody>
+        <tbody id="rows"><tr><td colspan="7" class="empty">Fetching current Grand Exchange trades…</td></tr></tbody>
       </table>
     </div>
     <nav class="pagination" id="pagination" aria-label="Results pages"></nav>
@@ -154,7 +157,7 @@
         render();
       } catch(error) {
         console.error(error); $('dot').className='dot error'; $('statusText').textContent='Could not load prices'; $('updated').textContent='Try refreshing in a moment';
-        els.rows.innerHTML='<tr><td colspan="6" class="empty">The real-time price service could not be reached.<br><button onclick="loadData()" style="margin-top:14px">Try again</button></td></tr>';
+        els.rows.innerHTML='<tr><td colspan="7" class="empty">The real-time price service could not be reached.<br><button onclick="loadData()" style="margin-top:14px">Try again</button></td></tr>';
       } finally { els.refresh.disabled=false; }
     }
     function filteredItems(){
@@ -169,12 +172,12 @@
       items.sort((a,b)=>{ const av=key==='rank'?a.net:a[key],bv=key==='rank'?b.net:b[key]; return typeof av==='string'?state.direction*av.localeCompare(bv):state.direction*((av??0)-(bv??0)); });
       document.querySelectorAll('th[data-sort]').forEach(th=>{th.classList.toggle('active',th.dataset.sort===state.sort); const span=th.querySelector('.arrow');if(span)span.remove();if(th.dataset.sort===state.sort)th.insertAdjacentHTML('beforeend',' <span class="arrow">'+(state.direction<0?'▼':'▲')+'</span>');});
       const pages=Math.max(1,Math.ceil(items.length/10)); state.page=Math.min(state.page,pages);
-      if(!items.length){els.rows.innerHTML='<tr><td colspan="6" class="empty">No items match your search.</td></tr>';els.pagination.innerHTML='';return;}
+      if(!items.length){els.rows.innerHTML='<tr><td colspan="7" class="empty">No items match your search.</td></tr>';els.pagination.innerHTML='';return;}
       const start=(state.page-1)*10;
       els.rows.innerHTML=items.slice(start,start+10).map(x=>`<tr>
         <td><div class="item-cell"><img loading="lazy" alt="" src="https://secure.runescape.com/m=itemdb_oldschool/obj_sprite.gif?id=${x.id}"><div><div class="item-name" title="${escapeHtml(x.name)}">${escapeHtml(x.name)}</div>${x.members?'<span class="members">Members</span>':'<span style="color:#8f8778;font-size:10px">Free-to-play</span>'}</div></div></td>
         <td title="Price to buy one item">${exact(x.buy)}</td><td title="Price to sell one item">${exact(x.sell)}</td><td>${x.gross>=0?'+':''}${exact(x.gross)}</td>
-        <td title="Grand Exchange tax for selling one item">${exact(x.tax)}</td><td class="${x.net>=0?'profit':'loss'}" title="Profit after tax for one item">${x.net>=0?'+':''}${exact(x.net)}</td>
+        <td title="Grand Exchange tax for selling one item">${exact(x.tax)}</td><td title="Combined instant-buy and instant-sell volume over 24 hours">${exact(x.volume)}</td><td class="${x.net>=0?'profit':'loss'}" title="Profit after tax for one item">${x.net>=0?'+':''}${exact(x.net)}</td>
       </tr>`).join('');
       renderPagination(pages);
     }
