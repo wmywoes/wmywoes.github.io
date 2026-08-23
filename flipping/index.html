@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#17130d">
+  <meta name="description" content="An independent Old School RuneScape flipping tool using real-time RuneLite and OSRS Wiki market data.">
+  <title>OSRS Flipping — Woes</title>
+  <style>
+    :root {
+      --bg:#110f0b; --panel:#1b1710; --panel2:#241e14; --line:#3d3322;
+      --gold:#d7af52; --gold2:#ffe29a; --text:#eee6d6; --muted:#aaa08d;
+      --green:#69d28b; --red:#ee786e; --blue:#7eb8e8; --shadow:rgba(0,0,0,.36);
+    }
+    * { box-sizing:border-box; }
+    html { color-scheme:dark; }
+    body { margin:0; min-width:320px; background:radial-gradient(circle at 50% -160px,#322817 0,#18130c 36%,var(--bg) 72%); color:var(--text); font:14px/1.45 Inter,Segoe UI,Arial,sans-serif; }
+    button,input,select { font:inherit; }
+    a { color:var(--gold2); }
+    .shell { max-width:1560px; margin:auto; padding:24px; }
+    header { display:flex; align-items:flex-end; justify-content:space-between; gap:18px; margin-bottom:16px; }
+    .brand { display:flex; align-items:center; gap:13px; }
+    .coin { width:42px; height:42px; display:grid; place-items:center; border:2px solid #7d6024; border-radius:50%; background:radial-gradient(circle at 35% 28%,#fff1a6 0 7%,#e8bd48 22%,#8b671e 70%); color:#4a330d; box-shadow:0 0 0 3px #261c0d,0 5px 14px var(--shadow); font-weight:900; font-size:19px; }
+    h1 { margin:0; color:var(--gold2); font:700 25px Georgia,serif; letter-spacing:.02em; text-shadow:0 2px #000; }
+    .subtitle { margin:2px 0 0; color:var(--muted); font-size:13px; }
+    .status { text-align:right; color:var(--muted); font-size:12px; }
+    .status strong { color:var(--text); }
+    .dot { display:inline-block; width:8px; height:8px; margin-right:6px; border-radius:50%; background:var(--gold); box-shadow:0 0 8px var(--gold); }
+    .dot.live { background:var(--green); box-shadow:0 0 8px var(--green); }
+    .dot.error { background:var(--red); box-shadow:0 0 8px var(--red); }
+    .controls { display:grid; grid-template-columns:minmax(210px,1.5fr) repeat(5,minmax(120px,1fr)) auto; gap:10px; padding:13px; border:1px solid var(--line); background:linear-gradient(180deg,rgba(38,31,20,.98),rgba(25,21,14,.98)); border-radius:7px 7px 0 0; box-shadow:0 10px 30px var(--shadow); }
+    .field { min-width:0; }
+    label { display:block; margin:0 0 4px; color:var(--muted); font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
+    input,select,button { width:100%; height:36px; border:1px solid #4a3d28; border-radius:4px; background:#100e0a; color:var(--text); padding:0 10px; outline:none; }
+    input:focus,select:focus { border-color:var(--gold); box-shadow:0 0 0 2px rgba(215,175,82,.14); }
+    button { align-self:end; width:auto; cursor:pointer; border-color:#80632c; background:linear-gradient(#8e6b2d,#5f451c); color:#fff4cf; font-weight:700; text-shadow:0 1px #000; }
+    button:hover { filter:brightness(1.12); }
+    button:disabled { cursor:wait; opacity:.65; }
+    .summary { display:grid; grid-template-columns:repeat(4,1fr); border:1px solid var(--line); border-top:0; background:rgba(21,18,12,.96); }
+    .stat { padding:10px 14px; border-right:1px solid var(--line); }
+    .stat:last-child { border:0; }
+    .stat span { display:block; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.06em; }
+    .stat strong { display:block; margin-top:1px; color:var(--gold2); font-size:16px; }
+    .table-wrap { overflow:auto; min-height:410px; max-height:calc(100vh - 260px); border:1px solid var(--line); border-top:0; border-radius:0 0 7px 7px; background:rgba(17,15,11,.97); box-shadow:0 14px 36px var(--shadow); }
+    table { width:100%; min-width:1160px; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+    thead { position:sticky; top:0; z-index:3; background:#2a2317; box-shadow:0 1px var(--line); }
+    th { height:38px; padding:0 10px; color:#c9bda7; text-align:right; white-space:nowrap; font-size:11px; text-transform:uppercase; letter-spacing:.045em; cursor:pointer; user-select:none; }
+    th:first-child,th:nth-child(2) { text-align:left; }
+    th:hover,th.active { color:var(--gold2); }
+    th .arrow { display:inline-block; width:11px; color:var(--gold); }
+    td { height:52px; padding:5px 10px; border-top:1px solid #292217; text-align:right; white-space:nowrap; }
+    tbody tr:nth-child(even) { background:rgba(255,255,255,.012); }
+    tbody tr:hover { background:#292216; }
+    .rank { width:42px; color:#746b5b; text-align:center; }
+    .item-cell { display:flex; align-items:center; gap:9px; text-align:left; }
+    .item-cell img { width:34px; height:34px; object-fit:contain; image-rendering:auto; }
+    .item-name { max-width:230px; overflow:hidden; text-overflow:ellipsis; font-weight:700; color:#f2eadb; }
+    .members { color:var(--gold); font-size:10px; }
+    .profit { color:var(--green); font-weight:750; }
+    .loss { color:var(--red); }
+    .roi { color:var(--blue); }
+    .age.fresh { color:var(--green); } .age.old { color:var(--red); }
+    .empty { padding:70px 20px; color:var(--muted); text-align:center; }
+    .notice { margin:12px 2px 0; color:#8f877a; font-size:11px; text-align:center; }
+    .notice b { color:#b7ad9b; }
+    @media(max-width:1050px) {
+      .controls { grid-template-columns:repeat(3,1fr); }
+      .controls .search { grid-column:span 2; }
+      .summary { grid-template-columns:repeat(2,1fr); }
+      .stat:nth-child(2) { border-right:0; }
+      .stat:nth-child(-n+2) { border-bottom:1px solid var(--line); }
+      .table-wrap { max-height:none; }
+    }
+    @media(max-width:640px) {
+      .shell { padding:14px 10px; }
+      header { align-items:flex-start; }
+      h1 { font-size:21px; }
+      .status { max-width:115px; }
+      .controls { grid-template-columns:1fr 1fr; }
+      .controls .search { grid-column:1/-1; }
+      button { width:100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div class="brand">
+        <div class="coin">W</div>
+        <div><h1>OSRS Flipping</h1><p class="subtitle">Find active Grand Exchange margins using real traded prices.</p></div>
+      </div>
+      <div class="status"><div><span class="dot" id="dot"></span><strong id="statusText">Loading prices…</strong></div><div id="updated">Connecting to the Wiki API</div></div>
+    </header>
+
+    <section class="controls" aria-label="Flip filters">
+      <div class="field search"><label for="search">Item search</label><input id="search" type="search" placeholder="Search items…" autocomplete="off"></div>
+      <div class="field"><label for="cash">Cash stack</label><input id="cash" inputmode="numeric" value="50m" aria-describedby="cashHelp"></div>
+      <div class="field"><label for="minProfit">Minimum profit</label><input id="minProfit" inputmode="numeric" value="1k"></div>
+      <div class="field"><label for="minVolume">Minimum 24h volume</label><input id="minVolume" inputmode="numeric" value="100"></div>
+      <div class="field"><label for="maxAge">Maximum price age</label><select id="maxAge"><option value="5">5 minutes</option><option value="15" selected>15 minutes</option><option value="30">30 minutes</option><option value="60">1 hour</option><option value="360">6 hours</option><option value="0">Any age</option></select></div>
+      <div class="field"><label for="membership">Items</label><select id="membership"><option value="all">All items</option><option value="members">Members</option><option value="free">Free-to-play</option></select></div>
+      <button id="refresh" type="button">Refresh</button>
+    </section>
+
+    <section class="summary" aria-live="polite">
+      <div class="stat"><span>Matching items</span><strong id="matchCount">—</strong></div>
+      <div class="stat"><span>Best limit profit</span><strong id="bestProfit">—</strong></div>
+      <div class="stat"><span>Highest ROI</span><strong id="bestRoi">—</strong></div>
+      <div class="stat"><span>Cash available</span><strong id="cashDisplay">50.0m</strong></div>
+    </section>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th data-sort="rank">#</th><th data-sort="name">Item</th><th data-sort="buy">Buy at</th><th data-sort="sell">Sell at</th>
+          <th class="active" data-sort="net">Profit each <span class="arrow">▼</span></th><th data-sort="roi">ROI</th>
+          <th data-sort="volume">24h volume</th><th data-sort="limit">Buy limit</th><th data-sort="qty">Affordable qty</th>
+          <th data-sort="potential">Potential profit</th><th data-sort="age">Price age</th>
+        </tr></thead>
+        <tbody id="rows"><tr><td colspan="11" class="empty">Fetching current Grand Exchange trades…</td></tr></tbody>
+      </table>
+    </div>
+    <p class="notice"><b>Independent community tool.</b> Prices are crowdsourced from RuneLite trades through the OSRS Wiki API and may be stale or unusual. Profit estimates include the Grand Exchange tax but do not guarantee that offers will fill. Not affiliated with Jagex.</p>
+  </main>
+
+  <script>
+    const API = 'https://prices.runescape.wiki/api/v1/osrs';
+    const state = { items: [], sort: 'net', direction: -1, loadedAt: 0 };
+    const $ = id => document.getElementById(id);
+    const els = { rows:$('rows'), search:$('search'), cash:$('cash'), minProfit:$('minProfit'), minVolume:$('minVolume'), maxAge:$('maxAge'), membership:$('membership'), refresh:$('refresh') };
+
+    function parseCoins(value) {
+      const cleaned = String(value).trim().toLowerCase().replace(/,/g,'');
+      const match = cleaned.match(/^([0-9]*\.?[0-9]+)\s*([kmb])?$/);
+      if (!match) return 0;
+      return Math.floor(Number(match[1]) * ({k:1e3,m:1e6,b:1e9}[match[2]] || 1));
+    }
+    function compact(value, decimals=1) {
+      if (!Number.isFinite(value)) return '—';
+      const abs=Math.abs(value); let n=value, suffix='';
+      if(abs>=1e9){n=value/1e9;suffix='b'} else if(abs>=1e6){n=value/1e6;suffix='m'} else if(abs>=1e3){n=value/1e3;suffix='k'}
+      return (suffix ? n.toFixed(Math.abs(n)>=100?0:Math.abs(n)>=10?1:decimals).replace(/\.0$/,'') : Math.round(n).toLocaleString()) + suffix;
+    }
+    function exact(value){ return Number.isFinite(value) ? Math.round(value).toLocaleString() : '—'; }
+    function geTax(sellPrice){ return sellPrice < 100 ? 0 : Math.min(5_000_000, Math.floor(sellPrice * .02)); }
+    function ageMinutes(timestamp){ return timestamp ? Math.max(0,(Date.now()/1000-timestamp)/60) : Infinity; }
+    function ageLabel(minutes){ if(!Number.isFinite(minutes))return 'Unknown'; if(minutes<1)return '<1 min'; if(minutes<60)return Math.floor(minutes)+' min'; if(minutes<1440)return (minutes/60).toFixed(minutes<120?1:0)+' hr'; return Math.floor(minutes/1440)+'d'; }
+    function escapeHtml(s){ return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+
+    async function fetchJson(path){
+      const response=await fetch(API+path,{headers:{Accept:'application/json'}});
+      if(!response.ok) throw new Error('Price service returned '+response.status);
+      return response.json();
+    }
+    async function loadData(){
+      els.refresh.disabled=true; $('dot').className='dot'; $('statusText').textContent='Loading prices…'; $('updated').textContent='Connecting to the Wiki API';
+      try {
+        const [mapping,latest,day]=await Promise.all([fetchJson('/mapping'),fetchJson('/latest'),fetchJson('/24h')]);
+        const meta=new Map(mapping.map(x=>[String(x.id),x]));
+        state.items=Object.entries(latest.data).map(([id,p])=>{
+          const m=meta.get(id); if(!m||!p.high||!p.low)return null;
+          const buy=p.low, sell=p.high, tax=geTax(sell), net=sell-buy-tax;
+          const d=day.data[id]||{}; const volume=(d.highPriceVolume||0)+(d.lowPriceVolume||0);
+          return {id:Number(id),name:m.name,members:m.members,limit:m.limit||0,buy,sell,tax,net,roi:buy?net/buy*100:0,volume,age:Math.max(ageMinutes(p.highTime),ageMinutes(p.lowTime))};
+        }).filter(Boolean);
+        state.loadedAt=Date.now(); $('dot').className='dot live'; $('statusText').textContent='Live market data'; $('updated').textContent='Updated '+new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+        render();
+      } catch(error) {
+        console.error(error); $('dot').className='dot error'; $('statusText').textContent='Could not load prices'; $('updated').textContent='Try refreshing in a moment';
+        els.rows.innerHTML='<tr><td colspan="11" class="empty">The real-time price service could not be reached.<br><button onclick="loadData()" style="margin-top:14px">Try again</button></td></tr>';
+      } finally { els.refresh.disabled=false; }
+    }
+    function filteredItems(){
+      const query=els.search.value.trim().toLowerCase(), cash=parseCoins(els.cash.value), minProfit=parseCoins(els.minProfit.value), minVolume=parseCoins(els.minVolume.value), maxAge=Number(els.maxAge.value), membership=els.membership.value;
+      return state.items.map(item=>{
+        const qty=Math.max(0,Math.min(item.limit||Infinity,Math.floor(cash/item.buy)));
+        return {...item,qty,potential:item.net*qty};
+      }).filter(item=>item.net>=minProfit && item.volume>=minVolume && (!maxAge||item.age<=maxAge) && (!query||item.name.toLowerCase().includes(query)) && (membership==='all'||(membership==='members')===item.members));
+    }
+    function render(){
+      const cash=parseCoins(els.cash.value), items=filteredItems();
+      const key=state.sort;
+      items.sort((a,b)=>{ const av=key==='rank'?a.net:a[key],bv=key==='rank'?b.net:b[key]; return typeof av==='string'?state.direction*av.localeCompare(bv):state.direction*((av??0)-(bv??0)); });
+      $('matchCount').textContent=exact(items.length); $('cashDisplay').textContent=compact(cash);
+      $('bestProfit').textContent=items.length?compact(Math.max(...items.map(x=>x.potential)))+' gp':'—';
+      $('bestRoi').textContent=items.length?Math.max(...items.map(x=>x.roi)).toFixed(2)+'%':'—';
+      document.querySelectorAll('th[data-sort]').forEach(th=>{th.classList.toggle('active',th.dataset.sort===state.sort); const span=th.querySelector('.arrow');if(span)span.remove();if(th.dataset.sort===state.sort)th.insertAdjacentHTML('beforeend',' <span class="arrow">'+(state.direction<0?'▼':'▲')+'</span>');});
+      if(!items.length){els.rows.innerHTML='<tr><td colspan="11" class="empty">No items match those filters. Try lowering minimum profit or volume, or allowing older prices.</td></tr>';return;}
+      els.rows.innerHTML=items.slice(0,750).map((x,i)=>`<tr>
+        <td class="rank">${i+1}</td><td><div class="item-cell"><img loading="lazy" alt="" src="https://secure.runescape.com/m=itemdb_oldschool/obj_sprite.gif?id=${x.id}"><div><div class="item-name" title="${escapeHtml(x.name)}">${escapeHtml(x.name)}</div>${x.members?'<span class="members">Members</span>':'<span style="color:#8f8778;font-size:10px">Free-to-play</span>'}</div></div></td>
+        <td title="Instant-sell price">${exact(x.buy)}</td><td title="Instant-buy price">${exact(x.sell)}</td><td class="${x.net>=0?'profit':'loss'}" title="After ${exact(x.tax)} gp tax">${x.net>=0?'+':''}${exact(x.net)}</td>
+        <td class="roi">${x.roi.toFixed(2)}%</td><td>${exact(x.volume)}</td><td>${x.limit?exact(x.limit):'—'}</td><td>${exact(x.qty)}</td><td class="${x.potential>=0?'profit':'loss'}">${x.potential>=0?'+':''}${compact(x.potential)} gp</td><td class="age ${x.age<=5?'fresh':x.age>30?'old':''}">${ageLabel(x.age)}</td>
+      </tr>`).join('');
+    }
+    document.querySelectorAll('th[data-sort]').forEach(th=>th.addEventListener('click',()=>{const key=th.dataset.sort;if(state.sort===key)state.direction*=-1;else{state.sort=key;state.direction=key==='name'?1:-1}render()}));
+    [els.search,els.cash,els.minProfit,els.minVolume].forEach(el=>el.addEventListener('input',render));
+    [els.maxAge,els.membership].forEach(el=>el.addEventListener('change',render));
+    els.refresh.addEventListener('click',loadData);
+    setInterval(()=>{if(!document.hidden)loadData()},60000);
+    loadData();
+  </script>
+</body>
+</html>
