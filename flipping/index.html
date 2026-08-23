@@ -35,7 +35,7 @@
     input:focus,select:focus { border-color:var(--gold); box-shadow:0 0 0 2px rgba(215,175,82,.14); }
     .search { flex:1; }
     .price-field { flex:0 0 145px; }
-    .volume-field { flex:0 0 165px; }
+    .volume-field { flex:0 0 145px; }
     .trade-field { flex:0 0 155px; }
     .profit-field { flex:0 0 145px; }
     button { align-self:end; width:auto; cursor:pointer; border-color:#80632c; background:linear-gradient(#8e6b2d,#5f451c); color:#fff4cf; font-weight:700; text-shadow:0 1px #000; }
@@ -127,7 +127,8 @@
     <section class="controls" aria-label="Flip filters">
       <div class="field search"><label for="search">Item search</label><input id="search" type="search" placeholder="Search items…" autocomplete="off"></div>
       <div class="field price-field"><label for="maxPrice">Max item price (m)</label><input id="maxPrice" type="number" min="0" step="1" value="100" inputmode="decimal"></div>
-      <div class="field volume-field"><label for="minVolume">Min. 1-hour volume</label><input id="minVolume" type="number" min="0" step="1" value="50" inputmode="numeric"></div>
+      <div class="field volume-field"><label for="minBuyVolume">Min. 1h buy volume</label><input id="minBuyVolume" type="number" min="0" step="1" value="25" inputmode="numeric"></div>
+      <div class="field volume-field"><label for="minSellVolume">Min. 1h sell volume</label><input id="minSellVolume" type="number" min="0" step="1" value="25" inputmode="numeric"></div>
       <div class="field trade-field"><label for="maxTradeAge">Max last trade (min)</label><input id="maxTradeAge" type="number" min="0" step="1" value="10" inputmode="numeric"></div>
       <div class="field profit-field"><label for="minProfit">Min. profit</label><input id="minProfit" type="number" min="0" step="1000" value="50000" inputmode="numeric"></div>
       <label class="toggle"><input id="profitable" type="checkbox" checked> Profitable flips only</label>
@@ -138,9 +139,9 @@
       <table>
         <thead><tr>
           <th data-sort="name">Item</th><th data-sort="lastTrade">Last trade</th><th data-sort="buy">Buy at</th><th data-sort="sell">Sell at</th>
-          <th data-sort="gross">Profit (before tax)</th><th data-sort="tax">Tax</th><th data-sort="volume">1-hour volume</th><th class="active" data-sort="net">Profit <span class="arrow">▼</span></th>
+          <th data-sort="gross">Profit (before tax)</th><th data-sort="tax">Tax</th><th data-sort="buyVolume">1h buy volume</th><th data-sort="sellVolume">1h sell volume</th><th class="active" data-sort="net">Profit <span class="arrow">▼</span></th>
         </tr></thead>
-        <tbody id="rows"><tr><td colspan="8" class="empty">Fetching current Grand Exchange trades…</td></tr></tbody>
+        <tbody id="rows"><tr><td colspan="9" class="empty">Fetching current Grand Exchange trades…</td></tr></tbody>
       </table>
     </div>
     <nav class="pagination" id="pagination" aria-label="Results pages"></nav>
@@ -157,13 +158,13 @@
       </div>
       <div class="watch-table-wrap">
         <table class="watch-table">
-          <thead><tr><th>Item</th><th>Last trade</th><th>Buy at</th><th>Sell at</th><th>Profit (before tax)</th><th>Tax</th><th>1-hour volume</th><th>Profit</th></tr></thead>
+          <thead><tr><th>Item</th><th>Last trade</th><th>Buy at</th><th>Sell at</th><th>Profit (before tax)</th><th>Tax</th><th>1h buy volume</th><th>1h sell volume</th><th>Profit</th></tr></thead>
           <tbody><tr>
             <td><div class="item-cell"><img id="watchRowImage" alt=""><div class="item-name" id="watchRowName">Item</div></div></td>
             <td id="watchTradeAge">—</td>
             <td><div id="watchBuy">—</div><div class="previous-price" id="watchBuyPrevious"></div></td>
             <td><div id="watchSell">—</div><div class="previous-price" id="watchSellPrevious"></div></td>
-            <td id="watchGross">—</td><td id="watchTax">—</td><td id="watchVolume">—</td><td class="profit" id="watchProfit">—</td>
+            <td id="watchGross">—</td><td id="watchTax">—</td><td id="watchBuyVolume">—</td><td id="watchSellVolume">—</td><td class="profit" id="watchProfit">—</td>
           </tr></tbody>
         </table>
       </div>
@@ -175,7 +176,7 @@
     const API = 'https://prices.runescape.wiki/api/v1/osrs';
     const state = { items: [], sort: 'net', direction: -1, loadedAt: 0, page: 1, selectedId: null, contextItemId:null, pinnedIds:loadPins(), priceHistory:loadPriceHistory() };
     const $ = id => document.getElementById(id);
-    const els = { rows:$('rows'), search:$('search'), maxPrice:$('maxPrice'), minVolume:$('minVolume'), maxTradeAge:$('maxTradeAge'), minProfit:$('minProfit'), profitable:$('profitable'), refresh:$('refresh'), pagination:$('pagination'), watchOverlay:$('watchOverlay') };
+    const els = { rows:$('rows'), search:$('search'), maxPrice:$('maxPrice'), minBuyVolume:$('minBuyVolume'), minSellVolume:$('minSellVolume'), maxTradeAge:$('maxTradeAge'), minProfit:$('minProfit'), profitable:$('profitable'), refresh:$('refresh'), pagination:$('pagination'), watchOverlay:$('watchOverlay') };
 
     function parseCoins(value) {
       const cleaned = String(value).trim().toLowerCase().replace(/,/g,'');
@@ -208,10 +209,10 @@
       try{localStorage.setItem('osrs-flipping-price-history',JSON.stringify(state.items.map(x=>[x.id,x.buy,x.sell,x.previousBuy,x.previousSell])))}catch{}
     }
     function loadFilters(){
-      try{const x=JSON.parse(localStorage.getItem('osrs-flipping-filters')||'null');if(!x)return;for(const id of ['maxPrice','minVolume','maxTradeAge','minProfit'])if(x[id]!==undefined)els[id].value=x[id];if(x.profitable!==undefined)els.profitable.checked=Boolean(x.profitable)}catch{}
+      try{const x=JSON.parse(localStorage.getItem('osrs-flipping-filters')||'null');if(!x)return;for(const id of ['maxPrice','minBuyVolume','minSellVolume','maxTradeAge','minProfit'])if(x[id]!==undefined)els[id].value=x[id];if(x.minVolume!==undefined&&x.minBuyVolume===undefined){const migrated=Math.max(0,Math.floor(Number(x.minVolume)/2)||0);els.minBuyVolume.value=migrated;els.minSellVolume.value=migrated}if(x.profitable!==undefined)els.profitable.checked=Boolean(x.profitable)}catch{}
     }
     function saveFilters(){
-      try{localStorage.setItem('osrs-flipping-filters',JSON.stringify({maxPrice:els.maxPrice.value,minVolume:els.minVolume.value,maxTradeAge:els.maxTradeAge.value,minProfit:els.minProfit.value,profitable:els.profitable.checked}))}catch{}
+      try{localStorage.setItem('osrs-flipping-filters',JSON.stringify({maxPrice:els.maxPrice.value,minBuyVolume:els.minBuyVolume.value,minSellVolume:els.minSellVolume.value,maxTradeAge:els.maxTradeAge.value,minProfit:els.minProfit.value,profitable:els.profitable.checked}))}catch{}
     }
 
     async function fetchJson(path){
@@ -228,18 +229,18 @@
         state.items=Object.entries(latest.data).map(([id,p])=>{
           const m=meta.get(id); if(!m||m.name.toLowerCase()==='old school bond'||!p.high||!p.low)return null;
           const buy=p.low, sell=p.high, gross=sell-buy, tax=geTax(sell), net=gross-tax;
-          const d=hour.data[id]||{}; const volume=(d.highPriceVolume||0)+(d.lowPriceVolume||0);
+          const d=hour.data[id]||{},buyVolume=d.highPriceVolume||0,sellVolume=d.lowPriceVolume||0;
           const numericId=Number(id),previous=previousItems.get(numericId)||state.priceHistory.get(numericId);
           const previousBuy=previous?(previous.buy!==buy?previous.buy:previous.previousBuy):null;
           const previousSell=previous?(previous.sell!==sell?previous.sell:previous.previousSell):null;
-          return {id:numericId,name:m.name,buy,sell,previousBuy,previousSell,gross,tax,net,roi:buy?net/buy*100:0,volume,buyAge:ageMinutes(p.lowTime),sellAge:ageMinutes(p.highTime),lastTrade:Math.min(ageMinutes(p.highTime),ageMinutes(p.lowTime)),age:Math.max(ageMinutes(p.highTime),ageMinutes(p.lowTime))};
+          return {id:numericId,name:m.name,buy,sell,previousBuy,previousSell,gross,tax,net,roi:buy?net/buy*100:0,buyVolume,sellVolume,buyAge:ageMinutes(p.lowTime),sellAge:ageMinutes(p.highTime),lastTrade:Math.min(ageMinutes(p.highTime),ageMinutes(p.lowTime)),age:Math.max(ageMinutes(p.highTime),ageMinutes(p.lowTime))};
         }).filter(Boolean);
         state.priceHistory=new Map(state.items.map(x=>[x.id,{buy:x.buy,sell:x.sell,previousBuy:x.previousBuy,previousSell:x.previousSell}]));savePriceHistory();
         state.loadedAt=Date.now(); $('dot').className='dot live'; $('statusText').textContent='Live market data'; $('updated').textContent='Updated '+new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
         render(); renderWatch();
       } catch(error) {
         console.error(error); $('dot').className='dot error'; $('statusText').textContent='Could not load prices'; $('updated').textContent='Try refreshing in a moment';
-        els.rows.innerHTML='<tr><td colspan="8" class="empty">The real-time price service could not be reached.<br><button onclick="loadData()" style="margin-top:14px">Try again</button></td></tr>';
+        els.rows.innerHTML='<tr><td colspan="9" class="empty">The real-time price service could not be reached.<br><button onclick="loadData()" style="margin-top:14px">Try again</button></td></tr>';
       } finally { els.refresh.disabled=false; }
     }
     function filteredItems(){
@@ -247,13 +248,13 @@
       if(query)return state.items.filter(item=>item.name.toLowerCase().includes(query));
       const maxPriceMillions=els.maxPrice.value.trim()==='' ? Infinity : Number(els.maxPrice.value);
       const maxPrice=Number.isFinite(maxPriceMillions)&&maxPriceMillions>=0 ? maxPriceMillions*1_000_000 : Infinity;
-      const minVolumeValue=els.minVolume.value.trim()==='' ? 0 : Number(els.minVolume.value);
-      const minVolume=Number.isFinite(minVolumeValue)&&minVolumeValue>=0 ? minVolumeValue : 0;
+      const minBuyVolumeValue=els.minBuyVolume.value.trim()==='' ? 0 : Number(els.minBuyVolume.value),minSellVolumeValue=els.minSellVolume.value.trim()==='' ? 0 : Number(els.minSellVolume.value);
+      const minBuyVolume=Number.isFinite(minBuyVolumeValue)&&minBuyVolumeValue>=0 ? minBuyVolumeValue : 0,minSellVolume=Number.isFinite(minSellVolumeValue)&&minSellVolumeValue>=0 ? minSellVolumeValue : 0;
       const maxTradeAgeValue=els.maxTradeAge.value.trim()==='' ? Infinity : Number(els.maxTradeAge.value);
       const maxTradeAge=Number.isFinite(maxTradeAgeValue)&&maxTradeAgeValue>=0 ? maxTradeAgeValue : Infinity;
       const minProfitValue=els.minProfit.value.trim()==='' ? -Infinity : Number(els.minProfit.value);
       const minProfit=Number.isFinite(minProfitValue)&&minProfitValue>=0 ? minProfitValue : -Infinity;
-      return state.items.filter(item=>state.pinnedIds.has(item.id)||((!els.profitable.checked||item.net>0) && item.net>=minProfit && item.sell<=maxPrice && item.volume>=minVolume && item.lastTrade<=maxTradeAge));
+      return state.items.filter(item=>state.pinnedIds.has(item.id)||((!els.profitable.checked||item.net>0) && item.net>=minProfit && item.sell<=maxPrice && item.buyVolume>=minBuyVolume && item.sellVolume>=minSellVolume && item.lastTrade<=maxTradeAge));
     }
     function render(){
       const items=filteredItems();
@@ -264,12 +265,12 @@
       });
       document.querySelectorAll('th[data-sort]').forEach(th=>{th.classList.toggle('active',th.dataset.sort===state.sort); const span=th.querySelector('.arrow');if(span)span.remove();if(th.dataset.sort===state.sort)th.insertAdjacentHTML('beforeend',' <span class="arrow">'+(state.direction<0?'▼':'▲')+'</span>');});
       const pages=Math.max(1,Math.ceil(items.length/10)); state.page=Math.min(state.page,pages);
-      if(!items.length){els.rows.innerHTML='<tr><td colspan="8" class="empty">No items match your filters.</td></tr>';els.pagination.innerHTML='';return;}
+      if(!items.length){els.rows.innerHTML='<tr><td colspan="9" class="empty">No items match your filters.</td></tr>';els.pagination.innerHTML='';return;}
       const start=(state.page-1)*10;
       els.rows.innerHTML=items.slice(start,start+10).map(x=>`<tr data-id="${x.id}" class="${state.pinnedIds.has(x.id)?'pinned':''}" tabindex="0" aria-label="Watch ${escapeHtml(x.name)}">
         <td><div class="item-cell"><img loading="lazy" alt="" src="https://secure.runescape.com/m=itemdb_oldschool/obj_sprite.gif?id=${x.id}"><div class="item-name" title="${escapeHtml(x.name)}">${escapeHtml(x.name)}${state.pinnedIds.has(x.id)?'<span class="pin-mark" title="Pinned item">◆</span>':''}</div></div></td>
         <td class="age ${x.lastTrade<=5?'fresh':x.lastTrade>30?'old':''}" title="Most recent recorded buy or sell">${ageLabel(x.lastTrade)}</td><td title="Price to buy one item"><div>${exact(x.buy)}</div><div class="previous-price ${x.previousBuy!==null?'changed':''}">${x.previousBuy!==null?'Prev. '+exact(x.previousBuy):'&nbsp;'}</div></td><td title="Price to sell one item"><div>${exact(x.sell)}</div><div class="previous-price ${x.previousSell!==null?'changed':''}">${x.previousSell!==null?'Prev. '+exact(x.previousSell):'&nbsp;'}</div></td><td>${x.gross>=0?'+':''}${exact(x.gross)}</td>
-        <td title="Grand Exchange tax for selling one item">${exact(x.tax)}</td><td title="Combined instant-buy and instant-sell volume over 1 hour">${exact(x.volume)}</td><td class="${x.net>=0?'profit':'loss'}" title="Profit after tax for one item">${x.net>=0?'+':''}${exact(x.net)}</td>
+        <td title="Grand Exchange tax for selling one item">${exact(x.tax)}</td><td title="Items instantly bought at the high price over 1 hour">${exact(x.buyVolume)}</td><td title="Items instantly sold at the low price over 1 hour">${exact(x.sellVolume)}</td><td class="${x.net>=0?'profit':'loss'}" title="Profit after tax for one item">${x.net>=0?'+':''}${exact(x.net)}</td>
       </tr>`).join('');
       els.rows.querySelectorAll('tr[data-id]').forEach(row=>{row.addEventListener('click',()=>openWatch(Number(row.dataset.id)));row.addEventListener('contextmenu',e=>openContextMenu(e,Number(row.dataset.id)));row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openWatch(Number(row.dataset.id))}})});
       renderPagination(pages);
@@ -291,7 +292,7 @@
       $('watchBuy').textContent=exact(x.buy); $('watchSell').textContent=exact(x.sell); $('watchGross').textContent=(x.gross>=0?'+':'')+exact(x.gross);
       $('watchBuyPrevious').textContent=x.previousBuy!==null?'Previous: '+exact(x.previousBuy):'No change recorded yet'; $('watchBuyPrevious').classList.toggle('changed',x.previousBuy!==null);
       $('watchSellPrevious').textContent=x.previousSell!==null?'Previous: '+exact(x.previousSell):'No change recorded yet'; $('watchSellPrevious').classList.toggle('changed',x.previousSell!==null);
-      $('watchTax').textContent=exact(x.tax); $('watchVolume').textContent=exact(x.volume); $('watchProfit').textContent=(x.net>=0?'+':'')+exact(x.net);
+      $('watchTax').textContent=exact(x.tax); $('watchBuyVolume').textContent=exact(x.buyVolume); $('watchSellVolume').textContent=exact(x.sellVolume); $('watchProfit').textContent=(x.net>=0?'+':'')+exact(x.net);
       $('watchTradeAge').textContent=ageLabel(x.lastTrade); const pinned=state.pinnedIds.has(x.id);$('watchPin').textContent=pinned?'Unpin item':'Pin item';$('watchPin').classList.toggle('active',pinned);$('watchPin').setAttribute('aria-pressed',String(pinned));
       els.watchOverlay.classList.add('open');
     }
@@ -305,7 +306,8 @@
     function filterChanged(){state.page=1;saveFilters();render()}
     els.search.addEventListener('input',()=>{state.page=1;render()});
     els.maxPrice.addEventListener('input',filterChanged);
-    els.minVolume.addEventListener('input',filterChanged);
+    els.minBuyVolume.addEventListener('input',filterChanged);
+    els.minSellVolume.addEventListener('input',filterChanged);
     els.maxTradeAge.addEventListener('input',filterChanged);
     els.minProfit.addEventListener('input',filterChanged);
     els.profitable.addEventListener('change',filterChanged);
