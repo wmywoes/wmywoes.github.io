@@ -220,10 +220,16 @@
       if(!response.ok) throw new Error('Price service returned '+response.status);
       return response.json();
     }
+    async function getMapping(){
+      try{const cached=JSON.parse(localStorage.getItem('osrs-flipping-mapping')||'null');if(cached&&Date.now()-cached.savedAt<86_400_000&&Array.isArray(cached.items))return cached.items.map(x=>({id:x[0],name:x[1]}))}catch{}
+      const mapping=await fetchJson('/mapping');
+      try{localStorage.setItem('osrs-flipping-mapping',JSON.stringify({savedAt:Date.now(),items:mapping.map(x=>[x.id,x.name])}))}catch{}
+      return mapping;
+    }
     async function loadData(){
       els.refresh.disabled=true; $('dot').className='dot'; $('statusText').textContent='Loading prices…'; $('updated').textContent='Connecting to the Wiki API';
       try {
-        const [mapping,latest,hour]=await Promise.all([fetchJson('/mapping'),fetchJson('/latest'),fetchJson('/1h')]);
+        const [mapping,latest,hour]=await Promise.all([getMapping(),fetchJson('/latest'),fetchJson('/1h')]);
         const meta=new Map(mapping.map(x=>[String(x.id),x]));
         const previousItems=new Map(state.items.map(x=>[x.id,x]));
         state.items=Object.entries(latest.data).map(([id,p])=>{
