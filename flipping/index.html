@@ -14,7 +14,7 @@
     }
     * { box-sizing:border-box; }
     html { color-scheme:dark; }
-    body { margin:0; min-width:320px; background:radial-gradient(circle at 50% -160px,#322817 0,#18130c 36%,var(--bg) 72%); color:var(--text); font:14px/1.45 Inter,Segoe UI,Arial,sans-serif; }
+    body { margin:0; min-width:320px; background:radial-gradient(circle at 50% -160px,#322817 0,#18130c 36%,var(--bg) 72%); color:var(--text); font:14px/1.45 Inter,Segoe UI,Arial,sans-serif; zoom:1.2; }
     button,input,select { font:inherit; }
     a { color:var(--gold2); }
     .shell { max-width:1560px; margin:auto; padding:24px; }
@@ -34,6 +34,7 @@
     input,select,button { width:100%; height:36px; border:1px solid #4a3d28; border-radius:4px; background:#100e0a; color:var(--text); padding:0 10px; outline:none; }
     input:focus,select:focus { border-color:var(--gold); box-shadow:0 0 0 2px rgba(215,175,82,.14); }
     .search { flex:1; }
+    .price-field { flex:0 0 145px; }
     button { align-self:end; width:auto; cursor:pointer; border-color:#80632c; background:linear-gradient(#8e6b2d,#5f451c); color:#fff4cf; font-weight:700; text-shadow:0 1px #000; }
     button:hover { filter:brightness(1.12); }
     button:disabled { cursor:wait; opacity:.65; }
@@ -67,6 +68,7 @@
     @media(max-width:1050px) {
       .controls { flex-wrap:wrap; }
       .search { flex-basis:100%; }
+      .price-field { flex:1; }
     }
     @media(max-width:640px) {
       .shell { padding:14px 10px; }
@@ -90,6 +92,7 @@
 
     <section class="controls" aria-label="Flip filters">
       <div class="field search"><label for="search">Item search</label><input id="search" type="search" placeholder="Search items…" autocomplete="off"></div>
+      <div class="field price-field"><label for="maxPrice">Max item price (m)</label><input id="maxPrice" type="number" min="0" step="1" value="100" inputmode="decimal"></div>
       <label class="toggle"><input id="profitable" type="checkbox" checked> Profitable flips only</label>
       <button id="refresh" type="button">Refresh</button>
     </section>
@@ -98,7 +101,7 @@
       <table>
         <thead><tr>
           <th data-sort="name">Item</th><th data-sort="buy">Buy at</th><th data-sort="sell">Sell at</th>
-          <th class="active" data-sort="net">Net gain <span class="arrow">▼</span></th><th data-sort="tax">Tax</th><th data-sort="potential">Potential profit</th>
+          <th data-sort="gross">Profit (before tax)</th><th data-sort="tax">Tax</th><th class="active" data-sort="net">Profit <span class="arrow">▼</span></th>
         </tr></thead>
         <tbody id="rows"><tr><td colspan="6" class="empty">Fetching current Grand Exchange trades…</td></tr></tbody>
       </table>
@@ -111,7 +114,7 @@
     const API = 'https://prices.runescape.wiki/api/v1/osrs';
     const state = { items: [], sort: 'net', direction: -1, loadedAt: 0, page: 1 };
     const $ = id => document.getElementById(id);
-    const els = { rows:$('rows'), search:$('search'), profitable:$('profitable'), refresh:$('refresh'), pagination:$('pagination') };
+    const els = { rows:$('rows'), search:$('search'), maxPrice:$('maxPrice'), profitable:$('profitable'), refresh:$('refresh'), pagination:$('pagination') };
 
     function parseCoins(value) {
       const cleaned = String(value).trim().toLowerCase().replace(/,/g,'');
@@ -143,9 +146,9 @@
         const meta=new Map(mapping.map(x=>[String(x.id),x]));
         state.items=Object.entries(latest.data).map(([id,p])=>{
           const m=meta.get(id); if(!m||!p.high||!p.low)return null;
-          const buy=p.low, sell=p.high, tax=geTax(sell), net=sell-buy-tax;
+          const buy=p.low, sell=p.high, gross=sell-buy, tax=geTax(sell), net=gross-tax;
           const d=day.data[id]||{}; const volume=(d.highPriceVolume||0)+(d.lowPriceVolume||0);
-          return {id:Number(id),name:m.name,members:m.members,limit:m.limit||0,buy,sell,tax,net,roi:buy?net/buy*100:0,volume,age:Math.max(ageMinutes(p.highTime),ageMinutes(p.lowTime))};
+          return {id:Number(id),name:m.name,members:m.members,buy,sell,gross,tax,net,roi:buy?net/buy*100:0,volume,age:Math.max(ageMinutes(p.highTime),ageMinutes(p.lowTime))};
         }).filter(Boolean);
         state.loadedAt=Date.now(); $('dot').className='dot live'; $('statusText').textContent='Live market data'; $('updated').textContent='Updated '+new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
         render();
@@ -156,9 +159,9 @@
     }
     function filteredItems(){
       const query=els.search.value.trim().toLowerCase();
-      return state.items.map(item=>{
-        return {...item,potential:item.limit ? item.net*item.limit : 0};
-      }).filter(item=>(!els.profitable.checked||item.net>0) && (!query||item.name.toLowerCase().includes(query)));
+      const maxPriceMillions=els.maxPrice.value.trim()==='' ? Infinity : Number(els.maxPrice.value);
+      const maxPrice=Number.isFinite(maxPriceMillions)&&maxPriceMillions>=0 ? maxPriceMillions*1_000_000 : Infinity;
+      return state.items.filter(item=>(!els.profitable.checked||item.net>0) && item.sell<=maxPrice && (!query||item.name.toLowerCase().includes(query)));
     }
     function render(){
       const items=filteredItems();
@@ -170,8 +173,8 @@
       const start=(state.page-1)*10;
       els.rows.innerHTML=items.slice(start,start+10).map(x=>`<tr>
         <td><div class="item-cell"><img loading="lazy" alt="" src="https://secure.runescape.com/m=itemdb_oldschool/obj_sprite.gif?id=${x.id}"><div><div class="item-name" title="${escapeHtml(x.name)}">${escapeHtml(x.name)}</div>${x.members?'<span class="members">Members</span>':'<span style="color:#8f8778;font-size:10px">Free-to-play</span>'}</div></div></td>
-        <td title="Price to buy this item">${exact(x.buy)}</td><td title="Price to sell this item">${exact(x.sell)}</td><td class="${x.net>=0?'profit':'loss'}">${x.net>=0?'+':''}${exact(x.net)}</td>
-        <td title="Grand Exchange tax per item">${exact(x.tax)}</td><td class="${x.potential>=0?'profit':'loss'}" title="Net gain × ${exact(x.limit)} item buy limit">${x.limit?(x.potential>=0?'+':'')+exact(x.potential):'—'}</td>
+        <td title="Price to buy one item">${exact(x.buy)}</td><td title="Price to sell one item">${exact(x.sell)}</td><td>${x.gross>=0?'+':''}${exact(x.gross)}</td>
+        <td title="Grand Exchange tax for selling one item">${exact(x.tax)}</td><td class="${x.net>=0?'profit':'loss'}" title="Profit after tax for one item">${x.net>=0?'+':''}${exact(x.net)}</td>
       </tr>`).join('');
       renderPagination(pages);
     }
@@ -183,6 +186,7 @@
     }
     document.querySelectorAll('th[data-sort]').forEach(th=>th.addEventListener('click',()=>{const key=th.dataset.sort;if(state.sort===key)state.direction*=-1;else{state.sort=key;state.direction=key==='name'?1:-1}render()}));
     els.search.addEventListener('input',()=>{state.page=1;render()});
+    els.maxPrice.addEventListener('input',()=>{state.page=1;render()});
     els.profitable.addEventListener('change',()=>{state.page=1;render()});
     els.refresh.addEventListener('click',loadData);
     setInterval(()=>{if(!document.hidden)loadData()},60000);
