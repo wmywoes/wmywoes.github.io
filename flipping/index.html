@@ -56,6 +56,9 @@
     tbody tr:nth-child(even) { background:rgba(255,255,255,.012); }
     tbody tr[data-id] { cursor:pointer; }
     tbody tr[data-id]:hover,tbody tr[data-id]:focus { background:#302719; outline:none; }
+    tbody tr.recommended { background:linear-gradient(90deg,rgba(194,143,39,.20),rgba(130,91,24,.08) 55%,rgba(215,175,82,.14)); box-shadow:inset 4px 0 #e0b548,inset 0 1px rgba(255,226,154,.16); }
+    tbody tr.recommended:hover,tbody tr.recommended:focus { background:linear-gradient(90deg,rgba(224,174,67,.29),rgba(151,106,29,.14) 55%,rgba(224,174,67,.20)); }
+    .recommend-star { margin-left:8px; color:#f1c85e; font-size:15px; text-shadow:0 0 8px rgba(241,200,94,.55); }
     .item-cell { display:flex; align-items:center; gap:14px; text-align:left; }
     .item-cell img { width:52px; height:52px; object-fit:contain; image-rendering:auto; }
     .item-name { max-width:330px; overflow:hidden; text-overflow:ellipsis; font-size:18px; font-weight:700; color:#f2eadb; }
@@ -124,6 +127,7 @@
       <div class="field volume-field"><label for="minVolume">Min. 24-hour volume</label><input id="minVolume" type="number" min="0" step="1" value="100" inputmode="numeric"></div>
       <div class="field trade-field"><label for="maxTradeAge">Max last trade (min)</label><input id="maxTradeAge" type="number" min="0" step="1" value="10" inputmode="numeric"></div>
       <label class="toggle"><input id="profitable" type="checkbox" checked> Profitable flips only</label>
+      <label class="toggle" title="Pin five balanced picks using profit, volume, ROI and price freshness"><input id="recommended" type="checkbox" checked> Recommended flips</label>
       <button id="refresh" type="button">Refresh</button>
     </section>
 
@@ -165,7 +169,7 @@
     const API = 'https://prices.runescape.wiki/api/v1/osrs';
     const state = { items: [], sort: 'net', direction: -1, loadedAt: 0, page: 1, selectedId: null };
     const $ = id => document.getElementById(id);
-    const els = { rows:$('rows'), search:$('search'), maxPrice:$('maxPrice'), minVolume:$('minVolume'), maxTradeAge:$('maxTradeAge'), profitable:$('profitable'), refresh:$('refresh'), pagination:$('pagination'), watchOverlay:$('watchOverlay') };
+    const els = { rows:$('rows'), search:$('search'), maxPrice:$('maxPrice'), minVolume:$('minVolume'), maxTradeAge:$('maxTradeAge'), profitable:$('profitable'), recommended:$('recommended'), refresh:$('refresh'), pagination:$('pagination'), watchOverlay:$('watchOverlay') };
 
     function parseCoins(value) {
       const cleaned = String(value).trim().toLowerCase().replace(/,/g,'');
@@ -182,7 +186,12 @@
     function exact(value){ return Number.isFinite(value) ? Math.round(value).toLocaleString() : '—'; }
     function geTax(sellPrice){ return sellPrice < 100 ? 0 : Math.min(5_000_000, Math.floor(sellPrice * .02)); }
     function ageMinutes(timestamp){ return timestamp ? Math.max(0,(Date.now()/1000-timestamp)/60) : Infinity; }
-    function ageLabel(minutes){ if(!Number.isFinite(minutes))return 'Unknown'; if(minutes<1)return '<1 min'; if(minutes<60)return Math.floor(minutes)+' min'; if(minutes<1440)return (minutes/60).toFixed(minutes<120?1:0)+' hr'; return Math.floor(minutes/1440)+'d'; }
+    function ageLabel(minutes){
+      if(!Number.isFinite(minutes))return 'Unknown'; const whole=Math.floor(minutes);
+      if(whole<1)return '<1 min'; if(whole<60)return whole+' min';
+      if(whole<1440){const hours=Math.floor(whole/60),mins=whole%60;return hours+' hr'+(mins?' '+mins+' min':'')}
+      const days=Math.floor(whole/1440),hours=Math.floor((whole%1440)/60);return days+'d'+(hours?' '+hours+' hr':'');
+    }
     function escapeHtml(s){ return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
 
     async function fetchJson(path){
@@ -221,18 +230,32 @@
     function render(){
       const items=filteredItems();
       const key=state.sort;
-      items.sort((a,b)=>{ const av=key==='rank'?a.net:a[key],bv=key==='rank'?b.net:b[key]; return typeof av==='string'?state.direction*av.localeCompare(bv):state.direction*((av??0)-(bv??0)); });
+      const recommendedIds=scoreRecommendations(items);
+      items.sort((a,b)=>{
+        if(els.recommended.checked){const ar=recommendedIds.get(a.id),br=recommendedIds.get(b.id);if(ar!==undefined||br!==undefined){if(ar===undefined)return 1;if(br===undefined)return -1;if(ar!==br)return ar-br}}
+        const av=key==='rank'?a.net:a[key],bv=key==='rank'?b.net:b[key]; return typeof av==='string'?state.direction*av.localeCompare(bv):state.direction*((av??0)-(bv??0));
+      });
       document.querySelectorAll('th[data-sort]').forEach(th=>{th.classList.toggle('active',th.dataset.sort===state.sort); const span=th.querySelector('.arrow');if(span)span.remove();if(th.dataset.sort===state.sort)th.insertAdjacentHTML('beforeend',' <span class="arrow">'+(state.direction<0?'▼':'▲')+'</span>');});
       const pages=Math.max(1,Math.ceil(items.length/10)); state.page=Math.min(state.page,pages);
       if(!items.length){els.rows.innerHTML='<tr><td colspan="8" class="empty">No items match your filters.</td></tr>';els.pagination.innerHTML='';return;}
       const start=(state.page-1)*10;
-      els.rows.innerHTML=items.slice(start,start+10).map(x=>`<tr data-id="${x.id}" tabindex="0" aria-label="Watch ${escapeHtml(x.name)}">
-        <td><div class="item-cell"><img loading="lazy" alt="" src="https://secure.runescape.com/m=itemdb_oldschool/obj_sprite.gif?id=${x.id}"><div class="item-name" title="${escapeHtml(x.name)}">${escapeHtml(x.name)}</div></div></td>
+      els.rows.innerHTML=items.slice(start,start+10).map(x=>`<tr data-id="${x.id}" class="${els.recommended.checked&&recommendedIds.has(x.id)?'recommended':''}" tabindex="0" aria-label="Watch ${escapeHtml(x.name)}">
+        <td><div class="item-cell"><img loading="lazy" alt="" src="https://secure.runescape.com/m=itemdb_oldschool/obj_sprite.gif?id=${x.id}"><div class="item-name" title="${escapeHtml(x.name)}">${escapeHtml(x.name)}${els.recommended.checked&&recommendedIds.has(x.id)?'<span class="recommend-star" title="Recommended flip">★</span>':''}</div></div></td>
         <td class="age ${x.lastTrade<=5?'fresh':x.lastTrade>30?'old':''}" title="Most recent recorded buy or sell">${ageLabel(x.lastTrade)}</td><td title="Price to buy one item">${exact(x.buy)}</td><td title="Price to sell one item">${exact(x.sell)}</td><td>${x.gross>=0?'+':''}${exact(x.gross)}</td>
         <td title="Grand Exchange tax for selling one item">${exact(x.tax)}</td><td title="Combined instant-buy and instant-sell volume over 24 hours">${exact(x.volume)}</td><td class="${x.net>=0?'profit':'loss'}" title="Profit after tax for one item">${x.net>=0?'+':''}${exact(x.net)}</td>
       </tr>`).join('');
       els.rows.querySelectorAll('tr[data-id]').forEach(row=>{row.addEventListener('click',()=>openWatch(Number(row.dataset.id)));row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openWatch(Number(row.dataset.id))}})});
       renderPagination(pages);
+    }
+    function scoreRecommendations(items){
+      if(!items.length)return new Map();
+      const maxLogProfit=Math.max(...items.map(x=>Math.log1p(Math.max(0,x.net))),1),maxLogVolume=Math.max(...items.map(x=>Math.log1p(x.volume)),1);
+      const scored=items.filter(x=>x.net>0&&x.volume>0).map(x=>{
+        const profit=Math.log1p(x.net)/maxLogProfit,volume=Math.log1p(x.volume)/maxLogVolume,freshness=Math.exp(-x.age/30);
+        const roi=x.roi<=0?0:x.roi<=10?Math.sqrt(x.roi/10):Math.max(.2,10/x.roi);
+        return {id:x.id,score:(profit*.45+volume*.35+freshness*.20)*roi};
+      }).sort((a,b)=>b.score-a.score).slice(0,5);
+      return new Map(scored.map((x,index)=>[x.id,index]));
     }
     function openWatch(id){ state.selectedId=id; history.replaceState(null,'','#item-'+id); renderWatch(); }
     function closeWatch(){ state.selectedId=null; history.replaceState(null,'',location.pathname+location.search); els.watchOverlay.classList.remove('open'); }
@@ -256,6 +279,7 @@
     els.maxPrice.addEventListener('input',()=>{state.page=1;render()});
     els.minVolume.addEventListener('input',()=>{state.page=1;render()});
     els.maxTradeAge.addEventListener('input',()=>{state.page=1;render()});
+    els.recommended.addEventListener('change',()=>{state.page=1;render()});
     els.profitable.addEventListener('change',()=>{state.page=1;render()});
     els.refresh.addEventListener('click',loadData);
     $('watchClose').addEventListener('click',closeWatch);
