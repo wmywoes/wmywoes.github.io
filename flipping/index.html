@@ -57,12 +57,9 @@
     tbody tr:nth-child(even) { background:rgba(255,255,255,.012); }
     tbody tr[data-id] { cursor:pointer; }
     tbody tr[data-id]:hover,tbody tr[data-id]:focus { background:#302719; outline:none; }
-    tbody tr.recommended { background:linear-gradient(90deg,rgba(194,143,39,.20),rgba(130,91,24,.08) 55%,rgba(215,175,82,.14)); box-shadow:inset 4px 0 #e0b548,inset 0 1px rgba(255,226,154,.16); }
-    tbody tr.recommended:hover,tbody tr.recommended:focus { background:linear-gradient(90deg,rgba(224,174,67,.29),rgba(151,106,29,.14) 55%,rgba(224,174,67,.20)); }
-    tbody tr.pinned { background:linear-gradient(90deg,rgba(72,137,169,.21),rgba(35,76,98,.08) 58%,rgba(72,137,169,.12)); box-shadow:inset 4px 0 #75b9d8,inset 0 1px rgba(155,219,247,.14); }
-    tbody tr.pinned:hover,tbody tr.pinned:focus { background:linear-gradient(90deg,rgba(88,158,191,.29),rgba(38,88,112,.14) 58%,rgba(88,158,191,.18)); }
-    .recommend-star { margin-left:8px; color:#f1c85e; font-size:15px; text-shadow:0 0 8px rgba(241,200,94,.55); }
-    .pin-mark { margin-left:8px; color:#91d5f1; font-size:14px; text-shadow:0 0 8px rgba(117,185,216,.55); }
+    tbody tr.pinned { background:linear-gradient(90deg,rgba(62,151,93,.22),rgba(31,88,51,.08) 58%,rgba(62,151,93,.12)); box-shadow:inset 4px 0 #69d28b,inset 0 1px rgba(153,235,180,.14); }
+    tbody tr.pinned:hover,tbody tr.pinned:focus { background:linear-gradient(90deg,rgba(76,174,110,.30),rgba(37,105,60,.14) 58%,rgba(76,174,110,.18)); }
+    .pin-mark { margin-left:8px; color:#82e3a3; font-size:14px; text-shadow:0 0 8px rgba(105,210,139,.55); }
     .item-cell { display:flex; align-items:center; gap:14px; text-align:left; }
     .item-cell img { width:52px; height:52px; object-fit:contain; image-rendering:auto; }
     .item-name { max-width:330px; overflow:hidden; text-overflow:ellipsis; font-size:18px; font-weight:700; color:#f2eadb; }
@@ -130,11 +127,10 @@
     <section class="controls" aria-label="Flip filters">
       <div class="field search"><label for="search">Item search</label><input id="search" type="search" placeholder="Search items…" autocomplete="off"></div>
       <div class="field price-field"><label for="maxPrice">Max item price (m)</label><input id="maxPrice" type="number" min="0" step="1" value="100" inputmode="decimal"></div>
-      <div class="field volume-field"><label for="minVolume">Min. 24-hour volume</label><input id="minVolume" type="number" min="0" step="1" value="1000" inputmode="numeric"></div>
+      <div class="field volume-field"><label for="minVolume">Min. 1-hour volume</label><input id="minVolume" type="number" min="0" step="1" value="50" inputmode="numeric"></div>
       <div class="field trade-field"><label for="maxTradeAge">Max last trade (min)</label><input id="maxTradeAge" type="number" min="0" step="1" value="10" inputmode="numeric"></div>
       <div class="field profit-field"><label for="minProfit">Min. profit</label><input id="minProfit" type="number" min="0" step="1000" value="50000" inputmode="numeric"></div>
       <label class="toggle"><input id="profitable" type="checkbox" checked> Profitable flips only</label>
-      <label class="toggle" title="Pin five balanced picks using profit, volume, ROI and price freshness"><input id="recommended" type="checkbox" checked> Recommended flips</label>
       <button id="refresh" type="button">Refresh</button>
     </section>
 
@@ -142,7 +138,7 @@
       <table>
         <thead><tr>
           <th data-sort="name">Item</th><th data-sort="lastTrade">Last trade</th><th data-sort="buy">Buy at</th><th data-sort="sell">Sell at</th>
-          <th data-sort="gross">Profit (before tax)</th><th data-sort="tax">Tax</th><th data-sort="volume">24-hour volume</th><th class="active" data-sort="net">Profit <span class="arrow">▼</span></th>
+          <th data-sort="gross">Profit (before tax)</th><th data-sort="tax">Tax</th><th data-sort="volume">1-hour volume</th><th class="active" data-sort="net">Profit <span class="arrow">▼</span></th>
         </tr></thead>
         <tbody id="rows"><tr><td colspan="8" class="empty">Fetching current Grand Exchange trades…</td></tr></tbody>
       </table>
@@ -161,7 +157,7 @@
       </div>
       <div class="watch-table-wrap">
         <table class="watch-table">
-          <thead><tr><th>Item</th><th>Last trade</th><th>Buy at</th><th>Sell at</th><th>Profit (before tax)</th><th>Tax</th><th>24-hour volume</th><th>Profit</th></tr></thead>
+          <thead><tr><th>Item</th><th>Last trade</th><th>Buy at</th><th>Sell at</th><th>Profit (before tax)</th><th>Tax</th><th>1-hour volume</th><th>Profit</th></tr></thead>
           <tbody><tr>
             <td><div class="item-cell"><img id="watchRowImage" alt=""><div class="item-name" id="watchRowName">Item</div></div></td>
             <td id="watchTradeAge">—</td>
@@ -179,7 +175,7 @@
     const API = 'https://prices.runescape.wiki/api/v1/osrs';
     const state = { items: [], sort: 'net', direction: -1, loadedAt: 0, page: 1, selectedId: null, contextItemId:null, pinnedIds:loadPins(), priceHistory:loadPriceHistory() };
     const $ = id => document.getElementById(id);
-    const els = { rows:$('rows'), search:$('search'), maxPrice:$('maxPrice'), minVolume:$('minVolume'), maxTradeAge:$('maxTradeAge'), minProfit:$('minProfit'), profitable:$('profitable'), recommended:$('recommended'), refresh:$('refresh'), pagination:$('pagination'), watchOverlay:$('watchOverlay') };
+    const els = { rows:$('rows'), search:$('search'), maxPrice:$('maxPrice'), minVolume:$('minVolume'), maxTradeAge:$('maxTradeAge'), minProfit:$('minProfit'), profitable:$('profitable'), refresh:$('refresh'), pagination:$('pagination'), watchOverlay:$('watchOverlay') };
 
     function parseCoins(value) {
       const cleaned = String(value).trim().toLowerCase().replace(/,/g,'');
@@ -211,6 +207,12 @@
     function savePriceHistory(){
       try{localStorage.setItem('osrs-flipping-price-history',JSON.stringify(state.items.map(x=>[x.id,x.buy,x.sell,x.previousBuy,x.previousSell])))}catch{}
     }
+    function loadFilters(){
+      try{const x=JSON.parse(localStorage.getItem('osrs-flipping-filters')||'null');if(!x)return;for(const id of ['maxPrice','minVolume','maxTradeAge','minProfit'])if(x[id]!==undefined)els[id].value=x[id];if(x.profitable!==undefined)els.profitable.checked=Boolean(x.profitable)}catch{}
+    }
+    function saveFilters(){
+      try{localStorage.setItem('osrs-flipping-filters',JSON.stringify({maxPrice:els.maxPrice.value,minVolume:els.minVolume.value,maxTradeAge:els.maxTradeAge.value,minProfit:els.minProfit.value,profitable:els.profitable.checked}))}catch{}
+    }
 
     async function fetchJson(path){
       const response=await fetch(API+path,{headers:{Accept:'application/json'}});
@@ -220,13 +222,13 @@
     async function loadData(){
       els.refresh.disabled=true; $('dot').className='dot'; $('statusText').textContent='Loading prices…'; $('updated').textContent='Connecting to the Wiki API';
       try {
-        const [mapping,latest,day]=await Promise.all([fetchJson('/mapping'),fetchJson('/latest'),fetchJson('/24h')]);
+        const [mapping,latest,hour]=await Promise.all([fetchJson('/mapping'),fetchJson('/latest'),fetchJson('/1h')]);
         const meta=new Map(mapping.map(x=>[String(x.id),x]));
         const previousItems=new Map(state.items.map(x=>[x.id,x]));
         state.items=Object.entries(latest.data).map(([id,p])=>{
           const m=meta.get(id); if(!m||m.name.toLowerCase()==='old school bond'||!p.high||!p.low)return null;
           const buy=p.low, sell=p.high, gross=sell-buy, tax=geTax(sell), net=gross-tax;
-          const d=day.data[id]||{}; const volume=(d.highPriceVolume||0)+(d.lowPriceVolume||0);
+          const d=hour.data[id]||{}; const volume=(d.highPriceVolume||0)+(d.lowPriceVolume||0);
           const numericId=Number(id),previous=previousItems.get(numericId)||state.priceHistory.get(numericId);
           const previousBuy=previous?(previous.buy!==buy?previous.buy:previous.previousBuy):null;
           const previousSell=previous?(previous.sell!==sell?previous.sell:previous.previousSell):null;
@@ -256,33 +258,21 @@
     function render(){
       const items=filteredItems();
       const key=state.sort;
-      const recommendedIds=scoreRecommendations(items);
       items.sort((a,b)=>{
         const ap=state.pinnedIds.has(a.id),bp=state.pinnedIds.has(b.id);if(ap!==bp)return ap?-1:1;
-        if(els.recommended.checked){const ar=recommendedIds.get(a.id),br=recommendedIds.get(b.id);if(ar!==undefined||br!==undefined){if(ar===undefined)return 1;if(br===undefined)return -1;if(ar!==br)return ar-br}}
         const av=key==='rank'?a.net:a[key],bv=key==='rank'?b.net:b[key]; return typeof av==='string'?state.direction*av.localeCompare(bv):state.direction*((av??0)-(bv??0));
       });
       document.querySelectorAll('th[data-sort]').forEach(th=>{th.classList.toggle('active',th.dataset.sort===state.sort); const span=th.querySelector('.arrow');if(span)span.remove();if(th.dataset.sort===state.sort)th.insertAdjacentHTML('beforeend',' <span class="arrow">'+(state.direction<0?'▼':'▲')+'</span>');});
       const pages=Math.max(1,Math.ceil(items.length/10)); state.page=Math.min(state.page,pages);
       if(!items.length){els.rows.innerHTML='<tr><td colspan="8" class="empty">No items match your filters.</td></tr>';els.pagination.innerHTML='';return;}
       const start=(state.page-1)*10;
-      els.rows.innerHTML=items.slice(start,start+10).map(x=>`<tr data-id="${x.id}" class="${state.pinnedIds.has(x.id)?'pinned ':''}${els.recommended.checked&&recommendedIds.has(x.id)?'recommended':''}" tabindex="0" aria-label="Watch ${escapeHtml(x.name)}">
-        <td><div class="item-cell"><img loading="lazy" alt="" src="https://secure.runescape.com/m=itemdb_oldschool/obj_sprite.gif?id=${x.id}"><div class="item-name" title="${escapeHtml(x.name)}">${escapeHtml(x.name)}${state.pinnedIds.has(x.id)?'<span class="pin-mark" title="Pinned item">◆</span>':''}${els.recommended.checked&&recommendedIds.has(x.id)?'<span class="recommend-star" title="Recommended flip">★</span>':''}</div></div></td>
+      els.rows.innerHTML=items.slice(start,start+10).map(x=>`<tr data-id="${x.id}" class="${state.pinnedIds.has(x.id)?'pinned':''}" tabindex="0" aria-label="Watch ${escapeHtml(x.name)}">
+        <td><div class="item-cell"><img loading="lazy" alt="" src="https://secure.runescape.com/m=itemdb_oldschool/obj_sprite.gif?id=${x.id}"><div class="item-name" title="${escapeHtml(x.name)}">${escapeHtml(x.name)}${state.pinnedIds.has(x.id)?'<span class="pin-mark" title="Pinned item">◆</span>':''}</div></div></td>
         <td class="age ${x.lastTrade<=5?'fresh':x.lastTrade>30?'old':''}" title="Most recent recorded buy or sell">${ageLabel(x.lastTrade)}</td><td title="Price to buy one item"><div>${exact(x.buy)}</div><div class="previous-price ${x.previousBuy!==null?'changed':''}">${x.previousBuy!==null?'Prev. '+exact(x.previousBuy):'&nbsp;'}</div></td><td title="Price to sell one item"><div>${exact(x.sell)}</div><div class="previous-price ${x.previousSell!==null?'changed':''}">${x.previousSell!==null?'Prev. '+exact(x.previousSell):'&nbsp;'}</div></td><td>${x.gross>=0?'+':''}${exact(x.gross)}</td>
-        <td title="Grand Exchange tax for selling one item">${exact(x.tax)}</td><td title="Combined instant-buy and instant-sell volume over 24 hours">${exact(x.volume)}</td><td class="${x.net>=0?'profit':'loss'}" title="Profit after tax for one item">${x.net>=0?'+':''}${exact(x.net)}</td>
+        <td title="Grand Exchange tax for selling one item">${exact(x.tax)}</td><td title="Combined instant-buy and instant-sell volume over 1 hour">${exact(x.volume)}</td><td class="${x.net>=0?'profit':'loss'}" title="Profit after tax for one item">${x.net>=0?'+':''}${exact(x.net)}</td>
       </tr>`).join('');
       els.rows.querySelectorAll('tr[data-id]').forEach(row=>{row.addEventListener('click',()=>openWatch(Number(row.dataset.id)));row.addEventListener('contextmenu',e=>openContextMenu(e,Number(row.dataset.id)));row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openWatch(Number(row.dataset.id))}})});
       renderPagination(pages);
-    }
-    function scoreRecommendations(items){
-      if(!items.length)return new Map();
-      const maxLogProfit=Math.max(...items.map(x=>Math.log1p(Math.max(0,x.net))),1),maxLogVolume=Math.max(...items.map(x=>Math.log1p(x.volume)),1);
-      const scored=items.filter(x=>x.net>0&&x.volume>0).map(x=>{
-        const profit=Math.log1p(x.net)/maxLogProfit,volume=Math.log1p(x.volume)/maxLogVolume,freshness=Math.exp(-x.age/30);
-        const roi=x.roi<=0?0:x.roi<=10?Math.sqrt(x.roi/10):Math.max(.2,10/x.roi);
-        return {id:x.id,score:(profit*.45+volume*.35+freshness*.20)*roi};
-      }).sort((a,b)=>b.score-a.score).slice(0,5);
-      return new Map(scored.map((x,index)=>[x.id,index]));
     }
     function openWatch(id){ state.selectedId=id; history.replaceState(null,'','#item-'+id); renderWatch(); }
     function closeWatch(){ state.selectedId=null; history.replaceState(null,'',location.pathname+location.search); els.watchOverlay.classList.remove('open'); }
@@ -312,13 +302,13 @@
       els.pagination.innerHTML=buttons.join(''); els.pagination.querySelectorAll('button:not([disabled])').forEach(b=>b.addEventListener('click',()=>{state.page=Number(b.dataset.page);render();document.querySelector('.table-wrap').scrollTop=0}));
     }
     document.querySelectorAll('th[data-sort]').forEach(th=>th.addEventListener('click',()=>{const key=th.dataset.sort;if(state.sort===key)state.direction*=-1;else{state.sort=key;state.direction=key==='name'?1:-1}render()}));
+    function filterChanged(){state.page=1;saveFilters();render()}
     els.search.addEventListener('input',()=>{state.page=1;render()});
-    els.maxPrice.addEventListener('input',()=>{state.page=1;render()});
-    els.minVolume.addEventListener('input',()=>{state.page=1;render()});
-    els.maxTradeAge.addEventListener('input',()=>{state.page=1;render()});
-    els.minProfit.addEventListener('input',()=>{state.page=1;render()});
-    els.recommended.addEventListener('change',()=>{state.page=1;render()});
-    els.profitable.addEventListener('change',()=>{state.page=1;render()});
+    els.maxPrice.addEventListener('input',filterChanged);
+    els.minVolume.addEventListener('input',filterChanged);
+    els.maxTradeAge.addEventListener('input',filterChanged);
+    els.minProfit.addEventListener('input',filterChanged);
+    els.profitable.addEventListener('change',filterChanged);
     els.refresh.addEventListener('click',loadData);
     $('watchPin').addEventListener('click',togglePin);
     $('contextPin').addEventListener('click',()=>{const id=state.contextItemId;closeContextMenu();togglePinId(id)});
@@ -327,6 +317,7 @@
     document.addEventListener('click',e=>{if(!e.target.closest('#contextMenu'))closeContextMenu()});
     window.addEventListener('scroll',closeContextMenu,{passive:true});
     document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeContextMenu();if(state.selectedId)closeWatch()}});
+    loadFilters();
     const hashMatch=location.hash.match(/^#item-(\d+)$/); if(hashMatch)state.selectedId=Number(hashMatch[1]);
     setInterval(()=>{if(!document.hidden)loadData()},60000);
     loadData();
