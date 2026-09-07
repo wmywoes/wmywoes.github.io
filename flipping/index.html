@@ -306,10 +306,6 @@
       let last=0; candidates.forEach(p=>{if(last&&p-last>1)buttons.push('<span>…</span>');add(p,p,false,p===state.page);last=p}); add('›',state.page+1,state.page===pages);
       els.pagination.innerHTML=buttons.join(''); els.pagination.querySelectorAll('button:not([disabled])').forEach(b=>b.addEventListener('click',()=>{state.page=Number(b.dataset.page);render();document.querySelector('.table-wrap').scrollTop=0}));
     }
-    $('liveTab').addEventListener('click',()=>switchTab('live'));
-    $('longTab').addEventListener('click',()=>switchTab('long'));
-    $('analyzeItem').addEventListener('click',analyzeLongSearch);
-    $('longSearch').addEventListener('keydown',e=>{if(e.key==='Enter')analyzeLongSearch()});
     document.querySelectorAll('th[data-sort]').forEach(th=>th.addEventListener('click',()=>{const key=th.dataset.sort;if(state.sort===key)state.direction*=-1;else{state.sort=key;state.direction=key==='name'?1:-1}render()}));
     function filterChanged(){state.page=1;saveFilters();render()}
     els.search.addEventListener('input',()=>{state.page=1;render()});
