@@ -26,10 +26,6 @@
     .dot { display:inline-block; width:8px; height:8px; margin-right:6px; border-radius:50%; background:var(--gold); box-shadow:0 0 8px var(--gold); }
     .dot.live { background:var(--green); box-shadow:0 0 8px var(--green); }
     .dot.error { background:var(--red); box-shadow:0 0 8px var(--red); }
-    .tabs { display:flex; gap:6px; margin-bottom:12px; border-bottom:1px solid var(--line); }
-    .tab { height:40px; padding:0 18px; border:1px solid transparent; border-bottom:0; border-radius:6px 6px 0 0; background:transparent; color:var(--muted); text-shadow:none; }
-    .tab.active { border-color:var(--line); background:var(--panel2); color:var(--gold2); }
-    .tab-panel[hidden] { display:none; }
     .controls { display:flex; gap:12px; align-items:flex-end; padding:16px; border:1px solid var(--line); background:linear-gradient(180deg,rgba(38,31,20,.98),rgba(25,21,14,.98)); border-radius:7px 7px 0 0; box-shadow:0 10px 30px var(--shadow); }
     .field { min-width:0; }
     label { display:block; margin:0 0 4px; color:var(--muted); font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
@@ -98,34 +94,6 @@
     .context-menu.open { display:block; }
     .context-menu button { width:100%; height:36px; text-align:left; padding:0 11px; border-color:transparent; background:transparent; color:var(--text); text-shadow:none; }
     .context-menu button:hover,.context-menu button:focus { border-color:#80632c; background:#3a2d18; color:var(--gold2); }
-    .long-controls { border-radius:7px; margin-bottom:12px; }
-    .long-search { flex:1; }
-    .long-note { margin:0 0 14px; color:var(--muted); font-size:13px; }
-    .quick-picks { display:flex; flex-wrap:wrap; gap:7px; margin:0 0 14px; }
-    .quick-picks button { height:32px; padding:0 11px; background:#211b12; border-color:var(--line); color:#d9cfbe; text-shadow:none; }
-    .long-card { min-height:520px; padding:20px; border:1px solid var(--line); border-radius:7px; background:rgba(17,15,11,.97); box-shadow:0 14px 36px var(--shadow); }
-    .long-empty { display:grid; min-height:470px; place-items:center; color:var(--muted); text-align:center; }
-    .long-head { display:flex; align-items:center; gap:14px; margin-bottom:18px; }
-    .long-head img { width:58px; height:58px; object-fit:contain; }
-    .long-head h2 { margin:0; color:var(--gold2); font:700 24px Georgia,serif; }
-    .long-head p { margin:3px 0 0; color:var(--muted); }
-    .zone { margin-left:auto; padding:8px 12px; border:1px solid var(--line); border-radius:5px; font-weight:750; }
-    .zone.low { color:var(--green); border-color:#39764d; background:rgba(60,139,87,.14); }
-    .zone.middle { color:var(--gold2); }
-    .zone.high { color:var(--red); border-color:#85443e; background:rgba(156,68,60,.12); }
-    .long-stats { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:9px; margin-bottom:18px; }
-    .stat { padding:12px; border:1px solid #332a1c; border-radius:5px; background:#17130e; }
-    .stat-label { color:var(--muted); font-size:11px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; }
-    .stat-value { margin-top:4px; color:var(--text); font-size:18px; font-weight:750; }
-    .chart-box { height:310px; padding:12px; border:1px solid #332a1c; border-radius:5px; background:#0e0c09; }
-    .chart-box svg { width:100%; height:100%; overflow:visible; }
-    .chart-grid { stroke:#332a1c; stroke-width:1; }
-    .chart-line { fill:none; stroke:var(--gold); stroke-width:2.2; vector-effect:non-scaling-stroke; }
-    .chart-area { fill:url(#chartFill); opacity:.55; }
-    .chart-label { fill:#8f877a; font:11px Inter,Segoe UI,Arial,sans-serif; }
-    .long-guidance { margin:15px 0 0; color:#bdb3a2; }
-    @media(max-width:1100px) { .long-stats { grid-template-columns:repeat(3,1fr); } }
-    @media(max-width:640px) { .long-stats { grid-template-columns:repeat(2,1fr); } .long-head { align-items:flex-start; flex-wrap:wrap; } .zone { margin-left:72px; } }
     @media(max-width:1050px) {
       .controls { flex-wrap:wrap; }
       .search { flex-basis:100%; }
@@ -153,12 +121,6 @@
       <div class="status"><div><span class="dot" id="dot"></span><strong id="statusText">Loading prices…</strong></div><div id="updated">Connecting to the Wiki API</div></div>
     </header>
 
-    <nav class="tabs" aria-label="Flipping views">
-      <button class="tab active" id="liveTab" type="button" aria-selected="true">Current Flips</button>
-      <button class="tab" id="longTab" type="button" aria-selected="false">Long-term</button>
-    </nav>
-
-    <section class="tab-panel" id="livePanel">
     <section class="controls" aria-label="Flip filters">
       <div class="field search"><label for="search">Item search</label><input id="search" type="search" placeholder="Search items…" autocomplete="off"></div>
       <div class="field price-field"><label for="maxPrice">Max item price (m)</label><input id="maxPrice" type="number" min="0" step="1" value="100" inputmode="decimal"></div>
@@ -180,16 +142,6 @@
       </table>
     </div>
     <nav class="pagination" id="pagination" aria-label="Results pages"></nav>
-    </section>
-    <section class="tab-panel" id="longPanel" hidden>
-      <p class="long-note">Analyze an item's daily traded prices over the available year. This can show whether today's price is relatively low or high, but it cannot guarantee a repeating seasonal pattern.</p>
-      <section class="controls long-controls" aria-label="Long-term item analyzer">
-        <div class="field long-search"><label for="longSearch">Item</label><input id="longSearch" list="itemNames" placeholder="Search an item…" autocomplete="off"><datalist id="itemNames"></datalist></div>
-        <button id="analyzeItem" type="button">Analyze</button>
-      </section>
-      <div class="quick-picks" id="longQuickPicks"></div>
-      <section class="long-card" id="longResult"><div class="long-empty">Choose an item to view its longer-term price history.</div></section>
-    </section>
     <p class="notice">Price data from the OSRS Wiki Real-time Prices API, crowdsourced through RuneLite. Not affiliated with Jagex.</p>
   </main>
 
@@ -219,7 +171,7 @@
 
   <script>
     const API = 'https://prices.runescape.wiki/api/v1/osrs';
-    const state = { items: [], sort: 'net', direction: -1, loadedAt: 0, page: 1, selectedId: null, contextItemId:null, activeTab:'live', longItemId:null, pinnedIds:loadPins(), priceHistory:loadPriceHistory() };
+    const state = { items: [], sort: 'net', direction: -1, loadedAt: 0, page: 1, selectedId: null, contextItemId:null, pinnedIds:loadPins(), priceHistory:loadPriceHistory() };
     const $ = id => document.getElementById(id);
     const els = { rows:$('rows'), search:$('search'), maxPrice:$('maxPrice'), minBuyVolume:$('minBuyVolume'), minSellVolume:$('minSellVolume'), maxTradeAge:$('maxTradeAge'), minProfit:$('minProfit'), profitable:$('profitable'), refresh:$('refresh'), pagination:$('pagination'), watchOverlay:$('watchOverlay') };
 
@@ -288,7 +240,7 @@
         }).filter(Boolean);
         state.priceHistory=new Map(state.items.map(x=>[x.id,{buy:x.buy,sell:x.sell,previousBuy:x.previousBuy,previousSell:x.previousSell}]));savePriceHistory();
         state.loadedAt=Date.now(); $('dot').className='dot live'; $('statusText').textContent='Live market data'; $('updated').textContent='Updated '+new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
-        render(); renderWatch(); populateLongItems();
+        render(); renderWatch();
       } catch(error) {
         console.error(error); $('dot').className='dot error'; $('statusText').textContent='Could not load prices'; $('updated').textContent='Try refreshing in a moment';
         els.rows.innerHTML='<tr><td colspan="9" class="empty">The real-time price service could not be reached.<br><button onclick="loadData()" style="margin-top:14px">Try again</button></td></tr>';
@@ -346,65 +298,6 @@
       $('watchTax').textContent=exact(x.tax); $('watchBuyVolume').textContent=exact(x.buyVolume); $('watchSellVolume').textContent=exact(x.sellVolume); $('watchProfit').textContent=(x.net>=0?'+':'')+exact(x.net);
       $('watchTradeAge').textContent=ageLabel(x.lastTrade); const pinned=state.pinnedIds.has(x.id);$('watchPin').textContent=pinned?'Unpin item':'Pin item';$('watchPin').classList.toggle('active',pinned);$('watchPin').setAttribute('aria-pressed',String(pinned));
       els.watchOverlay.classList.add('open');
-    }
-
-    function switchTab(tab){
-      state.activeTab=tab; const live=tab==='live';
-      $('livePanel').hidden=!live; $('longPanel').hidden=live;
-      $('liveTab').classList.toggle('active',live); $('longTab').classList.toggle('active',!live);
-      $('liveTab').setAttribute('aria-selected',String(live)); $('longTab').setAttribute('aria-selected',String(!live));
-      if(!live) populateLongItems();
-    }
-    function populateLongItems(){
-      if(!state.items.length)return;
-      const list=$('itemNames'); if(!list.children.length)list.innerHTML=state.items.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(x=>'<option value="'+escapeHtml(x.name)+'"></option>').join('');
-      const pins=state.items.filter(x=>state.pinnedIds.has(x.id));
-      $('longQuickPicks').innerHTML=pins.length?'<span style="color:var(--muted);align-self:center">Pinned:</span>'+pins.map(x=>'<button type="button" data-long-id="'+x.id+'">'+escapeHtml(x.name)+'</button>').join(''):'';
-      $('longQuickPicks').querySelectorAll('[data-long-id]').forEach(b=>b.addEventListener('click',()=>analyzeLongItem(Number(b.dataset.longId))));
-    }
-    function percentile(sorted,value){
-      if(!sorted.length)return 0; let below=0; while(below<sorted.length&&sorted[below]<=value)below++; return Math.round(below/sorted.length*100);
-    }
-    function pctChange(now,then){return then?((now-then)/then*100):0}
-    function average(values){return values.length?values.reduce((a,b)=>a+b,0)/values.length:0}
-    function longCacheGet(id){
-      try{const x=JSON.parse(localStorage.getItem('osrs-flipping-long-'+id)||'null');return x&&Date.now()-x.savedAt<21_600_000?x.data:null}catch{return null}
-    }
-    function longCacheSet(id,data){try{localStorage.setItem('osrs-flipping-long-'+id,JSON.stringify({savedAt:Date.now(),data}))}catch{}}
-    async function analyzeLongItem(id){
-      const item=state.items.find(x=>x.id===id); if(!item)return;
-      state.longItemId=id; $('longSearch').value=item.name; $('analyzeItem').disabled=true;
-      $('longResult').innerHTML='<div class="long-empty">Loading one year of '+escapeHtml(item.name)+' prices…</div>';
-      try{
-        let payload=longCacheGet(id);
-        if(!payload){payload=await fetchJson('/timeseries?timestep=24h&id='+id);longCacheSet(id,payload)}
-        const points=(payload.data||[]).filter(x=>Number.isFinite(x.avgHighPrice)&&Number.isFinite(x.avgLowPrice)).map(x=>({t:x.timestamp,p:(x.avgHighPrice+x.avgLowPrice)/2}));
-        if(points.length<7)throw new Error('Not enough historical trades');
-        renderLongAnalysis(item,points);
-      }catch(error){console.error(error);$('longResult').innerHTML='<div class="long-empty">There is not enough daily trade history for this item right now.</div>'}
-      finally{$('analyzeItem').disabled=false}
-    }
-    function renderLongAnalysis(item,points){
-      const prices=points.map(x=>x.p),current=(item.buy+item.sell)/2,sorted=[...prices].sort((a,b)=>a-b);
-      const last30=prices.slice(-30),last90=prices.slice(-90),pctl=percentile(sorted,current);
-      const low90=Math.min(...last90),high90=Math.max(...last90),avg30=average(last30);
-      const change7=pctChange(current,prices[Math.max(0,prices.length-8)]),change30=pctChange(current,prices[Math.max(0,prices.length-31)]);
-      const zone=pctl<=25?'low':pctl>=75?'high':'middle',zoneText=zone==='low'?'Potential buy zone':zone==='high'?'Higher-price zone':'Middle of range';
-      const sellZone=sorted[Math.floor((sorted.length-1)*.75)],buyZone=sorted[Math.floor((sorted.length-1)*.25)];
-      const w=1000,h=270,pad=38,min=Math.min(...prices),max=Math.max(...prices),range=max-min||1;
-      const coords=points.map((x,i)=>[(pad+i/(points.length-1)*(w-pad*2)),(h-pad-(x.p-min)/range*(h-pad*2))]);
-      const line=coords.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
-      const area=line+' L '+coords.at(-1)[0].toFixed(1)+' '+(h-pad)+' L '+coords[0][0].toFixed(1)+' '+(h-pad)+' Z';
-      const fmtPct=v=>(v>=0?'+':'')+v.toFixed(1)+'%';
-      $('longResult').innerHTML='<div class="long-head"><img alt="" src="https://secure.runescape.com/m=itemdb_oldschool/obj_sprite.gif?id='+item.id+'"><div><h2>'+escapeHtml(item.name)+'</h2><p>'+points.length+' daily price points</p></div><div class="zone '+zone+'">'+zoneText+'</div></div>'+
-      '<div class="long-stats"><div class="stat"><div class="stat-label">Current midpoint</div><div class="stat-value">'+exact(current)+'</div></div><div class="stat"><div class="stat-label">1-year percentile</div><div class="stat-value">'+pctl+'th</div></div><div class="stat"><div class="stat-label">30-day average</div><div class="stat-value">'+exact(avg30)+'</div></div><div class="stat"><div class="stat-label">90-day range</div><div class="stat-value">'+compact(low90)+' – '+compact(high90)+'</div></div><div class="stat"><div class="stat-label">7-day change</div><div class="stat-value '+(change7>=0?'profit':'loss')+'">'+fmtPct(change7)+'</div></div><div class="stat"><div class="stat-label">30-day change</div><div class="stat-value '+(change30>=0?'profit':'loss')+'">'+fmtPct(change30)+'</div></div></div>'+
-      '<div class="chart-box"><svg viewBox="0 0 '+w+' '+h+'" role="img" aria-label="Daily average traded price history"><defs><linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d7af52" stop-opacity=".45"/><stop offset="1" stop-color="#d7af52" stop-opacity="0"/></linearGradient></defs><line class="chart-grid" x1="'+pad+'" y1="'+pad+'" x2="'+(w-pad)+'" y2="'+pad+'"/><line class="chart-grid" x1="'+pad+'" y1="'+(h-pad)+'" x2="'+(w-pad)+'" y2="'+(h-pad)+'"/><path class="chart-area" d="'+area+'"/><path class="chart-line" d="'+line+'"/><text class="chart-label" x="'+pad+'" y="15">'+compact(max)+'</text><text class="chart-label" x="'+pad+'" y="'+(h-5)+'">'+compact(min)+'</text><text class="chart-label" text-anchor="end" x="'+(w-pad)+'" y="'+(h-5)+'">Today</text></svg></div>'+
-      '<p class="long-guidance">Over the available history, the lower quarter is around <b>'+exact(buyZone)+'</b> or below and the upper quarter begins around <b>'+exact(sellZone)+'</b>. These are historical reference zones—not guaranteed buy or sell prices—and updates or game events can permanently change an item’s value.</p>';
-    }
-    function analyzeLongSearch(){
-      const q=$('longSearch').value.trim().toLowerCase(); if(!q)return;
-      const exactMatch=state.items.find(x=>x.name.toLowerCase()===q),partial=state.items.find(x=>x.name.toLowerCase().includes(q));
-      if(exactMatch||partial)analyzeLongItem((exactMatch||partial).id);else $('longResult').innerHTML='<div class="long-empty">No matching item was found.</div>';
     }
 
     function renderPagination(pages){
