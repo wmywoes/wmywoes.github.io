@@ -1339,8 +1339,14 @@ try {
       addClosetWall(c.x + WALL_T / 2, c.openH + (c.h - c.openH) / 2,
         (c.openPos ?? (c.z + c.d / 2)), WALL_T, c.h - c.openH, c.openW);
     }
+    // Extend the room floor into the external closet at the same floor level.
+    const closetFloor = new THREE.Mesh(new THREE.BoxGeometry(c.w, 0.5, c.d), mats.floor);
+    closetFloor.position.set(c.x + c.w / 2, -0.25, c.z + c.d / 2);
+    closetFloor.receiveShadow = true;
+    groups.room.add(closetFloor);
+    // Keep the ceiling cap flush with the 93-inch room wall tops, not above them.
     const top = new THREE.Mesh(new THREE.BoxGeometry(c.w, 1, c.d), mats.closet);
-    top.position.set(c.x + c.w / 2, c.h + .5, c.z + c.d / 2);
+    top.position.set(c.x + c.w / 2, c.h - .5, c.z + c.d / 2);
     groups.room.add(top);
     const label = makeLabel("Closet", "#cbd5e1", 12);
     label.position.set(c.x + c.w / 2, c.h + 5, c.z + c.d / 2);
