@@ -1389,6 +1389,22 @@ try {
     buildWall("south");
     buildWall("east");
     buildWall("west");
+    // Wall segments stop at their nominal ends. Fill the four outside 1-inch
+    // squares where their thickness would otherwise leave a visible gap.
+    const cornerLocations = [
+      [-WALL_T / 2, -WALL_T / 2],
+      [r.w + WALL_T / 2, -WALL_T / 2],
+      [-WALL_T / 2, r.d + WALL_T / 2],
+      [r.w + WALL_T / 2, r.d + WALL_T / 2]
+    ];
+    for (const [x, z] of cornerLocations) {
+      const h = (z < 0) ? r.northH : r.southH;
+      const corner = new THREE.Mesh(new THREE.BoxGeometry(WALL_T, h, WALL_T), mats.wall);
+      corner.position.set(x, h / 2, z);
+      corner.castShadow = true;
+      corner.receiveShadow = true;
+      groups.room.add(corner);
+    }
 
     addOpeningFrame(state.door, "door");
     addOpeningFrame(state.window, "window");
