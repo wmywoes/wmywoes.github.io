@@ -390,6 +390,7 @@ body.objects-panel-collapsed #controlsTooltip {
       <div><label>Bottom height (in)</label><input id="newY" type="number" step="1" value="0"></div>
       <div><label>L thickness (in)</label><input id="newT" type="number" step="1" value="18"></div>
       <div><label><input id="newPlaceable" type="checkbox"> placeable on top</label></div>
+      <div><label><input id="newAllowOutside" type="checkbox"> allow outside room</label></div>
     </div>
     <div class="row">
       <button id="addObj" class="accent">Add</button>
@@ -746,16 +747,17 @@ try {
       "id": 16,
       "name": "Closet Contents",
       "type": "closetContents",
-      "w": 23,
-      "d": 65,
+      "w": 22,
+      "d": 60,
       "h": 72,
       "x": 121.5,
-      "z": 102,
+      "z": 100,
       "rot": 0,
       "t": 18,
       "color": "#94a3b8",
       "y": 0,
-      "placeable": true
+      "placeable": true,
+      "allowOutside": true
     },
     {
       "id": 17,
@@ -893,10 +895,10 @@ try {
       "id": 34,
       "name": "Window curtains",
       "wall": "west",
-      "w": 44,
-      "h": 54,
+      "w": 66,
+      "h": 39,
       "pos": 42,
-      "y": 44,
+      "y": 41,
       "color": "#222833",
       "type": "curtains"
     }
@@ -1661,8 +1663,8 @@ try {
     return { pos: p.z, y: p.y };
   }
 
-  function createObject(name, type, w, d, h, x, z, rot = 0, t = 18, color = GREEN, y = 0, placeable = false) {
-    return { id: state.nextId++, name, type, w, d, h, x, z, rot, t, color, y, placeable };
+  function createObject(name, type, w, d, h, x, z, rot = 0, t = 18, color = GREEN, y = 0, placeable = false, allowOutside = false) {
+    return { id: state.nextId++, name, type, w, d, h, x, z, rot, t, color, y, placeable, allowOutside };
   }
 
   function getObj(id = state.selectedId) {
@@ -1711,7 +1713,7 @@ try {
     if (o.placeable) return false;
     const b = bounds(o);
     const c = state.closet;
-    if (overlaps(b, { minX: c.x, maxX: c.x + c.w, minZ: c.z, maxZ: c.z + c.d })) return true;
+    if (!o.allowOutside && overlaps(b, { minX: c.x, maxX: c.x + c.w, minZ: c.z, maxZ: c.z + c.d })) return true;
     return state.objects.some(other => (
       other.id !== o.id &&
       !shouldIgnoreOverlapPair(o, other) &&
@@ -1720,13 +1722,14 @@ try {
   }
 
   function clampInside(o) {
+    if (o.allowOutside) return;
     const e = extents(o);
     o.x = THREE.MathUtils.clamp(o.x, e.hx, state.room.w - e.hx);
     o.z = THREE.MathUtils.clamp(o.z, e.hz, state.room.d - e.hz);
   }
 
   function edgeSnap(o) {
-    if (!$("edgeSnapOn").checked) return;
+    if (o.allowOutside || !$("edgeSnapOn").checked) return;
     const e = extents(o);
     const targetsX = [e.hx, state.room.w - e.hx];
     const targetsZ = [e.hz, state.room.d - e.hz];
@@ -2362,6 +2365,7 @@ try {
           <div><label>Bottom height (in)</label><input data-k="y" type="number" step="1" value="${round(o.y || 0)}"></div>
           <div><label>L thickness (in)</label><input data-k="t" type="number" step="1" value="${round(o.t || 18)}"></div>
           <div><label><input data-k="placeable" type="checkbox" ${o.placeable ? "checked" : ""}> placeable on top</label></div>
+          <div><label><input data-k="allowOutside" type="checkbox" ${o.allowOutside ? "checked" : ""}> allow outside room</label></div>
           <div><label>X (in)</label><input data-k="x" type="number" step="0.1" value="${round(o.x)}"></div>
           <div><label>Z (in)</label><input data-k="z" type="number" step="0.1" value="${round(o.z)}"></div>
           <div><label>Rotation</label><input data-k="rot" type="number" step="1" value="${round(o.rot)}"></div>
@@ -2401,6 +2405,7 @@ try {
         if (Number.isFinite(v)) o[k] = v;
       }
       o.placeable = !!card.querySelector('[data-k="placeable"]')?.checked;
+      o.allowOutside = !!card.querySelector('[data-k="allowOutside"]')?.checked;
       o.w = Math.max(1, o.w);
       o.d = Math.max(1, o.d);
       o.h = Math.max(1, o.h);
@@ -2543,7 +2548,7 @@ try {
 
 
   const WALL_PRESETS = {
-    curtains: { name: "Window curtains", type: "curtains", wall: "west", w: 44, h: 64, pos: 74.5, y: 24, color: "#475569" }
+    curtains: { name: "Window curtains", type: "curtains", wall: "west", w: 66, h: 39, pos: 42, y: 41, color: "#475569" }
   };
 
   function applyWallPresetToInputs(key) {
@@ -2578,6 +2583,7 @@ try {
     $("newColor").value = p.color;
     $("newY").value = p.y || 0;
     $("newPlaceable").checked = !!p.placeable;
+    $("newAllowOutside").checked = !!p.allowOutside;
   }
 
   function addPresetObject() {
@@ -2600,7 +2606,8 @@ try {
       Math.max(1, n("newT", 18)),
       $("newColor")?.value || GREEN,
       Math.max(0, n("newY", 0)),
-      !!$("newPlaceable")?.checked
+      !!$("newPlaceable")?.checked,
+      !!$("newAllowOutside")?.checked
     );
     clampInside(o);
     state.objects.push(o);
