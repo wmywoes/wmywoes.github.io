@@ -382,7 +382,7 @@ body.objects-panel-collapsed #controlsTooltip {
         <option value="mirror">Mirror</option>
         <option value="trashCan">Trash can</option>
       </select></div>
-      <div><label>Shape</label><select id="newType"><option value="box">Box</option><option value="desk">PC desk</option><option value="lDesk">L-desk</option><option value="chair">Chair</option><option value="tv">TV</option><option value="monitor">Monitor</option><option value="basket">Laundry basket</option><option value="blanket">Blanket</option><option value="closetContents">Closet Contents</option><option value="lamp">Lamp</option><option value="echo">Echo</option><option value="fan">Fan</option><option value="towerFan">Tower fan</option><option value="rug">Rug</option><option value="dresser">Dresser</option><option value="bookshelf">Bookshelf</option><option value="plant">Plant</option><option value="mirror">Mirror</option><option value="trashCan">Trash can</option></select></div>
+      <div><label>Shape</label><select id="newType"><option value="box">Box</option><option value="bedFrame">Bed frame + mattress</option><option value="desk">PC desk</option><option value="lDesk">L-desk</option><option value="chair">Chair</option><option value="tv">TV</option><option value="monitor">Monitor</option><option value="basket">Laundry basket</option><option value="blanket">Blanket</option><option value="closetContents">Closet Contents</option><option value="lamp">Lamp</option><option value="echo">Echo</option><option value="fan">Fan</option><option value="towerFan">Tower fan</option><option value="rug">Rug</option><option value="dresser">Dresser</option><option value="bookshelf">Bookshelf</option><option value="plant">Plant</option><option value="mirror">Mirror</option><option value="trashCan">Trash can</option></select></div>
       <div><label>Color</label><input id="newColor" type="color" value="#22c55e"></div>
       <div><label>Width E/W (in)</label><input id="newW" type="number" step="1" value="24"></div>
       <div><label>Depth N/S (in)</label><input id="newD" type="number" step="1" value="24"></div>
@@ -521,7 +521,7 @@ try {
     {
       "id": 1,
       "name": "Bed",
-      "type": "box",
+      "type": "bedFrame",
       "w": 51,
       "d": 75,
       "h": 24,
@@ -2193,7 +2193,21 @@ try {
     const meshes = [];
     const edgePieces = [];
 
-    if (o.type === "lDesk") {
+    if (o.type === "bedFrame") {
+      // Total height stays unchanged: bottom half is a black raised frame,
+      // top half is the mattress. The existing bedding sits on top as before.
+      const half = o.h / 2;
+      const frameMat = new THREE.MeshStandardMaterial({ color: "#131313", roughness: 0.72 });
+      const mattressMat = new THREE.MeshStandardMaterial({ color: o.color || "#64748b", roughness: 0.9 });
+      addBoxPart(meshes, edgePieces, frameMat, o.w, Math.max(1, half * 0.16), o.d, 0, half - Math.max(1, half * 0.16) / 2, 0);
+      const leg = Math.max(2, Math.min(3.2, o.w * 0.06));
+      for (const x of [-o.w / 2 + leg / 2, o.w / 2 - leg / 2]) {
+        for (const z of [-o.d / 2 + leg / 2, o.d / 2 - leg / 2]) {
+          addBoxPart(meshes, edgePieces, frameMat, leg, half, leg, x, half / 2, z);
+        }
+      }
+      addBoxPart(meshes, edgePieces, mattressMat, o.w, half, o.d, 0, half + half / 2, 0);
+    } else if (o.type === "lDesk") {
       const t = Math.min(o.t || 24, o.w, o.d);
       addDeskTopAndLegs(meshes, edgePieces, bodyMat, [
         { w: o.w, d: t, x: 0, z: -o.d / 2 + t / 2 },
@@ -2341,7 +2355,7 @@ try {
         <summary>${o.name}${isOverlap(o) ? " ⚠️" : ""}</summary>
         <div class="grid2">
           <div><label>Name</label><input data-k="name" value="${o.name}"></div>
-          <div><label>Shape</label><select data-k="type"><option value="box">Box</option><option value="desk">PC desk</option><option value="lDesk">L-desk</option><option value="chair">Chair</option><option value="tv">TV</option><option value="monitor">Monitor</option><option value="basket">Laundry basket</option><option value="blanket">Blanket</option><option value="closetContents">Closet Contents</option><option value="lamp">Lamp</option><option value="echo">Echo</option><option value="fan">Fan</option><option value="towerFan">Tower fan</option><option value="rug">Rug</option><option value="dresser">Dresser</option><option value="bookshelf">Bookshelf</option><option value="plant">Plant</option><option value="mirror">Mirror</option><option value="trashCan">Trash can</option></select></div>
+          <div><label>Shape</label><select data-k="type"><option value="box">Box</option><option value="bedFrame">Bed frame + mattress</option><option value="desk">PC desk</option><option value="lDesk">L-desk</option><option value="chair">Chair</option><option value="tv">TV</option><option value="monitor">Monitor</option><option value="basket">Laundry basket</option><option value="blanket">Blanket</option><option value="closetContents">Closet Contents</option><option value="lamp">Lamp</option><option value="echo">Echo</option><option value="fan">Fan</option><option value="towerFan">Tower fan</option><option value="rug">Rug</option><option value="dresser">Dresser</option><option value="bookshelf">Bookshelf</option><option value="plant">Plant</option><option value="mirror">Mirror</option><option value="trashCan">Trash can</option></select></div>
           <div><label>Color</label><input data-k="color" type="color" value="${o.color || GREEN}"></div>
           <div><label>Width (in)</label><input data-k="w" type="number" step="1" value="${round(o.w)}"></div>
           <div><label>Depth (in)</label><input data-k="d" type="number" step="1" value="${round(o.d)}"></div>
