@@ -489,8 +489,8 @@ try {
     "southH": 93
   },
   "door": {
-    "wall": "north",
-    "pos": 89.5,
+    "wall": "east",
+    "pos": 21.5,
     "w": 35,
     "h": 81
   },
@@ -503,12 +503,13 @@ try {
   },
   "closet": {
     "x": 108,
-    "z": 30.5,
+    "z": 61,
     "w": 27,
     "d": 76,
     "h": 93,
     "openW": 47,
-    "openH": 81
+    "openH": 81,
+    "openPos": 101.5
   },
   "colors": {
     "wall": "#e8ebef",
@@ -749,7 +750,7 @@ try {
       "d": 65,
       "h": 72,
       "x": 121.5,
-      "z": 68.5,
+      "z": 102,
       "rot": 0,
       "t": 18,
       "color": "#94a3b8",
@@ -1003,7 +1004,7 @@ try {
     mats.wall.color.set(state.colors.wall || "#e8ebef");
     mats.ceiling.color.set(state.colors.wall || "#e8ebef");
     mats.doorClosed.color.set(state.colors.door || "#8a5b35");
-    mats.closet.color.set(state.colors.closet || "#353a42");
+    mats.closet.color.set(state.colors.wall || "#e8ebef");
   }
 
   const state = {
@@ -1109,7 +1110,7 @@ try {
       y0: 0,
       y1: state.door.h
     });
-    if (wall === "east") openings.push({ center: state.closet.z + state.closet.d / 2, width: state.closet.openW, y0: 0, y1: state.closet.openH });
+    if (wall === "east") openings.push({ center: state.closet.openPos ?? (state.closet.z + state.closet.d / 2), width: state.closet.openW, y0: 0, y1: state.closet.openH });
     if (state.window.wall === wall) openings.push({
       center: state.window.pos,
       width: state.window.w,
@@ -1336,7 +1337,7 @@ try {
     // Above the 81-inch tall doorway into the closet.
     if (c.h > c.openH) {
       addClosetWall(c.x + WALL_T / 2, c.openH + (c.h - c.openH) / 2,
-        c.z + c.d / 2, WALL_T, c.h - c.openH, c.openW);
+        (c.openPos ?? (c.z + c.d / 2)), WALL_T, c.h - c.openH, c.openW);
     }
     const top = new THREE.Mesh(new THREE.BoxGeometry(c.w, 1, c.d), mats.closet);
     top.position.set(c.x + c.w / 2, c.h + .5, c.z + c.d / 2);
@@ -1348,19 +1349,20 @@ try {
 
   function buildWestWallBumpAndHeater() {
     const r = state.room;
-    // Measured 3.5-inch projecting bump, 44 inches high along the west wall.
+    // 3.5-inch projection below the 44-inch-tall west-wall bump.
     const bump = new THREE.Mesh(new THREE.BoxGeometry(3.5, 44, r.d), mats.wall);
     bump.position.set(1.75, 22, r.d / 2);
     bump.receiveShadow = true;
     groups.room.add(bump);
-    // Heater footprint and length are provisional (not dimensioned in sketch).
+
+    // Low heater, matching the 58-inch width and along-wall placement of the window.
     const heaterMat = new THREE.MeshStandardMaterial({color:0xd0d4d8, roughness:.8});
-    const heater = new THREE.Mesh(new THREE.BoxGeometry(4, 41, 46), heaterMat);
-    heater.position.set(5.5, 66, 34);
+    const heater = new THREE.Mesh(new THREE.BoxGeometry(3.5, 8, state.window.w), heaterMat);
+    heater.position.set(5.25, 4, state.window.pos);
     heater.castShadow = true;
     groups.room.add(heater);
-    const label = makeLabel("Heater (approx.)", "#cbd5e1", 8);
-    label.position.set(10, 86, 34);
+    const label = makeLabel("Heater", "#cbd5e1", 7);
+    label.position.set(7, 11, state.window.pos);
     groups.labels.add(label);
   }
 
@@ -3233,9 +3235,9 @@ try {
 
   function resetDefaults() {
     state.room = { w: 108, d: 137, northH: 93, southH: 93 };
-    state.door = { wall: "north", pos: 89.5, w: 35, h: 81 };
+    state.door = { wall: "east", pos: 21.5, w: 35, h: 81 };
     state.window = { wall: "west", pos: 42, w: 58, h: 33, sill: 44 };
-    state.closet = { x: 108, z: 30.5, w: 27, d: 76, h: 93, openW: 47, openH: 81 };
+    state.closet = { x: 108, z: 61, w: 27, d: 76, h: 93, openW: 47, openH: 81, openPos: 101.5 };
     state.colors = { wall: "#e8ebef", door: "#8a5b35", closet: "#353a42" };
     state.nextId = 1;
     state.wallObjects = [];
